@@ -60,7 +60,7 @@ def inquiry():
             resend.api_key = RESEND_API_KEY
             resend.Emails.send({
                 "from": "MK7 Media <notifications@lumenmarketing.co>",
-                "to": [NOTIFY_EMAIL],
+                "to": [NOTIFY_EMAIL, "kendall@lumenmarketing.co"],
                 "subject": f"New Inquiry: {name} — {service_type}",
                 "html": _build_inquiry_email(name, email, business, website, service_type, budget, worked_with_agency, goals)
             })
