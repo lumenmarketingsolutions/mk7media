@@ -135,7 +135,7 @@
 
     /* ── Hero ── */
     .hero {
-      min-height: 100vh;
+      min-height: 100svh;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -156,21 +156,6 @@
       pointer-events: none;
     }
     .hero-inner { max-width: 760px; position: relative; z-index: 1; }
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--gradient-soft);
-      border: 1px solid rgba(77,124,245,0.2);
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      padding: 8px 18px;
-      border-radius: 100px;
-      margin-bottom: 36px;
-      color: var(--blue-bright);
-    }
     .hero h1 {
       font-size: clamp(40px, 7vw, 64px);
       font-weight: 900;
@@ -579,7 +564,7 @@
       border-radius: 12px;
       color: var(--text);
       font-family: 'Inter', sans-serif;
-      font-size: 15px;
+      font-size: 16px;
       outline: none;
       transition: border-color 0.2s;
       margin-bottom: 12px;
@@ -594,7 +579,7 @@
       border-radius: 12px;
       color: var(--text);
       font-family: 'Inter', sans-serif;
-      font-size: 15px;
+      font-size: 16px;
       outline: none;
       resize: vertical;
       min-height: 100px;
@@ -653,6 +638,55 @@
     .quiz-success h3 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
     .quiz-success p { color: var(--text-muted); font-size: 15px; }
 
+    /* ── Mobile: Quiz + Layout ── */
+    @media (max-width: 768px) {
+      .hero { padding: 100px 20px 60px; }
+      .hero h1 { letter-spacing: -1px; margin-bottom: 20px; }
+      .hero p { font-size: 16px; margin-bottom: 36px; }
+      .hero-ctas { flex-direction: column; gap: 12px; }
+      .hero-ctas .btn-primary,
+      .hero-ctas .btn-secondary { width: 100%; justify-content: center; }
+
+      .services-section,
+      .how-section,
+      .results-section { padding: 80px 20px; }
+      .section { padding: 80px 20px; }
+      .section-title { margin-bottom: 12px; }
+      .section-subtitle { margin-bottom: 40px; font-size: 15px; }
+
+      .service-item { padding: 28px 24px; }
+      .step { padding: 28px 24px; }
+      .result-card { padding: 28px 24px; }
+      .result-metric { font-size: 32px; }
+
+      .about-text h2 { font-size: 28px; }
+
+      .cta-banner { padding: 80px 20px; }
+      .cta-banner .btn-primary { width: 100%; justify-content: center; }
+
+      .quiz-overlay { padding: 0; align-items: flex-end; }
+      .quiz-modal {
+        max-width: 100%;
+        border-radius: 24px 24px 0 0;
+        max-height: 90svh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .quiz-header { padding: 20px 24px 0; }
+      .quiz-body { padding: 28px 24px 24px; }
+      .quiz-footer { padding: 0 24px 24px; }
+      .quiz-question { font-size: 18px; }
+      .quiz-option { padding: 14px 16px; font-size: 14px; min-height: 48px; }
+      .quiz-input { padding: 14px 16px; font-size: 16px; }
+      .quiz-textarea { padding: 14px 16px; font-size: 16px; }
+      .quiz-success { padding: 48px 24px; }
+    }
+
+    @media (max-width: 380px) {
+      .hero h1 { font-size: 32px; }
+      .service-item { flex-direction: column; gap: 12px; }
+    }
+
     /* ── Footer ── */
     footer {
       text-align: center;
@@ -688,7 +722,7 @@
     <a href="#how-it-works">How It Works</a>
     <a href="#results">Results</a>
     <a href="#about">About</a>
-    <a href="#inquiry" class="nav-cta">Get Started</a>
+    <a href="#inquiry" class="nav-cta" onclick="event.preventDefault(); document.getElementById('navLinks').classList.remove('open'); openQuiz();">Get Started</a>
   </div>
   <button class="nav-mobile-toggle" onclick="document.getElementById('navLinks').classList.toggle('open')">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -1017,6 +1051,8 @@ function closeQuiz() {
   document.getElementById('quizOverlay').classList.remove('open');
   document.body.style.overflow = '';
 }
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeQuiz(); });
 
 function selectOption(btn, field, value) {
   btn.parentElement.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
