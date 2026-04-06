@@ -499,6 +499,17 @@
     @media (max-width: 900px) { .results-grid { grid-template-columns: 1fr; } }
     .result-desc { font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-bottom: 16px; }
     .result-detail { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+    .result-img {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-top: 20px;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .result-card:hover .result-img {
+      transform: scale(1.02);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
 
     /* ── About ── */
     .about-content {
@@ -982,16 +993,16 @@
 
     <div class="results-stats fade-in">
       <div class="stat-card">
-        <div class="stat-value blue">$7</div>
-        <div class="stat-label">Avg. Cost Per Lead across 5,000+ leads generated</div>
+        <div class="stat-value blue">1,442+</div>
+        <div class="stat-label">Leads generated across campaigns</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value pink">5%+</div>
-        <div class="stat-label">Landing page conversion rate baseline</div>
+        <div class="stat-value pink">$1.48M</div>
+        <div class="stat-label">Revenue tracked from ad campaigns</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value blue">4%+</div>
-        <div class="stat-label">Click-through rate on ads</div>
+        <div class="stat-value blue">$8.38</div>
+        <div class="stat-label">Lowest cost per lead achieved</div>
       </div>
       <div class="stat-card">
         <div class="stat-value grad">3-5X</div>
@@ -1001,39 +1012,43 @@
 
     <div class="results-grid">
       <div class="result-card fade-in d1">
-        <div class="result-tag tag-leads">Lead Generation</div>
-        <div class="result-metric blue">755%</div>
-        <div class="result-label">Increase in lead volume</div>
+        <div class="result-tag tag-leads">Lead Generation + Revenue</div>
+        <div class="result-metric blue">880 Leads</div>
+        <div class="result-label">$8.38 cost per lead from $7,376 in ad spend</div>
         <div class="result-divider"></div>
-        <div class="result-desc">Client was convinced their market was tapped out. We found the friction in 10 days and rebuilt the entire funnel from targeting to creative.</div>
-        <div class="result-detail">85% drop in advertising cost. Same market, completely different results.</div>
+        <div class="result-desc">880 leads generated for a service business entering a new market. $7,376 total ad spend turned into $290K in net revenue within 82 days. 129 closed sales at $2,319 average ticket.</div>
+        <div class="result-detail">22,861 clicks. Full funnel built from scratch. On track for their best year ever.</div>
+        <img src="/static/case-880-leads.png" alt="Meta Ads dashboard showing 880 leads at $8.38 CPL and $290K revenue" class="result-img" loading="lazy">
       </div>
 
       <div class="result-card fade-in d2">
-        <div class="result-tag tag-leads">Home Services</div>
-        <div class="result-metric blue">$290K</div>
-        <div class="result-label">Revenue generated in 82 days</div>
+        <div class="result-tag tag-leads">Lead Generation</div>
+        <div class="result-metric blue">435 Leads</div>
+        <div class="result-label">$22.69 avg CPL across 4 campaigns</div>
         <div class="result-divider"></div>
-        <div class="result-desc">Home services business that needed real leads, not clicks. Full funnel with Meta ads driving qualified appointments directly into their pipeline.</div>
-        <div class="result-detail">On track to have their best year ever. Started from zero paid advertising.</div>
+        <div class="result-desc">Four campaign iterations driving 435 qualified leads from $9,868 in total spend. 466,449 impressions across 9,086 clicks. Each campaign version refined targeting and creative to push cost per lead down.</div>
+        <div class="result-detail">Lead Campaign v1.00 hit $10.17 CPL with 164 leads from just $1,668 in spend.</div>
+        <img src="/static/case-435-leads.png" alt="Meta Ads pivot table showing 435 total leads across 4 campaigns" class="result-img" loading="lazy">
       </div>
 
       <div class="result-card fade-in d3">
-        <div class="result-tag tag-ecom">High-End Brand</div>
-        <div class="result-metric pink">880+</div>
-        <div class="result-label">Contacts generated in a new market</div>
+        <div class="result-tag tag-leads">Lead Generation</div>
+        <div class="result-metric blue">127 Leads</div>
+        <div class="result-label">$14.88 CPL from $1,890 in ad spend</div>
         <div class="result-divider"></div>
-        <div class="result-desc">High-end brand entering a city where demand did not exist yet. We built the audience from scratch and created demand through strategic positioning and ad creative.</div>
-        <div class="result-detail">Full pipeline in a market their competitors had written off.</div>
+        <div class="result-desc">127 inbound inquiries generated from just $1,890 in Meta ad spend. 4,740 link clicks driving qualified leads directly into the CRM pipeline for follow-up and conversion.</div>
+        <div class="result-detail">Real-time lead tracking with every inquiry captured and routed automatically.</div>
+        <img src="/static/case-127-leads.png" alt="Dashboard showing 127 leads from $1.89K spend with 4,740 clicks" class="result-img" loading="lazy">
       </div>
 
       <div class="result-card fade-in d4">
-        <div class="result-tag tag-ecom">High Ticket</div>
-        <div class="result-metric pink">$1M+</div>
-        <div class="result-label">Generated within two months of launch</div>
+        <div class="result-tag tag-ecom">High Ticket Ecommerce</div>
+        <div class="result-metric pink">$1.19M</div>
+        <div class="result-label">Revenue generated in a single period</div>
         <div class="result-divider"></div>
-        <div class="result-desc">High ticket product launch with a complete funnel strategy. Ads, landing pages, follow-up sequences, and conversion tracking all built and managed end to end.</div>
-        <div class="result-detail">Pipeline booked out for over a year from the initial campaign.</div>
+        <div class="result-desc">High ticket product launch that generated $1,193,605 in revenue during the campaign period. Previous period revenue was $0. Complete funnel strategy with ads, landing pages, and conversion tracking.</div>
+        <div class="result-detail">From zero to over a million in product revenue. Pipeline booked out for over a year.</div>
+        <img src="/static/case-1m-revenue.png" alt="Revenue report showing $1,193,605.83 this period versus $0 last period" class="result-img" loading="lazy">
       </div>
     </div>
   </div>
