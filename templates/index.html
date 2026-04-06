@@ -237,54 +237,138 @@
 
     /* ── Services ── */
     .services-section {
-      background: var(--bg-card);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
+      position: relative;
       padding: 120px 24px;
+      overflow: hidden;
     }
-    .services-inner { max-width: 1140px; margin: 0 auto; }
+    .services-section::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(180deg, var(--bg) 0%, var(--bg-card) 15%, var(--bg-card) 85%, var(--bg) 100%);
+      pointer-events: none;
+    }
+    .services-section::after {
+      content: '';
+      position: absolute;
+      top: 20%; left: -10%;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(77,124,245,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .services-inner { max-width: 1140px; margin: 0 auto; position: relative; z-index: 1; }
     .services-list {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 2px;
-      background: var(--border);
-      border-radius: 20px;
-      overflow: hidden;
+      gap: 20px;
     }
     .service-item {
+      position: relative;
       background: var(--bg-elevated);
-      padding: 40px 36px;
-      display: flex;
-      gap: 20px;
-      align-items: flex-start;
-      transition: background 0.3s;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 32px;
+      transition: border-color 0.4s, transform 0.3s, box-shadow 0.4s;
+      overflow: hidden;
     }
-    .service-item:hover { background: #15151e; }
+    .service-item::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--gradient);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .service-item::after {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 160px; height: 160px;
+      border-radius: 50%;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .service-item:hover {
+      border-color: rgba(77,124,245,0.2);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.3), 0 0 0 1px rgba(77,124,245,0.1);
+    }
+    .service-item:hover::before { opacity: 1; }
+    .service-item:hover::after { opacity: 1; }
+    .service-item:nth-child(odd)::after { background: radial-gradient(circle, rgba(77,124,245,0.08) 0%, transparent 70%); }
+    .service-item:nth-child(even)::after { background: radial-gradient(circle, rgba(232,77,160,0.08) 0%, transparent 70%); }
+    .service-item .svc-top {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
     .service-item .svc-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      position: relative;
     }
-    .service-item .svc-icon svg { width: 22px; height: 22px; }
+    .service-item .svc-icon svg { width: 24px; height: 24px; }
+    .service-item .svc-num {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-dim);
+      letter-spacing: 0.5px;
+    }
     .service-item h3 {
-      font-size: 17px;
+      font-size: 19px;
       font-weight: 700;
       color: var(--text);
-      margin-bottom: 6px;
-      letter-spacing: -0.2px;
+      margin-bottom: 12px;
+      letter-spacing: -0.3px;
+      position: relative;
     }
     .service-item p {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      position: relative;
+    }
+    .service-item.svc-featured {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, rgba(77,124,245,0.06) 0%, rgba(232,77,160,0.04) 100%);
+      border-color: rgba(77,124,245,0.15);
+    }
+    .service-item.svc-featured .svc-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: center;
+    }
+    .service-item.svc-featured .svc-highlights {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .svc-highlight {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       font-size: 14px;
       color: var(--text-muted);
-      line-height: 1.65;
+    }
+    .svc-highlight .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--gradient);
+      flex-shrink: 0;
     }
 
     @media (max-width: 768px) {
       .services-list { grid-template-columns: 1fr; }
+      .service-item.svc-featured .svc-content { grid-template-columns: 1fr; gap: 20px; }
+      .service-item { padding: 32px 24px; }
     }
 
     /* ── How It Works ── */
@@ -786,52 +870,67 @@
 
     <div class="services-list">
       <div class="service-item fade-in d1">
-        <div class="svc-icon" style="background: rgba(77,124,245,0.12);">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#6b93ff" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+        <div class="svc-top">
+          <div class="svc-icon" style="background: rgba(77,124,245,0.12);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#6b93ff" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+          </div>
+          <span class="svc-num">01</span>
         </div>
-        <div>
-          <h3>Meta Ad Management</h3>
-          <p>Full service campaign management on Facebook and Instagram. Strategy, creative, targeting, optimization, and reporting. We run the ads so you can run the business.</p>
-        </div>
+        <h3>Meta Ad Management</h3>
+        <p>Full service campaign management on Facebook and Instagram. Strategy, creative, targeting, optimization, and reporting. We run the ads so you can run the business.</p>
       </div>
 
       <div class="service-item fade-in d2">
-        <div class="svc-icon" style="background: rgba(232,77,160,0.12);">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#ff6bbf" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <div class="svc-top">
+          <div class="svc-icon" style="background: rgba(232,77,160,0.12);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ff6bbf" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <span class="svc-num">02</span>
         </div>
-        <div>
-          <h3>Done-For-You Sales Funnels</h3>
-          <p>We build the full path from ad click to conversion. Landing pages, offer pages, checkout flows, and everything in between. Designed to convert, tested to perform.</p>
-        </div>
+        <h3>Done-For-You Sales Funnels</h3>
+        <p>We build the full path from ad click to conversion. Landing pages, offer pages, checkout flows, and everything in between. Designed to convert, tested to perform.</p>
       </div>
 
       <div class="service-item fade-in d3">
-        <div class="svc-icon" style="background: rgba(77,124,245,0.12);">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#6b93ff" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        <div class="svc-top">
+          <div class="svc-icon" style="background: rgba(77,124,245,0.12);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#6b93ff" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <span class="svc-num">03</span>
         </div>
-        <div>
-          <h3>AI Automation and Agents</h3>
-          <p>Intelligent systems that handle lead follow-up, customer questions, and repetitive tasks automatically. Your business responds and operates even when you are not there.</p>
-        </div>
+        <h3>AI Automation and Agents</h3>
+        <p>Intelligent systems that handle lead follow-up, customer questions, and repetitive tasks automatically. Your business responds and operates even when you are not there.</p>
       </div>
 
       <div class="service-item fade-in d4">
-        <div class="svc-icon" style="background: rgba(232,77,160,0.12);">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#ff6bbf" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <div class="svc-top">
+          <div class="svc-icon" style="background: rgba(232,77,160,0.12);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ff6bbf" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <span class="svc-num">04</span>
         </div>
-        <div>
-          <h3>Lead Nurturing and Email Sequences</h3>
-          <p>Automated email campaigns that turn cold leads into warm buyers over time. We write the sequences, set up the triggers, and keep your pipeline moving without you lifting a finger.</p>
-        </div>
+        <h3>Lead Nurturing and Email Sequences</h3>
+        <p>Automated email campaigns that turn cold leads into warm buyers over time. We write the sequences, set up the triggers, and keep your pipeline moving without you lifting a finger.</p>
       </div>
 
-      <div class="service-item fade-in d5" style="grid-column: 1 / -1;">
-        <div class="svc-icon" style="background: linear-gradient(135deg, rgba(77,124,245,0.12), rgba(232,77,160,0.12));">
-          <svg viewBox="0 0 24 24" fill="none" stroke="url(#whatsGrad)" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/><defs><linearGradient id="whatsGrad" x1="3" y1="3" x2="21" y2="21"><stop stop-color="#6b93ff"/><stop offset="1" stop-color="#ff6bbf"/></linearGradient></defs></svg>
+      <div class="service-item svc-featured fade-in d5">
+        <div class="svc-top">
+          <div class="svc-icon" style="background: linear-gradient(135deg, rgba(77,124,245,0.15), rgba(232,77,160,0.15));">
+            <svg viewBox="0 0 24 24" fill="none" stroke="url(#whatsGrad)" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/><defs><linearGradient id="whatsGrad" x1="3" y1="3" x2="21" y2="21"><stop stop-color="#6b93ff"/><stop offset="1" stop-color="#ff6bbf"/></linearGradient></defs></svg>
+          </div>
+          <span class="svc-num">05</span>
         </div>
-        <div>
-          <h3>WhatsApp Automation</h3>
-          <p>Automated messaging flows for lead capture, appointment booking, and customer support through WhatsApp. Meet your audience on the platform they already use every day.</p>
+        <div class="svc-content">
+          <div>
+            <h3>WhatsApp Automation</h3>
+            <p>Automated messaging flows for lead capture, appointment booking, and customer support through WhatsApp. Meet your audience on the platform they already use every day.</p>
+          </div>
+          <div class="svc-highlights">
+            <div class="svc-highlight"><span class="dot"></span> Instant lead response and qualification</div>
+            <div class="svc-highlight"><span class="dot"></span> Automated appointment scheduling</div>
+            <div class="svc-highlight"><span class="dot"></span> 24/7 customer support flows</div>
+            <div class="svc-highlight"><span class="dot"></span> Seamless CRM integration</div>
+          </div>
         </div>
       </div>
     </div>
