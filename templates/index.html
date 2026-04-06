@@ -426,12 +426,22 @@
     @media (max-width: 900px) { .results-grid { grid-template-columns: 1fr; } }
     .result-desc { font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-bottom: 16px; }
     .result-detail { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+    .result-images {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+      justify-content: center;
+    }
     .result-img {
-      max-width: 360px;
+      max-width: 320px;
       width: 100%;
       border-radius: 10px;
       border: 1px solid var(--border);
-      margin-top: 20px;
+      display: block;
+    }
+    .result-images .result-img { max-width: 280px; }
+    @media (max-width: 600px) {
+      .result-images { flex-direction: column; align-items: center; }
     }
 
     /* ── About ── */
@@ -913,7 +923,10 @@
         <div class="result-divider"></div>
         <div class="result-desc">880 leads generated for a service business entering a new market. $7,376 total ad spend turned into $290K in net revenue within 82 days. 129 closed sales at $2,319 average ticket.</div>
         <div class="result-detail">22,861 clicks. Full funnel built from scratch. On track for their best year ever.</div>
-        <img src="/static/case-880-leads.jpg" alt="Meta Ads dashboard showing 880 leads at $8.38 CPL and $290K revenue" class="result-img" loading="lazy">
+        <div class="result-images">
+          <img src="/static/case-880-meta.jpg" alt="Meta Ads: $7,376 spent, 22,861 clicks, 880 leads, $8.38 CPL" class="result-img" loading="lazy">
+          <img src="/static/case-880-sales.jpg" alt="Sales Report: $299K gross, 129 sales, $2,319 average" class="result-img" loading="lazy">
+        </div>
       </div>
 
       <div class="result-card fade-in d2">
@@ -923,7 +936,9 @@
         <div class="result-divider"></div>
         <div class="result-desc">Four campaign iterations driving 435 qualified leads from $9,868 in total spend. 466,449 impressions across 9,086 clicks. Each campaign version refined targeting and creative to push cost per lead down.</div>
         <div class="result-detail">Lead Campaign v1.00 hit $10.17 CPL with 164 leads from just $1,668 in spend.</div>
-        <img src="/static/case-435-leads.jpg" alt="Meta Ads pivot table showing 435 total leads across 4 campaigns" class="result-img" loading="lazy">
+        <div class="result-images">
+          <img src="/static/case-435-leads.jpg" alt="Meta Ads pivot table showing 435 total leads across 4 campaigns" class="result-img" loading="lazy">
+        </div>
       </div>
 
       <div class="result-card fade-in d3">
@@ -933,7 +948,9 @@
         <div class="result-divider"></div>
         <div class="result-desc">127 inbound inquiries generated from just $1,890 in Meta ad spend. 4,740 link clicks driving qualified leads directly into the CRM pipeline for follow-up and conversion.</div>
         <div class="result-detail">Real-time lead tracking with every inquiry captured and routed automatically.</div>
-        <img src="/static/case-127-leads.jpg" alt="Dashboard showing 127 leads from $1.89K spend with 4,740 clicks" class="result-img" loading="lazy">
+        <div class="result-images">
+          <img src="/static/case-127-leads.jpg" alt="Dashboard showing 127 leads from $1.89K spend with 4,740 clicks" class="result-img" loading="lazy">
+        </div>
       </div>
 
       <div class="result-card fade-in d4">
@@ -943,7 +960,9 @@
         <div class="result-divider"></div>
         <div class="result-desc">High ticket product launch that generated $1,193,605 in revenue during the campaign period. Previous period revenue was $0. Complete funnel strategy with ads, landing pages, and conversion tracking.</div>
         <div class="result-detail">From zero to over a million in product revenue. Pipeline booked out for over a year.</div>
-        <img src="/static/case-1m-revenue.jpg" alt="Revenue report showing $1,193,605.83 this period versus $0 last period" class="result-img" loading="lazy">
+        <div class="result-images">
+          <img src="/static/case-1m-revenue.jpg" alt="Revenue report showing $1,193,605.83 this period versus $0 last period" class="result-img" loading="lazy">
+        </div>
       </div>
     </div>
   </div>
