@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MK7 Media — Meta Advertising That Delivers Qualified Buyers</title>
+  <meta name="description" content="Strategic Meta advertising for service businesses and ecommerce brands. Qualified leads. Real revenue. Built on data, refined through results.">
+  <meta property="og:title" content="MK7 Media — Meta Advertising That Delivers Qualified Buyers">
+  <meta property="og:description" content="Strategic Meta advertising for service businesses and ecommerce brands.">
+  <meta property="og:image" content="/static/og-image.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #faf9f7;
+      --bg-card: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b6b6b;
+      --text-light: #999;
+      --accent: #8b6cc7;
+      --accent-soft: #f0ebf8;
+      --accent-dark: #6b4fa0;
+      --border: #e8e6e3;
+      --border-light: #f0eeeb;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── Scroll Animations ── */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Navigation ── */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.3s, backdrop-filter 0.3s, box-shadow 0.3s;
+    }
+    nav.scrolled {
+      background: rgba(250, 249, 247, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 1px 0 var(--border);
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .nav-logo svg { width: 32px; height: 32px; }
+    .nav-logo span {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      background: var(--text) !important;
+      color: #fff !important;
+      padding: 10px 24px;
+      border-radius: 10px;
+      font-weight: 600 !important;
+      transition: background 0.2s !important;
+    }
+    .nav-cta:hover { background: #333 !important; }
+
+    /* Mobile nav */
+    .nav-mobile-toggle {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+    }
+    .nav-mobile-toggle svg { width: 24px; height: 24px; color: var(--text); }
+
+    @media (max-width: 768px) {
+      nav { padding: 16px 20px; }
+      .nav-links { display: none; }
+      .nav-mobile-toggle { display: block; }
+      .nav-links.open {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(250, 249, 247, 0.98);
+        backdrop-filter: blur(20px);
+        padding: 24px;
+        gap: 20px;
+        border-bottom: 1px solid var(--border);
+      }
+    }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+    }
+    .hero-inner { max-width: 720px; }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 8px 16px;
+      border-radius: 100px;
+      margin-bottom: 32px;
+    }
+    .hero h1 {
+      font-size: clamp(36px, 6vw, 56px);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      color: var(--text);
+      margin-bottom: 24px;
+    }
+    .hero h1 .accent { color: var(--accent); }
+    .hero p {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 520px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+    .hero-ctas {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 32px;
+      background: var(--text);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-primary:hover { background: #333; transform: translateY(-1px); }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 32px;
+      background: transparent;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-secondary:hover { border-color: #ccc; background: #fff; }
+
+    /* ── Section Layout ── */
+    .section {
+      padding: 100px 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .section-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      line-height: 1.15;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+    .section-subtitle {
+      font-size: 17px;
+      color: var(--text-muted);
+      max-width: 560px;
+      line-height: 1.7;
+      margin-bottom: 48px;
+    }
+
+    /* ── Services ── */
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .service-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px 32px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .service-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 8px 32px rgba(139, 108, 199, 0.08);
+    }
+    .service-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .service-icon svg { width: 24px; height: 24px; }
+    .service-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      letter-spacing: -0.3px;
+    }
+    .service-card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    /* ── How It Works ── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 32px;
+      counter-reset: step;
+    }
+    .step {
+      position: relative;
+      padding: 32px 0;
+    }
+    .step-number {
+      font-size: 48px;
+      font-weight: 800;
+      color: var(--accent-soft);
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+    .step h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      letter-spacing: -0.2px;
+    }
+    .step p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    /* ── Results / Case Studies ── */
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    .result-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px 32px;
+      transition: border-color 0.3s;
+    }
+    .result-card:hover { border-color: var(--accent); }
+    .result-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+    .tag-leads { background: var(--accent-soft); color: var(--accent-dark); }
+    .tag-ecom { background: #e8f5e9; color: #2e7d32; }
+    .result-metric {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -1px;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+    .result-label {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    .result-card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+    .result-divider {
+      height: 1px;
+      background: var(--border-light);
+      margin: 16px 0;
+    }
+    .result-footer {
+      font-size: 13px;
+      color: var(--text-light);
+    }
+
+    /* ── About ── */
+    .about-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+    .about-text h2 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 20px;
+    }
+    .about-text p {
+      font-size: 15px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      line-height: 1.8;
+    }
+    .about-visual {
+      background: linear-gradient(135deg, var(--accent-soft), #e8e4f0);
+      border-radius: 24px;
+      padding: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 360px;
+    }
+    .about-visual .logo-large svg {
+      width: 120px;
+      height: 120px;
+      opacity: 0.6;
+    }
+    @media (max-width: 768px) {
+      .about-content {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .about-visual { min-height: 240px; }
+    }
+
+    /* ── Inquiry Form ── */
+    .inquiry-section {
+      background: var(--text);
+      border-radius: 24px;
+      padding: 64px;
+      max-width: 1100px;
+      margin: 0 auto 100px;
+      color: #fff;
+    }
+    .inquiry-section .section-label { color: var(--accent); }
+    .inquiry-section .section-title { color: #fff; }
+    .inquiry-section .section-subtitle { color: #999; }
+    .inquiry-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      max-width: 640px;
+    }
+    .inquiry-form .full-width { grid-column: 1 / -1; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #888;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input::placeholder,
+    .form-group textarea::placeholder { color: #555; }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: var(--accent);
+    }
+    .form-group select { cursor: pointer; }
+    .form-group select option { background: #222; color: #fff; }
+    .form-group textarea { resize: vertical; min-height: 100px; }
+    .form-submit {
+      grid-column: 1 / -1;
+      margin-top: 8px;
+    }
+    .btn-submit {
+      width: 100%;
+      padding: 16px 32px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-submit:hover { background: var(--accent-dark); transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .form-success {
+      display: none;
+      text-align: center;
+      padding: 48px 0;
+    }
+    .form-success.show { display: block; }
+    .form-success h3 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .form-success p { color: #888; font-size: 15px; }
+
+    @media (max-width: 768px) {
+      .inquiry-section { padding: 40px 24px; margin: 0 16px 80px; }
+      .inquiry-form { grid-template-columns: 1fr; }
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 48px 24px;
+      border-top: 1px solid var(--border);
+    }
+    footer .footer-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    footer .footer-logo svg { width: 24px; height: 24px; }
+    footer .footer-logo span { font-size: 14px; font-weight: 700; color: var(--text); }
+    footer p { font-size: 13px; color: var(--text-light); }
+  </style>
+</head>
+<body>
+
+<!-- ── Navigation ── -->
+<nav id="nav">
+  <a href="#" class="nav-logo">
+    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- MK7 Logo: Heptagon (7-sided) with inner M shape -->
+      <path d="M20 2 L33.5 8 L37 22 L30 34 L10 34 L3 22 L6.5 8 Z" stroke="#8b6cc7" stroke-width="2" fill="none"/>
+      <path d="M12 26 L12 14 L20 22 L28 14 L28 26" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span>MK7 Media</span>
+  </a>
+  <div class="nav-links" id="navLinks">
+    <a href="#services">Services</a>
+    <a href="#how-it-works">How It Works</a>
+    <a href="#results">Results</a>
+    <a href="#about">About</a>
+    <a href="#inquiry" class="nav-cta">Get Started</a>
+  </div>
+  <button class="nav-mobile-toggle" onclick="document.getElementById('navLinks').classList.toggle('open')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="hero-inner fade-in">
+    <div class="hero-badge">
+      <svg width="14" height="14" viewBox="0 0 40 40" fill="none"><path d="M20 2 L33.5 8 L37 22 L30 34 L10 34 L3 22 L6.5 8 Z" stroke="currentColor" stroke-width="3" fill="none"/></svg>
+      Refined Through Seven Iterations
+    </div>
+    <h1>Meta Ads That Deliver <span class="accent">Qualified Buyers</span></h1>
+    <p>Strategic advertising for service businesses that need real leads and ecommerce brands that need real revenue. Built on data. Refined through results.</p>
+    <div class="hero-ctas">
+      <a href="#inquiry" class="btn-primary">Start a Conversation</a>
+      <a href="#results" class="btn-secondary">See Results</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Services ── -->
+<section class="section" id="services">
+  <div class="fade-in">
+    <div class="section-label">Services</div>
+    <div class="section-title">What We Do</div>
+    <div class="section-subtitle">Every engagement starts with understanding your business. From there, we build the strategy around what will actually move the needle for you.</div>
+  </div>
+
+  <div class="services-grid">
+    <div class="service-card fade-in">
+      <div class="service-icon" style="background: var(--accent-soft);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#8b6cc7" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      </div>
+      <h3>Qualified Lead Generation</h3>
+      <p>Meta ad campaigns engineered to bring in people who are actually ready to buy. We target based on psychology and intent, not just demographics. You get leads that convert into revenue.</p>
+    </div>
+
+    <div class="service-card fade-in">
+      <div class="service-icon" style="background: #e8f5e9;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      </div>
+      <h3>Ecommerce Advertising</h3>
+      <p>Full funnel ad strategy for online stores. We drive qualified traffic to your products, optimize for purchase conversions, and scale what works. Your ad spend turns into measurable revenue.</p>
+    </div>
+
+    <div class="service-card fade-in">
+      <div class="service-icon" style="background: #fff3e0;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e65100" stroke-width="2"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
+      </div>
+      <h3>Landing Pages and Funnels</h3>
+      <p>We build the pages your ads point to, or we optimize what you already have. The best ad in the world does not matter if the landing page does not convert. We make sure the full path works.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── How It Works ── -->
+<section class="section" id="how-it-works" style="background: #fff; padding-left: 0; padding-right: 0; max-width: 100%;">
+  <div style="max-width: 1100px; margin: 0 auto; padding: 0 24px;">
+    <div class="fade-in">
+      <div class="section-label">How It Works</div>
+      <div class="section-title">A Clear Process from Start to Results</div>
+      <div class="section-subtitle">Every business is different. The strategy we build for you is specific to what was uncovered in our first conversation.</div>
+    </div>
+
+    <div class="steps">
+      <div class="step fade-in">
+        <div class="step-number">01</div>
+        <h3>Discovery</h3>
+        <p>We learn your business, your goals, and your numbers. We figure out what success actually looks like for you, and we identify the gaps between where you are and where you want to be.</p>
+      </div>
+      <div class="step fade-in">
+        <div class="step-number">02</div>
+        <h3>Strategy</h3>
+        <p>We build a custom advertising strategy around what we uncovered. Audience targeting, creative direction, funnel structure, and budget allocation. All tailored to your specific situation.</p>
+      </div>
+      <div class="step fade-in">
+        <div class="step-number">03</div>
+        <h3>Launch</h3>
+        <p>Campaigns go live. We monitor performance daily, optimize in real time, and make decisions based on data. You see exactly what is working and where every dollar is going.</p>
+      </div>
+      <div class="step fade-in">
+        <div class="step-number">04</div>
+        <h3>Refine</h3>
+        <p>We analyze results, cut what is not working, and scale what is. Every iteration gets sharper. Every campaign gets more efficient. That is the process that compounds over time.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Results ── -->
+<section class="section" id="results">
+  <div class="fade-in">
+    <div class="section-label">Results</div>
+    <div class="section-title">Real Numbers from Real Campaigns</div>
+    <div class="section-subtitle">Case studies from businesses that trusted us to run their advertising. These are their results.</div>
+  </div>
+
+  <div class="results-grid">
+    <div class="result-card fade-in">
+      <div class="result-tag tag-leads">Lead Generation</div>
+      <div class="result-metric">82+ Deals</div>
+      <div class="result-label">Closed in the first 90 days</div>
+      <div class="result-divider"></div>
+      <p>Service business that had never run paid advertising before. We built the full funnel from scratch and launched targeted Meta campaigns that generated qualified inbound leads from day one.</p>
+    </div>
+
+    <div class="result-card fade-in">
+      <div class="result-tag tag-leads">Lead Generation</div>
+      <div class="result-metric">68 Leads</div>
+      <div class="result-label">At $13.41 per qualified lead</div>
+      <div class="result-divider"></div>
+      <p>Consistent lead flow at a cost per acquisition that made the numbers work from month one. Every lead was pre-qualified through the funnel before it ever reached the sales team.</p>
+    </div>
+
+    <div class="result-card fade-in">
+      <div class="result-tag tag-ecom">Ecommerce</div>
+      <div class="result-metric">20% CTR</div>
+      <div class="result-label">2,000+ website visitors from a single campaign</div>
+      <div class="result-divider"></div>
+      <p>Ecommerce brand running their first serious ad campaign. Creative strategy and audience targeting that drove high-intent traffic directly to product pages.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── About ── -->
+<section class="section" id="about">
+  <div class="about-content">
+    <div class="about-text fade-in">
+      <div class="section-label">About</div>
+      <h2>Built on Refinement</h2>
+      <p>MK7 Media is a strategic advertising agency built on a simple principle. Every campaign, every strategy, every decision should be refined until it works. The seven in our name represents that commitment to iteration. We do not guess and hope. We build, we measure, we refine, and we grow.</p>
+      <p>We work with service businesses that need qualified leads and ecommerce brands that need real revenue. Our focus is Meta advertising because that is where we deliver the strongest results, and we believe in doing one thing exceptionally well rather than doing everything at an average level.</p>
+    </div>
+    <div class="about-visual fade-in">
+      <div class="logo-large">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 2 L33.5 8 L37 22 L30 34 L10 34 L3 22 L6.5 8 Z" stroke="#8b6cc7" stroke-width="1.5" fill="none"/>
+          <path d="M12 26 L12 14 L20 22 L28 14 L28 26" stroke="#6b4fa0" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Inquiry Form ── -->
+<section class="section" id="inquiry">
+  <div class="inquiry-section fade-in">
+    <div class="section-label">Get Started</div>
+    <div class="section-title">Tell Us About Your Business</div>
+    <div class="section-subtitle">Fill this out and we will get back to you within 24 hours to schedule a conversation.</div>
+
+    <form class="inquiry-form" id="inquiryForm" onsubmit="submitInquiry(event)">
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" name="name" placeholder="Full name" required>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" placeholder="you@company.com" required>
+      </div>
+      <div class="form-group">
+        <label>Business Name</label>
+        <input type="text" name="business" placeholder="Your business or brand">
+      </div>
+      <div class="form-group">
+        <label>Website</label>
+        <input type="url" name="website" placeholder="https://yoursite.com">
+      </div>
+      <div class="form-group">
+        <label>What do you need?</label>
+        <select name="service_type">
+          <option value="" disabled selected>Select one</option>
+          <option value="Lead Generation">I sell a service and need qualified leads</option>
+          <option value="Ecommerce">I sell products online and need traffic and sales</option>
+          <option value="Both">Both — leads and ecommerce</option>
+          <option value="Not Sure">I am not sure yet — let us talk</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Monthly ad budget</label>
+        <select name="budget">
+          <option value="" disabled selected>Select range</option>
+          <option value="Under $1,000">Under $1,000</option>
+          <option value="$1,000 - $3,000">$1,000 - $3,000</option>
+          <option value="$3,000 - $5,000">$3,000 - $5,000</option>
+          <option value="$5,000+">$5,000+</option>
+          <option value="Not sure yet">Not sure yet</option>
+        </select>
+      </div>
+      <div class="form-group full-width">
+        <label>Have you worked with an ad agency before?</label>
+        <select name="worked_with_agency">
+          <option value="" disabled selected>Select one</option>
+          <option value="Yes">Yes, I have worked with an agency before</option>
+          <option value="No">No, this would be my first time</option>
+          <option value="Currently working with one">I am currently working with one</option>
+        </select>
+      </div>
+      <div class="form-group full-width">
+        <label>What are your goals?</label>
+        <textarea name="goals" placeholder="Tell us what you are trying to achieve and any context that would help us understand your business better"></textarea>
+      </div>
+      <div class="form-submit">
+        <button type="submit" class="btn-submit" id="submitBtn">Send Inquiry</button>
+      </div>
+    </form>
+
+    <div class="form-success" id="formSuccess">
+      <h3>We got it.</h3>
+      <p>We will be in touch within 24 hours to set up a time to talk.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="footer-logo">
+    <svg width="24" height="24" viewBox="0 0 40 40" fill="none"><path d="M20 2 L33.5 8 L37 22 L30 34 L10 34 L3 22 L6.5 8 Z" stroke="#8b6cc7" stroke-width="2" fill="none"/><path d="M12 26 L12 14 L20 22 L28 14 L28 26" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>MK7 Media</span>
+  </div>
+  <p>Refinement and Growth</p>
+</footer>
+
+<script>
+// Scroll animations
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// Nav scroll effect
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('navLinks').classList.remove('open');
+    }
+  });
+});
+
+// Form submission
+async function submitInquiry(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  const form = document.getElementById('inquiryForm');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  const data = {};
+  new FormData(form).forEach((v, k) => data[k] = v);
+
+  try {
+    const res = await fetch('/api/inquiry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (res.ok) {
+      form.style.display = 'none';
+      document.getElementById('formSuccess').classList.add('show');
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Send Inquiry';
+      alert('Something went wrong. Please try again.');
+    }
+  } catch {
+    btn.disabled = false;
+    btn.textContent = 'Send Inquiry';
+    alert('Something went wrong. Please try again.');
+  }
+}
+</script>
+
+</body>
+</html>
