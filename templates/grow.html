@@ -847,6 +847,19 @@
   }, { threshold: 0.1 });
   document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 
+  // Page view tracking (sends to lumen admin)
+  var _pvStart = Date.now();
+  fetch('https://lumenmarketing.co/api/grow/pageview', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({page: 'mk7' + window.location.pathname, referrer: document.referrer})
+  });
+  window.addEventListener('beforeunload', function() {
+    var seconds = Math.round((Date.now() - _pvStart) / 1000);
+    navigator.sendBeacon('https://lumenmarketing.co/api/grow/pageview', JSON.stringify({
+      page: 'mk7' + window.location.pathname, time_on_page: seconds
+    }));
+  });
+
   // Form submission with partial save
   const form = document.getElementById('leadForm');
   const waInput = document.getElementById('f-whatsapp');
