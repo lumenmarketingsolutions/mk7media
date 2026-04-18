@@ -133,6 +133,18 @@
       position: relative;
       overflow: hidden;
     }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 50% 40% at 50% 45%, rgba(232,77,160,0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 35% at 25% 35%, rgba(77,124,245,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 35% 30% at 75% 55%, rgba(232,77,160,0.05) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 50% 90%, rgba(77,124,245,0.04) 0%, transparent 50%),
+        radial-gradient(ellipse 30% 25% at 80% 20%, rgba(255,107,191,0.04) 0%, transparent 50%);
+      pointer-events: none;
+    }
     .hero-inner { max-width: 760px; position: relative; z-index: 1; }
     .hero h1 {
       font-size: clamp(40px, 7vw, 64px);
@@ -764,6 +776,21 @@
 
 <!-- ── Hero ── -->
 <section class="hero">
+  <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;">
+    <div style="position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:0.06;top:8%;left:15%;"></div>
+    <div style="position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:0.1;top:12%;left:72%;"></div>
+    <div style="position:absolute;width:2.5px;height:2.5px;background:#fff;border-radius:50%;opacity:0.15;top:20%;left:35%;"></div>
+    <div style="position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:0.06;top:25%;left:88%;"></div>
+    <div style="position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:0.08;top:35%;left:8%;"></div>
+    <div style="position:absolute;width:2.5px;height:2.5px;background:#fff;border-radius:50%;opacity:0.12;top:40%;left:62%;"></div>
+    <div style="position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:0.06;top:55%;left:22%;"></div>
+    <div style="position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:0.1;top:60%;left:80%;"></div>
+    <div style="position:absolute;width:2.5px;height:2.5px;background:#fff;border-radius:50%;opacity:0.14;top:70%;left:45%;"></div>
+    <div style="position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:0.06;top:75%;left:92%;"></div>
+    <div style="position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:0.08;top:82%;left:18%;"></div>
+    <div style="position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:0.1;top:88%;left:55%;"></div>
+    <div style="position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:0.06;top:92%;left:75%;"></div>
+  </div>
   <div class="hero-inner fade-in">
     <h1>Meta Ads That Deliver <span class="grad-text">Qualified Buyers</span></h1>
     <p>Strategic advertising for service businesses that need real leads and ecommerce brands that need real revenue. Built on data. Refined through results.</p>
