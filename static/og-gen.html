@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1200px;
+    height: 630px;
+    background: #050507;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .glow {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 50% 60% at 50% 50%, rgba(77,124,245,0.12) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 50% at 30% 40%, rgba(124,77,255,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 35% 40% at 70% 60%, rgba(232,77,160,0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    max-width: 900px;
+  }
+  .tag {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #8888a0;
+    margin-bottom: 24px;
+  }
+  h1 {
+    font-size: 64px;
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    color: #f0f0f5;
+    margin-bottom: 20px;
+  }
+  h1 em {
+    font-style: normal;
+    background: linear-gradient(135deg, #6b93ff, #b06bff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .sub {
+    font-size: 20px;
+    color: #6b6b80;
+    line-height: 1.6;
+  }
+  .brand {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 15px;
+    font-weight: 700;
+    color: #44445a;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+<div class="glow"></div>
+<div class="content">
+  <p class="tag">MK7 Media — Based in Beirut 📍</p>
+  <h1>Ads, Content, and Websites<br>That <em>Actually Work</em></h1>
+  <p class="sub">Qualified leads. Real sales. Less of your time wasted.</p>
+</div>
+<div class="brand">mk7media.com</div>
+</body>
+</html>
