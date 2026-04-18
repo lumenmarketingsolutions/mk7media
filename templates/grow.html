@@ -227,12 +227,12 @@
   .step p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
 
   /* ── CASE STUDIES ── */
-  .cases { display: flex; flex-direction: column; gap: 16px; }
+  .cases { display: flex; flex-direction: column; gap: 24px; }
 
   .case-card {
     background: var(--bg-elevated); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 32px;
-    display: flex; align-items: center; gap: 32px;
+    border-radius: var(--radius); padding: 40px;
+    display: flex; align-items: center; gap: 40px;
   }
 
   .case-num {
@@ -261,8 +261,9 @@
   }
 
   .case-bar {
-    width: 12px; border-radius: 3px 3px 0 0;
+    width: 14px; border-radius: 4px 4px 0 0;
     background: var(--gradient); opacity: 0.6;
+    transition: height 0.6s ease;
   }
 
   .case-bar:nth-child(odd) { opacity: 0.4; }
@@ -270,7 +271,7 @@
 
   /* Metric row inside cards */
   .case-metrics {
-    display: flex; gap: 20px; margin-top: 12px; flex-wrap: wrap;
+    display: flex; gap: 28px; margin-top: 16px; flex-wrap: wrap;
   }
 
   .case-metric {
@@ -289,12 +290,12 @@
 
   /* Two column case grid */
   .cases-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
   }
 
   .case-card-sm {
     background: var(--bg-elevated); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 28px;
+    border-radius: var(--radius); padding: 36px;
   }
 
   .case-card-sm h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
@@ -518,14 +519,33 @@
 <!-- ── STATS ── -->
 <div class="stats">
   <div class="stat reveal">
+    <div class="case-bars" style="height:36px;margin-bottom:12px;justify-content:center;">
+      <div class="case-bar" style="height:25%"></div>
+      <div class="case-bar" style="height:40%"></div>
+      <div class="case-bar" style="height:60%"></div>
+      <div class="case-bar" style="height:80%"></div>
+      <div class="case-bar" style="height:95%"></div>
+      <div class="case-bar" style="height:100%"></div>
+    </div>
     <div class="num">4,328</div>
     <div class="lbl">Leads Generated</div>
   </div>
   <div class="stat reveal">
+    <div class="donut" style="--donut-pct:87%;margin:0 auto 12px;">
+      <div class="donut-inner" style="font-size:11px;">87%</div>
+    </div>
     <div class="num">$1.1M+</div>
     <div class="lbl">Revenue Tracked</div>
   </div>
   <div class="stat reveal">
+    <div style="font-size:28px;margin-bottom:8px;">
+      <span style="opacity:0.3;">●</span>
+      <span style="opacity:0.4;">●</span>
+      <span style="opacity:0.5;">●</span>
+      <span style="opacity:0.6;">●</span>
+      <span style="opacity:0.8;">●</span>
+      <span style="opacity:1;color:var(--blue);">●</span>
+    </div>
     <div class="num">17+</div>
     <div class="lbl">Industries Served</div>
   </div>
