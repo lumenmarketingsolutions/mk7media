@@ -69,6 +69,55 @@ def inquiry():
 
     return jsonify({"ok": True})
 
+@app.route("/grow")
+@app.route("/grow/<market>")
+def grow_page(market=None):
+    valid = {"lb": "Lebanon", "gcc": "GCC"}
+    if market not in valid:
+        market = "lb"
+    return render_template("grow.html", market=market, market_name=valid[market])
+
+
+@app.route("/api/grow/lead", methods=["POST"])
+def grow_lead_submit():
+    data = request.get_json() or {}
+    whatsapp = (data.get("whatsapp") or "").strip()
+    name = (data.get("name") or "").strip()
+    business = (data.get("business") or "").strip()
+    need = (data.get("need") or "").strip()
+    source_page = (data.get("source_page") or "").strip()
+    market = (data.get("market") or "").strip()
+
+    if not whatsapp:
+        return jsonify({"error": "WhatsApp number is required"}), 400
+
+    market_labels = {"lb": "Lebanon", "gcc": "GCC/Dubai", "": "Unknown"}
+    ml = market_labels.get(market, market)
+    subject = f"New Lead from Grow Page ({ml})"
+    body = (
+        '<div style="font-family:Inter,sans-serif;color:#1a1a1a;padding:20px;">'
+        f'<h2 style="margin:0 0 16px;">New Lead — {ml}</h2>'
+        f'<p><strong>WhatsApp:</strong> {whatsapp}</p>'
+        f'<p><strong>Name:</strong> {name or "Not provided"}</p>'
+        f'<p><strong>Business:</strong> {business or "Not provided"}</p>'
+        f'<p><strong>Need:</strong> {need or "Not provided"}</p>'
+        f'<p><strong>Source:</strong> {source_page}</p>'
+        '</div>'
+    )
+
+    if RESEND_API_KEY:
+        try:
+            import requests as req
+            for email in [NOTIFY_EMAIL, "kendall@lumenmarketing.co"]:
+                req.post("https://api.resend.com/emails",
+                    headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
+                    json={"from": "MK7 Media <notifications@lumenmarketing.co>", "to": [email], "subject": subject, "html": body})
+        except Exception as e:
+            print(f"[email] Failed: {e}")
+
+    return jsonify({"ok": True})
+
+
 @app.route("/api/health")
 def health():
     return jsonify({"status": "ok"})
