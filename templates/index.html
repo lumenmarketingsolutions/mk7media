@@ -106,6 +106,13 @@
     .nav-mobile-toggle svg { width: 24px; height: 24px; color: var(--text); }
 
     @media (max-width: 768px) {
+      .hero::before {
+        background:
+          radial-gradient(ellipse 70% 50% at 50% 45%, rgba(232,77,160,0.14) 0%, transparent 70%),
+          radial-gradient(ellipse 60% 45% at 30% 35%, rgba(77,124,245,0.10) 0%, transparent 60%),
+          radial-gradient(ellipse 50% 40% at 75% 55%, rgba(232,77,160,0.08) 0%, transparent 60%),
+          radial-gradient(ellipse 80% 50% at 50% 90%, rgba(77,124,245,0.07) 0%, transparent 50%);
+      }
       nav { padding: 16px 20px; }
       .nav-links { display: none; }
       .nav-mobile-toggle { display: block; }
