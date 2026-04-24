@@ -326,14 +326,24 @@
     flex-direction: column;
     align-items: center;
   }
-  .reel-embed blockquote.instagram-media {
-    max-width: 480px !important;
-    width: 100% !important;
-    margin: 0 auto !important;
-    background: #FFF;
-    border: 1px solid var(--line) !important;
-    border-radius: 4px !important;
-    box-shadow: 0 2px 24px rgba(42, 34, 28, 0.06) !important;
+  .reel-frame {
+    width: 100%;
+    max-width: 420px;
+    background: #000;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    box-shadow: 0 2px 24px rgba(42, 34, 28, 0.08);
+    overflow: hidden;
+    aspect-ratio: 9 / 14;
+    position: relative;
+  }
+  .reel-frame iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
   }
   .reel-caption {
     text-align: center;
@@ -517,7 +527,14 @@
     </p>
 
     <div class="reel-embed">
-      <blockquote class="instagram-media" data-instgrm-captioned data-instgrm-permalink="https://www.instagram.com/reel/DXZr1ZhNASa/" data-instgrm-version="14"></blockquote>
+      <div class="reel-frame">
+        <iframe
+          src="https://www.instagram.com/reel/DXZr1ZhNASa/embed/"
+          scrolling="no"
+          allowtransparency="true"
+          allow="autoplay; encrypted-media; picture-in-picture; web-share"
+          allowfullscreen></iframe>
+      </div>
       <p class="reel-caption">
         <a href="https://www.instagram.com/reel/DXZr1ZhNASa/" target="_blank" rel="noopener" class="case-link">View on Instagram →</a>
       </p>
@@ -525,13 +542,6 @@
 
     <p>
       Watch it in full. Most of this film is AI and 3D rendering, and it reads as pure cinema. This is the level of craft I am bringing to your work.
-    </p>
-
-    <div class="accent-line left"></div>
-
-    <h3>How the set comes together</h3>
-    <p>
-      Three pieces at launch. Two at the top of the funnel, each built as a first encounter with your world. One retargeting piece for anyone who clicked but did not move to buy, a continuation that lands differently the second time because by then the world is familiar to her.
     </p>
     <p>
       Eight years of video before marketing. I direct the creative personally, and this is the part of the work I am most excited to put into your hands.
@@ -745,6 +755,5 @@
   MK7 Media <span>·</span> Lumen Marketing <span>·</span> April 2026
 </footer>
 
-<script async src="https://www.instagram.com/embed.js"></script>
 </body>
 </html>
