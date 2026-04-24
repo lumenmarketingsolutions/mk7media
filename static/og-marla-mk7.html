@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1200px;
+    height: 630px;
+    background: #fbf7f1;
+    font-family: 'Inter', sans-serif;
+    color: #2a221c;
+    overflow: hidden;
+  }
+  .frame {
+    position: absolute;
+    inset: 44px;
+    border: 1px solid #e4d9ca;
+  }
+  .stage {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: #b08258;
+    margin-bottom: 44px;
+  }
+  .ornament {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: #b08258;
+    margin-bottom: 36px;
+  }
+  .ornament .line {
+    width: 64px;
+    height: 1px;
+    background: #b08258;
+  }
+  .ornament .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #b08258;
+  }
+  .title {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 86px;
+    line-height: 1.0;
+    letter-spacing: 0.5px;
+    text-align: center;
+    color: #2a221c;
+  }
+  .title .x {
+    font-style: italic;
+    font-weight: 300;
+    color: #b08258;
+    margin: 0 22px;
+    font-size: 70px;
+    vertical-align: 2px;
+  }
+  .subtitle {
+    margin-top: 38px;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 24px;
+    color: #5b4f44;
+    letter-spacing: 0.3px;
+  }
+  .footer {
+    position: absolute;
+    bottom: 36px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #8e8174;
+  }
+</style>
+</head>
+<body>
+<div class="frame"></div>
+<div class="stage">
+  <div class="eyebrow">A Proposal</div>
+  <h1 class="title">Marla Tabet<span class="x">×</span>MK7 Media</h1>
+  <div class="ornament">
+    <span class="line"></span>
+    <span class="dot"></span>
+    <span class="line"></span>
+  </div>
+  <div class="subtitle">A proposal built around your story</div>
+  <div class="footer">mk7media.com</div>
+</div>
+</body>
+</html>
