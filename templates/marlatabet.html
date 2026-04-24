@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marla Tabet × Lumen Marketing — A Proposal</title>
+<meta name="description" content="A proposal for Marla Tabet Jewelry, from Lumen Marketing and MK7 Media.">
+<meta property="og:title" content="Marla Tabet × Lumen Marketing">
+<meta property="og:description" content="A proposal built around your story.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fbf7f1;
+    --bg-soft: #f5ede2;
+    --bg-elevated: #faf4ea;
+    --ink: #2a221c;
+    --ink-soft: #5b4f44;
+    --ink-mute: #8e8174;
+    --gold: #b08258;
+    --gold-soft: #c9a075;
+    --line: #e4d9ca;
+    --line-soft: #ece3d4;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.75;
+    font-size: 17px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  .serif { font-family: 'Cormorant Garamond', serif; font-weight: 400; letter-spacing: 0.2px; }
+  .italic { font-style: italic; }
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+  }
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+  section { padding: 100px 0; position: relative; }
+  section.hero { padding: 140px 0 120px; min-height: 92vh; display: flex; align-items: center; }
+  section + section::before {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 1px;
+    background: var(--gold);
+    margin: 0 auto;
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* ── HERO ── */
+  .hero-inner { text-align: center; }
+  .hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(44px, 7vw, 76px);
+    line-height: 1.05;
+    font-weight: 400;
+    letter-spacing: 1px;
+    margin: 28px 0 32px;
+    color: var(--ink);
+  }
+  .hero h1 .italic { font-weight: 300; }
+  .hero .sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(19px, 2.2vw, 22px);
+    font-style: italic;
+    color: var(--ink-soft);
+    max-width: 540px;
+    margin: 0 auto 48px;
+    line-height: 1.6;
+    font-weight: 300;
+  }
+  .hero .meta {
+    font-size: 12px;
+    letter-spacing: 2.4px;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    font-weight: 500;
+  }
+  .hero .meta span { margin: 0 12px; color: var(--gold); }
+  .ornament {
+    display: flex; align-items: center; justify-content: center;
+    gap: 14px; margin: 60px 0 0;
+    color: var(--gold);
+  }
+  .ornament span { font-size: 22px; }
+  .ornament .line {
+    width: 50px; height: 1px; background: var(--gold);
+  }
+
+  /* ── SECTION BASE ── */
+  h2.section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(32px, 4.2vw, 44px);
+    line-height: 1.15;
+    font-weight: 400;
+    margin-bottom: 36px;
+    letter-spacing: 0.3px;
+  }
+  h2.section-title .italic { font-weight: 300; color: var(--ink-soft); }
+  h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    font-weight: 500;
+    margin: 32px 0 12px;
+    color: var(--ink);
+    letter-spacing: 0.2px;
+  }
+  p { margin-bottom: 18px; color: var(--ink-soft); }
+  p.lead {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 23px;
+    line-height: 1.55;
+    font-style: italic;
+    color: var(--ink);
+    font-weight: 400;
+    margin-bottom: 28px;
+  }
+  strong { color: var(--ink); font-weight: 600; }
+  em { font-style: italic; color: var(--ink); }
+
+  /* ── PILLARS / CARDS ── */
+  .pillar {
+    background: var(--bg-soft);
+    border: 1px solid var(--line-soft);
+    border-radius: 2px;
+    padding: 32px 34px;
+    margin: 20px 0;
+  }
+  .pillar-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 10px;
+    display: block;
+  }
+  .pillar-label .num {
+    font-size: 15px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  /* ── PRICING TABLE ── */
+  .pricing {
+    border: 1px solid var(--line);
+    background: var(--bg-elevated);
+    padding: 36px 32px;
+    margin: 28px 0;
+  }
+  .pricing-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line-soft);
+    gap: 16px;
+  }
+  .pricing-row:last-child { border-bottom: none; }
+  .pricing-row .label { color: var(--ink); font-weight: 500; font-size: 16px; }
+  .pricing-row .value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    color: var(--gold);
+    font-weight: 500;
+    white-space: nowrap;
+    text-align: right;
+  }
+  .pricing-note {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ink-mute);
+    line-height: 1.7;
+  }
+
+  /* ── CASE STUDIES ── */
+  .case {
+    border-top: 1px solid var(--line-soft);
+    padding: 32px 0 28px;
+  }
+  .case:first-of-type { border-top: 1px solid var(--gold); }
+  .case-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 30px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .case-cat {
+    font-size: 11px;
+    letter-spacing: 2.4px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 14px;
+  }
+  .case-result {
+    color: var(--ink-soft);
+    margin-bottom: 16px;
+  }
+  .case-link {
+    display: inline-block;
+    font-size: 13px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-decoration: none;
+    border-bottom: 1px solid var(--gold-soft);
+    padding-bottom: 2px;
+    transition: all 0.3s;
+    font-weight: 500;
+  }
+  .case-link:hover { color: var(--ink); border-color: var(--ink); }
+
+  /* ── TIMELINE ── */
+  .timeline { margin: 28px 0; }
+  .timeline-item {
+    display: flex;
+    gap: 28px;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--line-soft);
+    align-items: baseline;
+  }
+  .timeline-item:last-child { border-bottom: none; }
+  .timeline-when {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    color: var(--gold);
+    font-weight: 500;
+    flex-shrink: 0;
+    width: 120px;
+    font-style: italic;
+  }
+  .timeline-what {
+    color: var(--ink-soft);
+    flex: 1;
+    padding-top: 4px;
+  }
+
+  /* ── DELIVERABLES ── */
+  .deliver-list { margin: 28px 0; }
+  .deliver-item {
+    display: flex;
+    gap: 18px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--line-soft);
+    align-items: flex-start;
+  }
+  .deliver-item:last-child { border-bottom: none; }
+  .deliver-item .bullet {
+    color: var(--gold);
+    font-size: 22px;
+    line-height: 1.3;
+    flex-shrink: 0;
+  }
+  .deliver-item p { margin: 0; color: var(--ink-soft); }
+  .deliver-item strong { color: var(--ink); }
+
+  /* ── SIGNOFF ── */
+  .signoff {
+    background: var(--bg-soft);
+    padding: 72px 40px;
+    text-align: center;
+    margin-top: 40px;
+  }
+  .signoff .serif {
+    font-size: clamp(28px, 4vw, 38px);
+    line-height: 1.3;
+    color: var(--ink);
+    margin-bottom: 24px;
+    font-weight: 400;
+  }
+  .signoff .names {
+    margin-top: 36px;
+    font-size: 13px;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    line-height: 2;
+  }
+  .signoff .names strong { color: var(--ink); letter-spacing: 2px; }
+
+  footer {
+    padding: 40px 20px;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    border-top: 1px solid var(--line-soft);
+  }
+  footer span { color: var(--gold); margin: 0 8px; }
+
+  /* ── ACCENT LINE ── */
+  .accent-line {
+    width: 60px; height: 1px;
+    background: var(--gold);
+    margin: 40px auto;
+  }
+  .accent-line.left { margin: 30px 0; }
+
+  /* ── QUOTE BLOCK ── */
+  .quote {
+    border-left: 2px solid var(--gold);
+    padding: 8px 0 8px 28px;
+    margin: 32px 0;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 22px;
+    line-height: 1.55;
+    color: var(--ink);
+    font-weight: 300;
+  }
+  .quote-attr {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 11px;
+    letter-spacing: 2.4px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-top: 16px;
+    font-weight: 500;
+  }
+
+  /* ── MOBILE ── */
+  @media (max-width: 640px) {
+    body { font-size: 16px; }
+    .wrap { padding: 0 22px; }
+    section { padding: 72px 0; }
+    section.hero { padding: 100px 0 80px; min-height: auto; }
+    .pillar { padding: 26px 22px; }
+    .pricing { padding: 26px 22px; }
+    .pricing-row { flex-direction: column; gap: 4px; padding: 14px 0; }
+    .pricing-row .value { text-align: left; font-size: 20px; }
+    .timeline-item { flex-direction: column; gap: 4px; }
+    .timeline-when { width: auto; }
+    .signoff { padding: 56px 24px; }
+    .hero .meta span { margin: 0 6px; }
+    .ornament { margin-top: 44px; }
+    .quote { font-size: 19px; padding-left: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─────────── HERO ─────────── -->
+<section class="hero">
+  <div class="wrap hero-inner">
+    <div class="eyebrow">A Proposal · From Lumen &amp; MK7 Media</div>
+    <h1>My Journey,<br><span class="italic">Your Jewelry.</span></h1>
+    <p class="sub">
+      Before the numbers, before the strategy, before anything else — this proposal begins where your brand begins. With the woman reborn, again and again.
+    </p>
+    <div class="meta">
+      Prepared for Marla Tabet <span>·</span> April 2026
+    </div>
+    <div class="ornament">
+      <div class="line"></div>
+      <span>✦</span>
+      <div class="line"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── WHAT I SEE ─────────── -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">What I See</div>
+    <h2 class="section-title">You have built <span class="italic">something rare.</span></h2>
+    <p class="lead">
+      A brand that doesn't sell jewelry. It crowns a woman who has already become who she is.
+    </p>
+    <p>
+      The pieces aren't accessories. They are evidence. A tether to a version of her that she had to fight to become.
+    </p>
+    <p>
+      I know this because I wear a diamond tennis bracelet every day for that exact reason. It is my tether to who I am, and it has been one of the most important objects in my life. When I look at your work, I see the same truth you've told about women — held in gold, set in stone, made real.
+    </p>
+    <p>
+      This is why I want to help you. Not because you sell jewelry. Because you've built the kind of brand that, when told right, will give women something they've been quietly looking for their whole lives.
+    </p>
+
+    <div class="quote">
+      "What could be more beautiful, more enigmatic than a woman? More untamed, more instinctive? More captivating, more fatal?"
+      <span class="quote-attr">Your words — Marla Tabet</span>
+    </div>
+
+    <p>
+      Your website carries this voice. Your collections carry this voice. One of the most beautiful Lebanese brands I have come across. The passion is undeniable.
+    </p>
+    <p>
+      So the question isn't whether the brand is right. It is. The question is how we get it in front of the women it was built for.
+    </p>
+  </div>
+</section>
+
+<!-- ─────────── WHAT'S MISSING ─────────── -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">What's Missing</div>
+    <h2 class="section-title">One year in, two collections, <span class="italic">and a story that hasn't reached anyone yet.</span></h2>
+    <p>
+      You told me this plainly on the call, and I want to name it plainly back. This isn't a brand problem. This is a distribution problem.
+    </p>
+    <p>
+      The woman who would pay several thousand dollars for a piece of jewelry that represents her journey — she exists. She is not only in Lebanon. She is in Dubai, in Paris, in London, in New York. She has the money. She has the taste. She just hasn't seen you yet.
+    </p>
+    <p>
+      What we build together isn't marketing in the ordinary sense. It's a way for your story to travel.
+    </p>
+    <div class="accent-line left"></div>
+    <p>
+      There are a few things on your site that are quietly getting in the way. The privacy popup on arrival breaks the spell before it begins. The story is buried behind a button most visitors won't click. The pieces are beautiful but unnamed — a woman can't fall in love with "Necklace #4" the way she can fall in love with a story.
+    </p>
+    <p>
+      These are small moves. We fix them before we spend a dollar on ads.
+    </p>
+  </div>
+</section>
+
+<!-- ─────────── THE VISION ─────────── -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">The Vision</div>
+    <h2 class="section-title">Three things happen <span class="italic">when this works.</span></h2>
+
+    <div class="pillar">
+      <span class="pillar-label"><span class="num">ONE</span>Your story arrives before your price tag.</span>
+      <p>
+        A woman sees an ad. Cinematic. Quiet enough to make her stop scrolling. She clicks. The landing page doesn't sell her — it continues the feeling she just had. By the time she sees a price, she has already decided she wants to live with the piece.
+      </p>
+    </div>
+
+    <div class="pillar">
+      <span class="pillar-label"><span class="num">TWO</span>Every piece has a name and a story.</span>
+      <p>
+        Not "Necklace #4." Each piece becomes a character — a woman reborn, a kind of strength, a moment in a life. A buyer doesn't choose jewelry. She chooses the version of herself she wants to wear.
+      </p>
+    </div>
+
+    <div class="pillar">
+      <span class="pillar-label"><span class="num">THREE</span>A door for everyone, a door for the collector.</span>
+      <p>
+        Some women want to click buy. Some want to speak with you and have something made. The system gives them both. The site becomes a gallery. WhatsApp becomes a private atelier. No one has to fit themselves into the wrong door.
+      </p>
+    </div>
+
+    <div class="accent-line left"></div>
+
+    <h3>A note, not a demand</h3>
+    <p>
+      I see a small hole in the collection that I'd offer to fill, carefully and only if you want it. A more accessible signature piece — a tennis bracelet, named and storied like everything else. It would give a new buyer a way in, and it would make your higher pieces feel even more significant by contrast. Made-to-order is fine. Nothing has to sit on a shelf.
+    </p>
+    <p>
+      This is my instinct, not a requirement. Your collection is your art. If this doesn't resonate with how you see the brand, we leave it alone and focus on what you already have.
+    </p>
+  </div>
+</section>
+
+<!-- ─────────── WHAT I'LL BUILD ─────────── -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">What I'll Build</div>
+    <h2 class="section-title">The system, <span class="italic">piece by piece.</span></h2>
+
+    <div class="deliver-list">
+      <div class="deliver-item">
+        <span class="bullet">✦</span>
+        <p><strong>A rebuilt landing page</strong> that tells your story in a single scroll. No hunting through "Explore Me." The ad leads in. The page continues. The buy button arrives at exactly the right moment.</p>
+      </div>
+      <div class="deliver-item">
+        <span class="bullet">✦</span>
+        <p><strong>Three cinematic videos at launch.</strong> Two built for top-of-funnel — the first impression a woman has of your world. One built as a retargeting piece that continues the story for anyone who clicked but didn't buy.</p>
+      </div>
+      <div class="deliver-item">
+        <span class="bullet">✦</span>
+        <p><strong>Production through AI-driven 3D rendering.</strong> Cinematic, not obviously AI — a level of production that would otherwise cost $10,000+ in a traditional shoot, made real at a fraction because of the tools we have access to. Directed by me. Marykate is our ground support in Lebanon if we need supplemental footage.</p>
+      </div>
+      <div class="deliver-item">
+        <span class="bullet">✦</span>
+        <p><strong>A full Meta ad campaign</strong> — structured, tested, optimized weekly. Scaled from day one across Lebanon, GCC, and Europe. The woman who buys this exists everywhere. We don't leave her on the table.</p>
+      </div>
+      <div class="deliver-item">
+        <span class="bullet">✦</span>
+        <p><strong>Named pieces with individual stories</strong>, written in your voice — each one tied to a woman's journey, a kind of strength, a reason to wear.</p>
+      </div>
+      <div class="deliver-item">
+        <span class="bullet">✦</span>
+        <p><strong>Ecom mechanics added where they're missing.</strong> The privacy popup goes. The path from story to purchase is cleared. Small moves, large difference.</p>
+      </div>
+      <div class="deliver-item">
+        <span class="bullet">✦</span>
+        <p><strong>A dual funnel.</strong> Direct site checkout for ready pieces. WhatsApp for custom and collector work. You continue to handle conversations personally — your relationships are part of the brand, and we don't replace that.</p>
+      </div>
+      <div class="deliver-item">
+        <span class="bullet">✦</span>
+        <p><strong>Weekly reporting</strong>, written clearly. What ran, what worked, what moves next.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── PRICING ─────────── -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">The Investment</div>
+    <h2 class="section-title">Built so <span class="italic">you only pay when we produce.</span></h2>
+
+    <div class="pricing">
+      <div class="pricing-row">
+        <div class="label">Monthly retainer</div>
+        <div class="value">$500 / month</div>
+      </div>
+      <div class="pricing-row">
+        <div class="label">Video production (per video)</div>
+        <div class="value">$150 each</div>
+      </div>
+      <div class="pricing-row">
+        <div class="label">Launch package — 3 videos</div>
+        <div class="value">$450 one-time</div>
+      </div>
+      <div class="pricing-row">
+        <div class="label">Revenue share — monthly sales up to $25,000</div>
+        <div class="value">12%</div>
+      </div>
+      <div class="pricing-row">
+        <div class="label">Revenue share — monthly sales above $25,000</div>
+        <div class="value">20%</div>
+      </div>
+      <div class="pricing-row">
+        <div class="label">Ad spend (paid directly by you to Meta)</div>
+        <div class="value">~$600 / month min.</div>
+      </div>
+
+      <div class="pricing-note">
+        No hidden baseline. Revenue share begins on the first dollar. When you win, we win. When you don't, we don't eat. The retainer covers the system. The video fee covers the art. The revenue share is where our effort meets your growth.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── TIMELINE ─────────── -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Timeline</div>
+    <h2 class="section-title">What happens overnight is the setup. <span class="italic">What happens over ninety days is the proof.</span></h2>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-when">Week 1</div>
+        <div class="timeline-what">Onboarding. Site audit. Story mapping. Ad accounts connected. Creative direction locked.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-when">Week 2</div>
+        <div class="timeline-what">Video production begins. Landing page takes shape. Named pieces written. Site mechanics cleaned.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-when">Week 3</div>
+        <div class="timeline-what">Launch. Ads live across Lebanon, GCC, and Europe. Landing page live. Full funnel in motion.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-when">Week 4</div>
+        <div class="timeline-what">First real read on data. Creative iteration begins. Winning angles scaled, losing angles retired.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-when">90 days</div>
+        <div class="timeline-what">The minimum window to let this breathe. Impact begins earlier — full effect comes here. I want that honest with you from the start. Good work takes time. We use it well.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── PROOF ─────────── -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Proof — In What I've Built</div>
+    <h2 class="section-title">A few of the systems <span class="italic">I've put into the world.</span></h2>
+
+    <div class="case">
+      <div class="case-cat">High-Ticket Experience</div>
+      <div class="case-name">Supercar Experience</div>
+      <p class="case-result">Over 7,000 leads generated. $1.1M in first-year sales. Scaled the brand from a single location to four cities across America — built through paid ads, funnel, and story.</p>
+      <a href="https://supercarexp.vip" target="_blank" rel="noopener" class="case-link">Visit supercarexp.vip →</a>
+    </div>
+
+    <div class="case">
+      <div class="case-cat">Service &amp; Consulting</div>
+      <div class="case-name">Western Sol Healing</div>
+      <p class="case-result">100+ qualified contacts with a 35% conversion rate. $1.5M booked pipeline in the first 90 days. Calendar booked out for over a year.</p>
+      <a href="https://westernsolhealing.com" target="_blank" rel="noopener" class="case-link">Visit westernsolhealing.com →</a>
+    </div>
+
+    <div class="case">
+      <div class="case-cat">Wellness · Full System Build</div>
+      <div class="case-name">Estetica Wellness</div>
+      <p class="case-result">End-to-end build. Brand, site, ads, and deployment — designed to convert from the first click to the final booking.</p>
+      <a href="https://esteticawellness.com" target="_blank" rel="noopener" class="case-link">Visit esteticawellness.com →</a>
+    </div>
+
+    <div class="case">
+      <div class="case-cat">Brand &amp; Site Reference</div>
+      <div class="case-name">OC Detailing Boise</div>
+      <p class="case-result">Brand identity and website design — the level of craft we bring to every build, regardless of category.</p>
+      <a href="https://ocdetailingboise.com" target="_blank" rel="noopener" class="case-link">Visit ocdetailingboise.com →</a>
+    </div>
+
+    <div class="case">
+      <div class="case-cat">Currently In Motion</div>
+      <div class="case-name">Tristan Dare</div>
+      <p class="case-result">A luxury launch I'm architecting right now — on track to make this the artist's strongest year on record.</p>
+      <a href="https://www.tristandareshop.com" target="_blank" rel="noopener" class="case-link">Visit tristandareshop.com →</a>
+    </div>
+
+    <div class="accent-line left"></div>
+
+    <h3>My own work</h3>
+    <p>
+      You already know MK7 Media — that site is my build. Lumen Marketing is my agency. You're welcome to explore both.
+    </p>
+    <p style="margin-bottom: 8px;">
+      <a href="https://mk7media.com" target="_blank" rel="noopener" class="case-link">mk7media.com →</a>
+      &nbsp;&nbsp;
+      <a href="https://lumenmarketing.co" target="_blank" rel="noopener" class="case-link">lumenmarketing.co →</a>
+    </p>
+
+    <h3>And one more thing — my own brand</h3>
+    <p>
+      I'm building a jewelry brand of my own in America, called <em>Velouria</em>. The site is still in progress so I can't share it yet, but I mention it because I want you to know I don't come to you as an agency pitching a category I don't understand. I wear this. I build this. I see jewelry as art, and I treat it that way.
+    </p>
+  </div>
+</section>
+
+<!-- ─────────── WHY ME ─────────── -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Why Me</div>
+    <h2 class="section-title">I don't come to you <span class="italic">as an agency that will add you to a list.</span></h2>
+    <p>
+      I come as someone who has spent hours inside your brand before we ever spoke. Who read your words, looked at your pieces, and believed what you were building before you asked me to.
+    </p>
+    <p>
+      Marykate and I made a rule early. Even when we have a thousand clients, you win. That's not a sales line. That's an agreement between the two of us about how we run this work.
+    </p>
+    <p>
+      You are closer to this working than you think. The brand is already right. The story is already there. What's missing is the system that carries it to the women who are waiting to hear it.
+    </p>
+    <p>
+      I'd be honored to build it with you.
+    </p>
+  </div>
+</section>
+
+<!-- ─────────── SIGNOFF ─────────── -->
+<section style="padding-top: 40px; padding-bottom: 0;">
+  <div class="wrap">
+    <div class="signoff">
+      <div class="serif italic">"The woman reborn, again and again, through imagination and touch."</div>
+      <p style="max-width: 440px; margin: 0 auto; color: var(--ink-soft);">
+        When you're ready, we'll get on a call and walk through any final details. Whenever you say go, I'm ready to begin the next day.
+      </p>
+      <div class="names">
+        <div><strong>Kendall Davis</strong> — Lumen Marketing / MK7 Media</div>
+        <div><strong>Marykate Zareh Ghazarian</strong> — MK7 Media</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  MK7 Media <span>·</span> Lumen Marketing <span>·</span> April 2026
+</footer>
+
+</body>
+</html>

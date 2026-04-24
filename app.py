@@ -12,6 +12,10 @@ NOTIFY_EMAIL = os.environ.get("NOTIFY_EMAIL", "marykatezarehghazarian@gmail.com"
 def home():
     return render_template("index.html")
 
+@app.route("/marlatabet")
+def marlatabet_proposal():
+    return render_template("marlatabet.html")
+
 def _build_inquiry_email(name, email, business, website, service_type, budget, worked_with_agency, goals):
     dash = "\u2014"
     goals_block = ""
