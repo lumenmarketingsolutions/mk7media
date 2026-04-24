@@ -340,13 +340,16 @@
     aspect-ratio: 9 / 14;
     position: relative;
   }
-  .reel-frame iframe {
+  .reel-frame iframe,
+  .reel-frame video {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     border: 0;
     display: block;
+    object-fit: cover;
+    background: #000;
   }
   .reel-caption {
     text-align: center;
@@ -531,15 +534,15 @@
 
     <div class="reel-embed">
       <div class="reel-frame">
-        <iframe
-          src="https://www.instagram.com/reel/DXZr1ZhNASa/embed/"
-          scrolling="no"
-          allowtransparency="true"
-          allow="autoplay; encrypted-media; picture-in-picture; web-share"
-          allowfullscreen></iframe>
+        <video
+          src="/static/ferrari-hypersail.mp4"
+          controls
+          playsinline
+          preload="metadata"
+          poster=""></video>
       </div>
       <p class="reel-caption">
-        <a href="https://www.instagram.com/reel/DXZr1ZhNASa/" target="_blank" rel="noopener" class="case-link">View on Instagram →</a>
+        <a href="https://www.instagram.com/reel/DXZr1ZhNASa/" target="_blank" rel="noopener" class="case-link">View original on Instagram →</a>
       </p>
     </div>
 
