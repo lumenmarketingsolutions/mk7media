@@ -10,6 +10,7 @@ app = Flask(__name__)
 # ── Config ──
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 NOTIFY_EMAIL = os.environ.get("NOTIFY_EMAIL", "marykatezarehghazarian@gmail.com")
+NOTIFY_RECIPIENTS = [NOTIFY_EMAIL, "mary@mk7media.com", "kendall@lumenmarketing.co"]
 
 # Meta Conversions API — DPSmgmt dataset
 META_DATASET_ID = os.environ.get("META_DATASET_ID", "1180057140863760")
@@ -185,7 +186,7 @@ def inquiry():
             resend.api_key = RESEND_API_KEY
             resend.Emails.send({
                 "from": "MK7 Media <notifications@lumenmarketing.co>",
-                "to": [NOTIFY_EMAIL, "kendall@lumenmarketing.co"],
+                "to": NOTIFY_RECIPIENTS,
                 "subject": f"New Inquiry: {name} — {service_type}",
                 "html": _build_inquiry_email(name, email, business, website, service_type, budget, worked_with_agency, goals)
             })
@@ -260,7 +261,7 @@ def grow_lead_submit():
     if RESEND_API_KEY:
         try:
             import requests as req
-            for email in [NOTIFY_EMAIL, "kendall@lumenmarketing.co"]:
+            for email in NOTIFY_RECIPIENTS:
                 req.post("https://api.resend.com/emails",
                     headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
                     json={"from": "MK7 Media <notifications@lumenmarketing.co>", "to": [email], "subject": subject, "html": body})
