@@ -8,6 +8,24 @@
   <meta property="og:title" content="MK7 Media — Ads, Content, and Websites That Actually Work">
   <meta property="og:description" content="We bring you qualified leads and real sales. Based in Beirut.">
   <meta property="og:image" content="/static/og-image.png">
+
+  <!-- Meta Pixel — DPSmgmt dataset 1180057140863760 -->
+  <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1180057140863760');
+    fbq('track', 'PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=1180057140863760&ev=PageView&noscript=1"/></noscript>
+  <!-- End Meta Pixel -->
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
@@ -1278,6 +1296,22 @@ async function nextStep() {
     quizData.name = name;
     quizData.email = email;
     quizData.business = business;
+
+    // Pixel + CAPI dedup: shared event_id, plus fbp/fbc cookies for browser-event matching
+    const eventId = (crypto && crypto.randomUUID) ? crypto.randomUUID() : ('ev_' + Date.now() + '_' + Math.random().toString(36).slice(2));
+    const cookie = (n) => { const m = document.cookie.match(new RegExp('(?:^|; )' + n + '=([^;]+)')); return m ? decodeURIComponent(m[1]) : ''; };
+    quizData.event_id = eventId;
+    quizData.fbp = cookie('_fbp');
+    quizData.fbc = cookie('_fbc');
+    quizData.page_url = window.location.href;
+
+    if (window.fbq) {
+      fbq('track', 'Lead', {
+        content_name: 'MK7 Media inquiry',
+        lead_source: 'homepage_quiz',
+        service_type: quizData.service_type || '',
+      }, { eventID: eventId });
+    }
 
     const btn = document.getElementById('quizNext');
     btn.disabled = true;

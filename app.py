@@ -1,5 +1,8 @@
 import os
 import json
+import hashlib
+import time
+import uuid
 from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
@@ -7,6 +10,78 @@ app = Flask(__name__)
 # ── Config ──
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 NOTIFY_EMAIL = os.environ.get("NOTIFY_EMAIL", "marykatezarehghazarian@gmail.com")
+
+# Meta Conversions API — DPSmgmt dataset
+META_DATASET_ID = os.environ.get("META_DATASET_ID", "1180057140863760")
+META_CAPI_ACCESS_TOKEN = os.environ.get("META_CAPI_ACCESS_TOKEN", "")
+META_TEST_EVENT_CODE = os.environ.get("META_TEST_EVENT_CODE", "")  # optional, for Events Manager Test Events tab
+
+
+def _hash(value):
+    if not value:
+        return None
+    return hashlib.sha256(value.strip().lower().encode("utf-8")).hexdigest()
+
+
+def _send_capi_event(event_name, event_id, user_data, custom_data=None, event_source_url=None):
+    """POST a server-side event to Meta Conversions API. Safe-fail: returns silently on any error."""
+    if not META_CAPI_ACCESS_TOKEN or not META_DATASET_ID:
+        return
+    try:
+        import requests as req
+        ud = {}
+        if user_data.get("email"):
+            ud["em"] = [_hash(user_data["email"])]
+        if user_data.get("phone"):
+            digits = "".join(c for c in user_data["phone"] if c.isdigit())
+            if digits:
+                ud["ph"] = [_hash(digits)]
+        if user_data.get("first_name"):
+            ud["fn"] = [_hash(user_data["first_name"])]
+        if user_data.get("last_name"):
+            ud["ln"] = [_hash(user_data["last_name"])]
+        if user_data.get("client_ip"):
+            ud["client_ip_address"] = user_data["client_ip"]
+        if user_data.get("client_ua"):
+            ud["client_user_agent"] = user_data["client_ua"]
+        if user_data.get("fbp"):
+            ud["fbp"] = user_data["fbp"]
+        if user_data.get("fbc"):
+            ud["fbc"] = user_data["fbc"]
+
+        event = {
+            "event_name": event_name,
+            "event_time": int(time.time()),
+            "event_id": event_id,
+            "action_source": "website",
+            "user_data": ud,
+        }
+        if event_source_url:
+            event["event_source_url"] = event_source_url
+        if custom_data:
+            event["custom_data"] = custom_data
+
+        payload = {"data": [event]}
+        if META_TEST_EVENT_CODE:
+            payload["test_event_code"] = META_TEST_EVENT_CODE
+
+        url = f"https://graph.facebook.com/v19.0/{META_DATASET_ID}/events?access_token={META_CAPI_ACCESS_TOKEN}"
+        r = req.post(url, json=payload, timeout=5)
+        if r.status_code >= 400:
+            print(f"[capi] {event_name} failed {r.status_code}: {r.text[:300]}")
+        else:
+            print(f"[capi] {event_name} sent event_id={event_id}")
+    except Exception as e:
+        print(f"[capi] {event_name} exception: {e}")
+
+
+def _client_ctx():
+    """Pull IP/UA/cookies from the current request for CAPI user_data."""
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr or "").split(",")[0].strip()
+    return {
+        "client_ip": ip,
+        "client_ua": request.headers.get("User-Agent", ""),
+    }
 
 @app.route("/")
 def home():
@@ -71,6 +146,33 @@ def inquiry():
         except Exception as e:
             print(f"[email] Failed to send notification: {e}")
 
+    # Meta CAPI — Lead event (deduped against browser Pixel via event_id)
+    event_id = (data.get("event_id") or str(uuid.uuid4())).strip()
+    parts = name.split(" ", 1)
+    first_name = parts[0] if parts else ""
+    last_name = parts[1] if len(parts) > 1 else ""
+    ctx = _client_ctx()
+    _send_capi_event(
+        event_name="Lead",
+        event_id=event_id,
+        user_data={
+            "email": email,
+            "first_name": first_name,
+            "last_name": last_name,
+            "client_ip": ctx["client_ip"],
+            "client_ua": ctx["client_ua"],
+            "fbp": (data.get("fbp") or "").strip() or None,
+            "fbc": (data.get("fbc") or "").strip() or None,
+        },
+        custom_data={
+            "lead_source": "homepage_quiz",
+            "service_type": service_type,
+            "budget": budget,
+            "content_name": "MK7 Media inquiry",
+        },
+        event_source_url=data.get("page_url") or "https://mk7media.com/",
+    )
+
     return jsonify({"ok": True})
 
 @app.route("/grow")
@@ -118,6 +220,35 @@ def grow_lead_submit():
                     json={"from": "MK7 Media <notifications@lumenmarketing.co>", "to": [email], "subject": subject, "html": body})
         except Exception as e:
             print(f"[email] Failed: {e}")
+
+    # Meta CAPI — only fire Lead on full submit (not on the partial whatsapp blur capture)
+    is_full_submit = bool(name)
+    if is_full_submit:
+        event_id = (data.get("event_id") or str(uuid.uuid4())).strip()
+        parts = name.split(" ", 1)
+        first_name = parts[0] if parts else ""
+        last_name = parts[1] if len(parts) > 1 else ""
+        ctx = _client_ctx()
+        _send_capi_event(
+            event_name="Lead",
+            event_id=event_id,
+            user_data={
+                "phone": whatsapp,
+                "first_name": first_name,
+                "last_name": last_name,
+                "client_ip": ctx["client_ip"],
+                "client_ua": ctx["client_ua"],
+                "fbp": (data.get("fbp") or "").strip() or None,
+                "fbc": (data.get("fbc") or "").strip() or None,
+            },
+            custom_data={
+                "lead_source": "grow_page",
+                "market": ml,
+                "need": need,
+                "content_name": f"Grow page lead — {ml}",
+            },
+            event_source_url=data.get("page_url") or f"https://mk7media.com{source_page}",
+        )
 
     return jsonify({"ok": True})
 

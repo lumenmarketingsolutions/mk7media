@@ -5,6 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MK7 Media — Grow Your Business</title>
 <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+
+<!-- Meta Pixel — DPSmgmt dataset 1180057140863760 -->
+<script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '1180057140863760');
+  fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=1180057140863760&ev=PageView&noscript=1"/></noscript>
+<!-- End Meta Pixel -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -878,14 +895,29 @@
 
   form.addEventListener('submit', function(e) {
     e.preventDefault();
+    const eventId = (crypto && crypto.randomUUID) ? crypto.randomUUID() : ('ev_' + Date.now() + '_' + Math.random().toString(36).slice(2));
+    const cookie = (n) => { const m = document.cookie.match(new RegExp('(?:^|; )' + n + '=([^;]+)')); return m ? decodeURIComponent(m[1]) : ''; };
+
     const data = {
       whatsapp: document.getElementById('f-whatsapp').value.trim(),
       name: document.getElementById('f-name').value.trim(),
       business: document.getElementById('f-business').value.trim(),
       need: document.getElementById('f-need').value,
       source_page: window.location.pathname,
-      market: '{{ market }}'
+      market: '{{ market }}',
+      event_id: eventId,
+      fbp: cookie('_fbp'),
+      fbc: cookie('_fbc'),
+      page_url: window.location.href
     };
+
+    if (window.fbq) {
+      fbq('track', 'Lead', {
+        content_name: 'Grow page lead',
+        lead_source: 'grow_page',
+        market: '{{ market }}',
+      }, { eventID: eventId });
+    }
 
     fetch('/api/grow/lead', {
       method: 'POST',
