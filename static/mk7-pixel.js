@@ -11,7 +11,39 @@
     return m ? decodeURIComponent(m[1]) : '';
   }
   var STANDARD = ['Lead', 'InitiateCheckout', 'Contact', 'ViewContent', 'CompleteRegistration', 'Schedule', 'SubmitApplication', 'Purchase', 'AddToCart'];
+  var STANDARD_CUSTOM_KEYS = ['value', 'currency', 'content_name', 'content_category', 'content_ids', 'contents', 'content_type', 'order_id', 'predicted_ltv', 'num_items', 'search_string', 'status', 'delivery_category'];
   var fired = {};
+
+  // Coerce reserved Meta keys to valid types; bundle anything else under custom_properties.
+  function sanitize(custom) {
+    var clean = {};
+    var extras = {};
+    for (var k in custom) {
+      if (!Object.prototype.hasOwnProperty.call(custom, k)) continue;
+      var v = custom[k];
+      if (v === null || v === undefined || v === '') continue;
+      if (STANDARD_CUSTOM_KEYS.indexOf(k) !== -1) {
+        if (k === 'value') {
+          var n = parseFloat(v);
+          if (!isNaN(n)) clean.value = n;
+        } else if (k === 'currency') {
+          var s = String(v).toUpperCase();
+          if (/^[A-Z]{3}$/.test(s)) clean.currency = s;
+        } else if (k === 'num_items') {
+          var ni = parseInt(v, 10);
+          if (!isNaN(ni)) clean.num_items = ni;
+        } else if (k === 'content_ids' || k === 'contents') {
+          if (Array.isArray(v)) clean[k] = v;
+        } else {
+          clean[k] = String(v);
+        }
+      } else {
+        extras[k] = v;
+      }
+    }
+    if (Object.keys(extras).length) clean.custom_properties = extras;
+    return clean;
+  }
 
   window.mk7Track = function (eventName, custom, opts) {
     custom = custom || {};
@@ -24,12 +56,13 @@
     }
 
     var eventId = uuid();
+    var cleaned = sanitize(custom);
 
     if (window.fbq) {
       if (STANDARD.indexOf(eventName) !== -1) {
-        fbq('track', eventName, custom, { eventID: eventId });
+        fbq('track', eventName, cleaned, { eventID: eventId });
       } else {
-        fbq('trackCustom', eventName, custom, { eventID: eventId });
+        fbq('trackCustom', eventName, cleaned, { eventID: eventId });
       }
     }
 
@@ -37,7 +70,7 @@
       var body = JSON.stringify({
         event_name: eventName,
         event_id: eventId,
-        custom_data: custom,
+        custom_data: cleaned,
         fbp: cookie('_fbp'),
         fbc: cookie('_fbc'),
         page_url: window.location.href

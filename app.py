@@ -23,6 +23,51 @@ def _hash(value):
     return hashlib.sha256(value.strip().lower().encode("utf-8")).hexdigest()
 
 
+# Meta CAPI reserves these top-level keys in custom_data with strict types.
+# Anything else gets nested into custom_properties so we never trip type validation.
+_CAPI_STANDARD_KEYS = {
+    "value", "currency", "content_name", "content_category", "content_ids",
+    "contents", "content_type", "order_id", "predicted_ltv", "num_items",
+    "search_string", "status", "delivery_category",
+}
+
+
+def _sanitize_custom_data(custom_data):
+    """Coerce reserved Meta keys to valid types and bundle the rest under custom_properties."""
+    if not custom_data:
+        return {}
+    clean = {}
+    extras = {}
+    for k, v in custom_data.items():
+        if v is None or v == "":
+            continue
+        if k in _CAPI_STANDARD_KEYS:
+            if k == "value":
+                try:
+                    clean["value"] = float(v)
+                except (TypeError, ValueError):
+                    continue  # drop invalid value rather than letting Meta reject the event
+            elif k == "currency":
+                s = str(v).strip().upper()
+                if len(s) == 3 and s.isalpha():
+                    clean["currency"] = s
+            elif k == "num_items":
+                try:
+                    clean["num_items"] = int(v)
+                except (TypeError, ValueError):
+                    continue
+            elif k in ("content_ids", "contents"):
+                if isinstance(v, list):
+                    clean[k] = v
+            else:
+                clean[k] = str(v)
+        else:
+            extras[k] = v
+    if extras:
+        clean["custom_properties"] = extras
+    return clean
+
+
 def _send_capi_event(event_name, event_id, user_data, custom_data=None, event_source_url=None):
     """POST a server-side event to Meta Conversions API. Safe-fail: returns silently on any error."""
     if not META_CAPI_ACCESS_TOKEN or not META_DATASET_ID:
@@ -58,8 +103,9 @@ def _send_capi_event(event_name, event_id, user_data, custom_data=None, event_so
         }
         if event_source_url:
             event["event_source_url"] = event_source_url
-        if custom_data:
-            event["custom_data"] = custom_data
+        cleaned = _sanitize_custom_data(custom_data)
+        if cleaned:
+            event["custom_data"] = cleaned
 
         payload = {"data": [event]}
         if META_TEST_EVENT_CODE:
