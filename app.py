@@ -253,6 +253,30 @@ def grow_lead_submit():
     return jsonify({"ok": True})
 
 
+@app.route("/api/track", methods=["POST"])
+def track_event():
+    """Generic engagement tracker: forwards browser-side events to Meta CAPI for dedup + iOS/blocker resilience."""
+    data = request.get_json(silent=True) or {}
+    event_name = (data.get("event_name") or "").strip()
+    if not event_name:
+        return jsonify({"ok": False, "error": "missing event_name"}), 400
+    event_id = (data.get("event_id") or str(uuid.uuid4())).strip()
+    ctx = _client_ctx()
+    _send_capi_event(
+        event_name=event_name,
+        event_id=event_id,
+        user_data={
+            "client_ip": ctx["client_ip"],
+            "client_ua": ctx["client_ua"],
+            "fbp": (data.get("fbp") or "").strip() or None,
+            "fbc": (data.get("fbc") or "").strip() or None,
+        },
+        custom_data=data.get("custom_data") or {},
+        event_source_url=data.get("page_url") or "https://mk7media.com/",
+    )
+    return jsonify({"ok": True})
+
+
 @app.route("/api/health")
 def health():
     return jsonify({"status": "ok"})
