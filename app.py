@@ -138,7 +138,10 @@ def home():
 def marlatabet_proposal():
     return render_template("marlatabet.html")
 
-def _build_inquiry_email(name, email, business, website, service_type, budget, worked_with_agency, goals):
+def _whatsapp_digits(value):
+    return "".join(c for c in (value or "") if c.isdigit())
+
+def _build_inquiry_email(name, email, whatsapp, business, website, service_type, budget, worked_with_agency, goals):
     dash = "\u2014"
     goals_block = ""
     if goals:
@@ -148,11 +151,29 @@ def _build_inquiry_email(name, email, business, website, service_type, budget, w
             f'<p style="margin: 0; color: #111;">{goals}</p>'
             '</div>'
         )
+
+    wa_button = ""
+    wa_digits = _whatsapp_digits(whatsapp)
+    if wa_digits:
+        first_name = (name or "there").split(" ", 1)[0]
+        prefill = f"Hi {first_name}, this is Marykate from MK7 Media. Saw your inquiry \u2014 happy to dig in. When works for a quick chat?"
+        from urllib.parse import quote
+        wa_url = f"https://wa.me/{wa_digits}?text={quote(prefill)}"
+        wa_button = (
+            '<div style="margin-top: 28px; text-align: center;">'
+            f'<a href="{wa_url}" style="display: inline-block; background: #25D366; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 10px; font-weight: 600; font-family: sans-serif; font-size: 15px;">'
+            '\ud83d\udcac Reply on WhatsApp'
+            '</a>'
+            '<p style="margin: 12px 0 0; color: #888; font-size: 12px;">Opens a chat with this lead, pre-filled.</p>'
+            '</div>'
+        )
+
     return (
         '<div style="font-family: sans-serif; max-width: 560px; margin: 0 auto; padding: 32px;">'
         '<h2 style="margin: 0 0 24px; color: #111;">New Inquiry from MK7 Media</h2>'
         '<table style="width: 100%; border-collapse: collapse;">'
         f'<tr><td style="padding: 8px 0; color: #888; width: 140px;">Name</td><td style="padding: 8px 0; color: #111; font-weight: 600;">{name}</td></tr>'
+        f'<tr><td style="padding: 8px 0; color: #888;">WhatsApp</td><td style="padding: 8px 0; color: #111; font-weight: 600;">{whatsapp or dash}</td></tr>'
         f'<tr><td style="padding: 8px 0; color: #888;">Email</td><td style="padding: 8px 0; color: #111;">{email}</td></tr>'
         f'<tr><td style="padding: 8px 0; color: #888;">Business</td><td style="padding: 8px 0; color: #111;">{business or dash}</td></tr>'
         f'<tr><td style="padding: 8px 0; color: #888;">Website</td><td style="padding: 8px 0; color: #111;">{website or dash}</td></tr>'
@@ -161,6 +182,7 @@ def _build_inquiry_email(name, email, business, website, service_type, budget, w
         f'<tr><td style="padding: 8px 0; color: #888;">Worked w/ Agency</td><td style="padding: 8px 0; color: #111;">{worked_with_agency or dash}</td></tr>'
         '</table>'
         f'{goals_block}'
+        f'{wa_button}'
         '</div>'
     )
 
@@ -169,6 +191,7 @@ def inquiry():
     data = request.get_json()
     name = data.get("name", "").strip()
     email = data.get("email", "").strip()
+    whatsapp = data.get("whatsapp", "").strip()
     business = data.get("business", "").strip()
     website = data.get("website", "").strip()
     service_type = data.get("service_type", "").strip()
@@ -176,8 +199,8 @@ def inquiry():
     worked_with_agency = data.get("worked_with_agency", "").strip()
     goals = data.get("goals", "").strip()
 
-    if not name or not email:
-        return jsonify({"error": "Name and email are required"}), 400
+    if not name or not email or len(_whatsapp_digits(whatsapp)) < 8:
+        return jsonify({"error": "Name, email, and a valid WhatsApp number are required"}), 400
 
     # Send notification email
     if RESEND_API_KEY:
@@ -188,7 +211,7 @@ def inquiry():
                 "from": "MK7 Media <notifications@lumenmarketing.co>",
                 "to": NOTIFY_RECIPIENTS,
                 "subject": f"New Inquiry: {name} — {service_type}",
-                "html": _build_inquiry_email(name, email, business, website, service_type, budget, worked_with_agency, goals)
+                "html": _build_inquiry_email(name, email, whatsapp, business, website, service_type, budget, worked_with_agency, goals)
             })
         except Exception as e:
             print(f"[email] Failed to send notification: {e}")
@@ -204,6 +227,7 @@ def inquiry():
         event_id=event_id,
         user_data={
             "email": email,
+            "phone": whatsapp,
             "first_name": first_name,
             "last_name": last_name,
             "client_ip": ctx["client_ip"],

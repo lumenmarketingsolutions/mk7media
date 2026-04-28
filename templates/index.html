@@ -1287,8 +1287,9 @@
       <!-- Step 5: Contact Info -->
       <div class="quiz-slide" data-step="5">
         <div class="quiz-question">Where should we send your consultation?</div>
-        <div class="quiz-hint">We will be in touch within 24 hours.</div>
+        <div class="quiz-hint">We will reach out on WhatsApp within 24 hours.</div>
         <input class="quiz-input" type="text" id="q_name" placeholder="Your full name" required>
+        <input class="quiz-input" type="tel" id="q_whatsapp" placeholder="WhatsApp number (with country code)" required>
         <input class="quiz-input" type="email" id="q_email" placeholder="Your email" required>
         <input class="quiz-input" type="text" id="q_business" placeholder="Business name (optional)">
       </div>
@@ -1415,16 +1416,20 @@ async function nextStep() {
 
   if (currentStep === totalSteps) {
     const name = document.getElementById('q_name').value.trim();
+    const whatsapp = document.getElementById('q_whatsapp').value.trim();
     const email = document.getElementById('q_email').value.trim();
     const business = document.getElementById('q_business').value.trim();
 
-    if (!name || !email) {
+    const whatsappDigits = whatsapp.replace(/\D/g, '');
+    if (!name || !email || whatsappDigits.length < 8) {
       document.getElementById('q_name').style.borderColor = name ? '' : '#e84da0';
       document.getElementById('q_email').style.borderColor = email ? '' : '#e84da0';
+      document.getElementById('q_whatsapp').style.borderColor = whatsappDigits.length >= 8 ? '' : '#e84da0';
       return;
     }
 
     quizData.name = name;
+    quizData.whatsapp = whatsapp;
     quizData.email = email;
     quizData.business = business;
 
