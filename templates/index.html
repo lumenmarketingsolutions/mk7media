@@ -81,43 +81,48 @@
       align-items: center;
       justify-content: center;
       gap: 12px;
-      padding: 11px 16px 12px;
-      background: rgba(11, 11, 16, 0.92);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      padding: 12px 16px 13px;
+      /* Subtle vertical gradient gives the strip its own light source — feels elevated, not flat against page bg */
+      background:
+        linear-gradient(180deg, rgba(22, 22, 32, 0.94) 0%, rgba(13, 13, 20, 0.94) 100%);
+      backdrop-filter: blur(24px) saturate(140%);
+      -webkit-backdrop-filter: blur(24px) saturate(140%);
+      /* Inner top hairline for the highlight, soft drop shadow downward for elevation */
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 1px 0 rgba(0, 0, 0, 0.6),
+        0 16px 40px -12px rgba(0, 0, 0, 0.55);
       color: rgba(255, 255, 255, 0.92);
       text-decoration: none;
       font-family: 'Inter', sans-serif;
       font-size: 13px;
       font-weight: 500;
       letter-spacing: 0.2px;
-      transition: background 0.2s;
+      transition: background 0.25s;
     }
+    /* Soft brand-colored glow bleeding into the page below — replaces the hard 1px line with a smooth fade */
     .top-strip::after {
       content: '';
       position: absolute;
-      left: 0; right: 0; bottom: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent 0%, rgba(255,125,190,0.55) 28%, rgba(168,123,255,0.7) 50%, rgba(77,155,255,0.55) 72%, transparent 100%);
+      left: 0; right: 0;
+      top: 100%;
+      height: 36px;
+      background: linear-gradient(180deg,
+        rgba(168, 123, 255, 0.18) 0%,
+        rgba(168, 123, 255, 0.07) 35%,
+        rgba(168, 123, 255, 0.02) 70%,
+        transparent 100%);
+      pointer-events: none;
     }
-    .top-strip:hover { background: rgba(18, 18, 26, 0.95); }
-    .top-strip .new-pill {
-      display: inline-flex;
-      align-items: center;
-      padding: 3px 9px;
-      background: linear-gradient(135deg, #FF7DBE 0%, #A87BFF 50%, #4D9BFF 100%);
-      color: #ffffff;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 1.2px;
-      border-radius: 999px;
-      text-transform: uppercase;
+    .top-strip:hover {
+      background:
+        linear-gradient(180deg, rgba(28, 28, 40, 0.96) 0%, rgba(18, 18, 28, 0.96) 100%);
     }
-    .top-strip .arrow { opacity: 0.55; font-weight: 600; }
+    .top-strip .arrow { opacity: 0.5; font-weight: 600; transition: transform 0.25s, opacity 0.25s; }
+    .top-strip:hover .arrow { opacity: 0.85; transform: translateX(3px); }
     @media (max-width: 540px) {
-      .top-strip { font-size: 12px; padding: 10px 12px 11px; gap: 8px; }
+      .top-strip { font-size: 12px; padding: 11px 12px 12px; gap: 8px; }
       .top-strip svg { width: 14px; height: 16px; }
-      .top-strip .new-pill { font-size: 9px; padding: 2px 7px; letter-spacing: 1px; }
     }
 
     /* ── Navigation ── */
@@ -832,7 +837,6 @@
 
 <!-- ── Top announcement strip ── -->
 <a href="#inquiry" class="top-strip" data-track="ViewContent" data-track-source="top_announcement_pill">
-  <span class="new-pill">NEW</span>
   <svg viewBox="0 0 109 124" width="14" height="16" aria-label="Shopify" style="flex-shrink:0;">
     <path fill="#95BF47" d="M74.7 14.8s-1.4.4-3.7 1.1c-.4-1.3-1-2.8-1.7-4.5-2.5-4.7-6.1-7.2-10.5-7.2h-1c-.1-.2-.3-.3-.4-.5C55.5 1 53 .1 49.9.2 44 .4 38.1 4.6 33.4 12.1c-3.3 5.3-5.8 11.9-6.5 17.1-6.7 2.1-11.4 3.5-11.5 3.6-3.4 1.1-3.5 1.2-3.9 4.4C11.2 39.6 2.3 108.4 2.3 108.4l74.6 12.9V14.7c-.7 0-1.4 0-2.2.1zM58 19.2c-3.9 1.2-8.2 2.5-12.5 3.9.6-3 1.7-5.9 3.4-7.9 1.8-2.2 4.3-3.7 6.5-4.4.4 2.6.5 5.4 0 8.4h.6zm-7.9-15c1.7 0 3.2.4 4.4 1.1-2.4 1.3-4.7 3.1-6.5 5.4-2.6 3.4-4.6 8.6-5.4 13.6-3.6 1.1-7.1 2.2-10.4 3.2 2-9.5 9.9-22.9 17.9-23.3zm-11.2 56c.4 6.3 17 7.7 17.9 22.5.7 11.7-6.2 19.7-16.2 20.3-12 .8-18.6-6.3-18.6-6.3l2.5-10.8s6.6 5 11.9 4.7c3.4-.2 4.7-3 4.6-4.9-.5-8.2-14-7.7-14.9-21.3-.7-11.4 6.8-23 23.3-24 6.4-.4 9.7 1.2 9.7 1.2l-3.8 14.1s-4.2-1.9-9.2-1.6c-7.3.5-7.4 5.1-7.2 6.1zm22.6-44.5c0-2.6-.4-6.4-1.7-9.6 4.2 1.3 6.3 6.1 7.2 9z"/>
     <path fill="#5E8E3E" d="M76.9 121.3l31-7.7s-13.3-90.1-13.4-90.7c-.1-.6-.6-.9-1-.9s-8.2-.2-8.2-.2-5.8-5.8-7.5-7.4l-1.1 107.1z"/>
