@@ -643,6 +643,11 @@
       max-width: 520px;
       overflow: hidden;
     }
+    .quiz-inline {
+      margin: 40px auto 0;
+      text-align: left;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    }
     .quiz-header {
       padding: 28px 32px 0;
       display: flex;
@@ -886,7 +891,7 @@
     <a href="#how-it-works">How It Works</a>
     <a href="#results">Results</a>
     <a href="#about">About</a>
-    <a href="#inquiry" class="nav-cta" data-track="InitiateCheckout" data-track-source="nav_cta" onclick="event.preventDefault(); document.getElementById('navLinks').classList.remove('open'); openQuiz();">Get Started</a>
+    <a href="#inquiry" class="nav-cta" data-track="InitiateCheckout" data-track-source="nav_cta" onclick="document.getElementById('navLinks').classList.remove('open');">Get Started</a>
   </div>
   <button class="nav-mobile-toggle" onclick="document.getElementById('navLinks').classList.toggle('open')">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -1230,17 +1235,12 @@
   </div>
 </section>
 
-<!-- ── CTA Banner ── -->
+<!-- ── CTA Banner with Embedded Form ── -->
 <section class="cta-banner" id="inquiry">
   <h2 class="fade-in">Ready to See What <span class="grad-text">Real Results</span> Look Like?</h2>
   <p class="fade-in">Takes 60 seconds. Tell us about your business and we will show you what is possible.</p>
-  <button class="btn-primary fade-in" onclick="openQuiz()" data-track="InitiateCheckout" data-track-source="hero_quiz_cta" style="position: relative;">Start Your Free Consultation</button>
-</section>
 
-<!-- ── Quiz Funnel Modal ── -->
-<div class="quiz-overlay" id="quizOverlay">
-  <div class="quiz-backdrop" onclick="closeQuiz()"></div>
-  <div class="quiz-modal">
+  <div class="quiz-modal quiz-inline fade-in">
     <div class="quiz-header">
       <div class="quiz-progress" id="quizProgress">
         <div class="bar active"></div>
@@ -1249,9 +1249,6 @@
         <div class="bar"></div>
         <div class="bar"></div>
       </div>
-      <button class="quiz-close" onclick="closeQuiz()">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
-      </button>
     </div>
 
     <div class="quiz-body" id="quizBody">
@@ -1323,7 +1320,7 @@
       <p>We will be in touch within 24 hours to set up a time to talk.</p>
     </div>
   </div>
-</div>
+</section>
 
 <!-- ── Footer ── -->
 <footer>
@@ -1355,27 +1352,30 @@ let currentStep = 1;
 const totalSteps = 5;
 const quizData = {};
 
+// Form is now embedded inline in the #inquiry section. No modal to open or close.
+// Keeping these stubs in case any external CTAs still reference them; they just scroll to the form.
 function openQuiz() {
-  currentStep = 1;
-  Object.keys(quizData).forEach(k => delete quizData[k]);
-  document.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
-  document.querySelectorAll('.quiz-input, .quiz-textarea').forEach(i => { i.value = ''; });
-  updateQuizUI();
-  document.getElementById('quizSuccess').classList.remove('show');
-  document.getElementById('quizBody').style.display = 'block';
-  document.getElementById('quizFooter').style.display = 'flex';
-  document.getElementById('quizOverlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-  if (window.mk7Track) mk7Track('QuizStarted', { content_name: 'Quiz opened' }, { dedupeKey: 'open' });
+  const target = document.getElementById('inquiry');
+  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (window.mk7Track) mk7Track('QuizStarted', { content_name: 'Form scrolled into view' }, { dedupeKey: 'scroll' });
 }
 
-function closeQuiz() {
-  document.getElementById('quizOverlay').classList.remove('open');
-  document.body.style.overflow = '';
-  if (window.mk7Track) mk7Track('QuizClosed', { step: currentStep }, { dedupeKey: 'close:' + currentStep });
-}
+function closeQuiz() { /* noop — form is inline, nothing to close */ }
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeQuiz(); });
+// Track QuizStarted when the inline form first scrolls into view
+(function () {
+  const form = document.querySelector('.quiz-inline');
+  if (!form || !window.IntersectionObserver) return;
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        if (window.mk7Track) mk7Track('QuizStarted', { content_name: 'Form viewed' }, { dedupeKey: 'view' });
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.4 });
+  io.observe(form);
+})();
 
 function selectOption(btn, field, value) {
   btn.parentElement.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
