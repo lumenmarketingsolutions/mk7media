@@ -1255,8 +1255,8 @@
     <div class="quiz-body" id="quizBody">
       <!-- Step 1: Contact Info (captures lead immediately) -->
       <div class="quiz-slide active" data-step="1">
-        <div class="quiz-question">Where should we send your consultation?</div>
-        <div class="quiz-hint">We will reach out on WhatsApp within 24 hours.</div>
+        <div class="quiz-question">How can we reach you?</div>
+        <div class="quiz-hint">We will message you on WhatsApp within 24 hours.</div>
         <input class="quiz-input" type="text" id="q_name" placeholder="Your full name" required>
         <input class="quiz-input" type="tel" id="q_whatsapp" placeholder="WhatsApp number (with country code)" required>
         <input class="quiz-input" type="text" id="q_business" placeholder="Business name (optional)">
@@ -1338,10 +1338,16 @@ window.addEventListener('scroll', () => {
 
 document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener('click', e => {
-    e.preventDefault();
-    const target = document.querySelector(a.getAttribute('href'));
+    const href = a.getAttribute('href');
+    if (!href || href === '#') return;
+    const target = document.querySelector(href);
     if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      e.preventDefault();
+      // Manual offset-aware scroll so fixed nav doesn't overlap target on mobile
+      const navHeight = 80;
+      const rect = target.getBoundingClientRect();
+      const top = rect.top + window.scrollY - navHeight;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
       document.getElementById('navLinks').classList.remove('open');
     }
   });
