@@ -1305,7 +1305,7 @@
         <div class="quiz-hint">We will reach out on WhatsApp within 24 hours.</div>
         <input class="quiz-input" type="text" id="q_name" placeholder="Your full name" required>
         <input class="quiz-input" type="tel" id="q_whatsapp" placeholder="WhatsApp number (with country code)" required>
-        <input class="quiz-input" type="email" id="q_email" placeholder="Your email" required>
+        <input class="quiz-input" type="email" id="q_email" placeholder="Your email (optional)">
         <input class="quiz-input" type="text" id="q_business" placeholder="Business name (optional)">
       </div>
     </div>
@@ -1436,9 +1436,8 @@ async function nextStep() {
     const business = document.getElementById('q_business').value.trim();
 
     const whatsappDigits = whatsapp.replace(/\D/g, '');
-    if (!name || !email || whatsappDigits.length < 8) {
+    if (!name || whatsappDigits.length < 8) {
       document.getElementById('q_name').style.borderColor = name ? '' : '#e84da0';
-      document.getElementById('q_email').style.borderColor = email ? '' : '#e84da0';
       document.getElementById('q_whatsapp').style.borderColor = whatsappDigits.length >= 8 ? '' : '#e84da0';
       return;
     }
