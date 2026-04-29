@@ -1336,6 +1336,22 @@ window.addEventListener('scroll', () => {
   document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40);
 });
 
+function scrollToTarget(target) {
+  if (!target) return;
+  const navHeight = 80;
+  // Compute fresh position every time. iOS Safari sometimes returns stale rects on first paint.
+  const rect = target.getBoundingClientRect();
+  let top = rect.top + window.scrollY - navHeight;
+  // Special case: when the target is the form (#inquiry), it lives at the very end of the page.
+  // Scroll to the maximum scrollable position so the form lands at the top of viewport regardless
+  // of any layout quirks that might miscalculate the bounding rect on iOS.
+  if (target.id === 'inquiry') {
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    top = Math.max(top, maxScroll);
+  }
+  window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+}
+
 document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener('click', e => {
     const href = a.getAttribute('href');
@@ -1343,11 +1359,9 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     const target = document.querySelector(href);
     if (target) {
       e.preventDefault();
-      // Manual offset-aware scroll so fixed nav doesn't overlap target on mobile
-      const navHeight = 80;
-      const rect = target.getBoundingClientRect();
-      const top = rect.top + window.scrollY - navHeight;
-      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      scrollToTarget(target);
+      // Fallback: re-scroll after smooth animation completes in case iOS reflowed the page
+      setTimeout(() => scrollToTarget(target), 700);
       document.getElementById('navLinks').classList.remove('open');
     }
   });
