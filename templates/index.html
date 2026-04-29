@@ -1255,8 +1255,17 @@
     </div>
 
     <div class="quiz-body" id="quizBody">
-      <!-- Step 1: Service Type -->
+      <!-- Step 1: Contact Info (captures lead immediately) -->
       <div class="quiz-slide active" data-step="1">
+        <div class="quiz-question">Where should we send your consultation?</div>
+        <div class="quiz-hint">We will reach out on WhatsApp within 24 hours.</div>
+        <input class="quiz-input" type="text" id="q_name" placeholder="Your full name" required>
+        <input class="quiz-input" type="tel" id="q_whatsapp" placeholder="WhatsApp number (with country code)" required>
+        <input class="quiz-input" type="text" id="q_business" placeholder="Business name (optional)">
+      </div>
+
+      <!-- Step 2: Service Type -->
+      <div class="quiz-slide" data-step="2">
         <div class="quiz-question">What does your business sell?</div>
         <div class="quiz-hint">This helps us understand which strategy fits you best.</div>
         <div class="quiz-options">
@@ -1267,8 +1276,8 @@
         </div>
       </div>
 
-      <!-- Step 2: Budget -->
-      <div class="quiz-slide" data-step="2">
+      <!-- Step 3: Budget -->
+      <div class="quiz-slide" data-step="3">
         <div class="quiz-question">What is your monthly ad budget?</div>
         <div class="quiz-hint">There is no wrong answer. We work with all ranges.</div>
         <div class="quiz-options">
@@ -1280,8 +1289,8 @@
         </div>
       </div>
 
-      <!-- Step 3: Agency Experience -->
-      <div class="quiz-slide" data-step="3">
+      <!-- Step 4: Agency Experience -->
+      <div class="quiz-slide" data-step="4">
         <div class="quiz-question">Have you worked with an agency before?</div>
         <div class="quiz-hint">Helps us understand your experience level.</div>
         <div class="quiz-options">
@@ -1291,22 +1300,12 @@
         </div>
       </div>
 
-      <!-- Step 4: Website + Goals -->
-      <div class="quiz-slide" data-step="4">
+      <!-- Step 5: Website + Goals -->
+      <div class="quiz-slide" data-step="5">
         <div class="quiz-question">Tell us a bit more</div>
-        <div class="quiz-hint">Your website and what you are trying to achieve.</div>
+        <div class="quiz-hint">Your website and what you are trying to achieve. Both optional.</div>
         <input class="quiz-input" type="url" id="q_website" placeholder="Your website (optional)">
         <textarea class="quiz-textarea" id="q_goals" placeholder="What are your goals? What does success look like for you?"></textarea>
-      </div>
-
-      <!-- Step 5: Contact Info -->
-      <div class="quiz-slide" data-step="5">
-        <div class="quiz-question">Where should we send your consultation?</div>
-        <div class="quiz-hint">We will reach out on WhatsApp within 24 hours.</div>
-        <input class="quiz-input" type="text" id="q_name" placeholder="Your full name" required>
-        <input class="quiz-input" type="tel" id="q_whatsapp" placeholder="WhatsApp number (with country code)" required>
-        <input class="quiz-input" type="email" id="q_email" placeholder="Your email (optional)">
-        <input class="quiz-input" type="text" id="q_business" placeholder="Business name (optional)">
       </div>
     </div>
 
@@ -1405,8 +1404,8 @@ function updateQuizUI() {
     nextBtn.textContent = 'Continue';
   }
 
-  // Disable next on option-based steps if nothing selected yet
-  if (currentStep <= 3) {
+  // Disable Continue on option-based qualifying steps (2, 3, 4) until something is selected
+  if (currentStep >= 2 && currentStep <= 4) {
     const slide = document.querySelector('[data-step="' + currentStep + '"]');
     const hasSelection = slide.querySelector('.quiz-option.selected');
     nextBtn.disabled = !hasSelection;
@@ -1424,15 +1423,11 @@ function prevStep() {
 }
 
 async function nextStep() {
-  if (currentStep === 4) {
-    quizData.website = document.getElementById('q_website').value.trim();
-    quizData.goals = document.getElementById('q_goals').value.trim();
-  }
-
-  if (currentStep === totalSteps) {
+  // Step 1: contact info — validate, fire Lead pixel, capture lead immediately so we have them
+  // even if they bail before completing the qualifying questions.
+  if (currentStep === 1) {
     const name = document.getElementById('q_name').value.trim();
     const whatsapp = document.getElementById('q_whatsapp').value.trim();
-    const email = document.getElementById('q_email').value.trim();
     const business = document.getElementById('q_business').value.trim();
 
     const whatsappDigits = whatsapp.replace(/\D/g, '');
@@ -1444,7 +1439,6 @@ async function nextStep() {
 
     quizData.name = name;
     quizData.whatsapp = whatsapp;
-    quizData.email = email;
     quizData.business = business;
 
     // Pixel + CAPI dedup: shared event_id, plus fbp/fbc cookies for browser-event matching
@@ -1459,35 +1453,49 @@ async function nextStep() {
       fbq('track', 'Lead', {
         content_name: 'MK7 Media inquiry',
         lead_source: 'homepage_quiz',
-        service_type: quizData.service_type || '',
       }, { eventID: eventId });
     }
+
+    // Fire-and-forget early capture — don't block UI on the network roundtrip
+    fetch('/api/inquiry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(quizData)
+    }).catch(() => {});
+
+    if (window.mk7Track) mk7Track('QuizContinue', { from_step: 1, to_step: 2, captured: true }, { dedupeKey: 'continue:1' });
+    currentStep++;
+    updateQuizUI();
+    return;
+  }
+
+  // Final step: capture website + goals, send enrichment update, show success
+  if (currentStep === totalSteps) {
+    quizData.website = document.getElementById('q_website').value.trim();
+    quizData.goals = document.getElementById('q_goals').value.trim();
+    quizData.is_enrichment = true;  // tells backend not to re-fire Lead pixel
 
     const btn = document.getElementById('quizNext');
     btn.disabled = true;
     btn.textContent = 'Sending...';
 
     try {
-      const res = await fetch('/api/inquiry', {
+      await fetch('/api/inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(quizData)
       });
-      if (res.ok) {
-        document.getElementById('quizBody').style.display = 'none';
-        document.getElementById('quizFooter').style.display = 'none';
-        document.getElementById('quizSuccess').classList.add('show');
-      } else {
-        btn.disabled = false;
-        btn.textContent = 'Submit';
-      }
     } catch {
-      btn.disabled = false;
-      btn.textContent = 'Submit';
+      // We already captured them on step 1, the enrichment is bonus
     }
+
+    document.getElementById('quizBody').style.display = 'none';
+    document.getElementById('quizFooter').style.display = 'none';
+    document.getElementById('quizSuccess').classList.add('show');
     return;
   }
 
+  // Mid steps (2, 3, 4): just advance
   if (window.mk7Track) mk7Track('QuizContinue', { from_step: currentStep, to_step: currentStep + 1 }, { dedupeKey: 'continue:' + currentStep });
   currentStep++;
   updateQuizUI();
