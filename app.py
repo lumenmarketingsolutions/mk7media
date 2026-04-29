@@ -199,22 +199,31 @@ def inquiry():
     worked_with_agency = data.get("worked_with_agency", "").strip()
     goals = data.get("goals", "").strip()
 
-    if not name or not email or len(_whatsapp_digits(whatsapp)) < 8:
-        return jsonify({"error": "Name, email, and a valid WhatsApp number are required"}), 400
+    if not name or len(_whatsapp_digits(whatsapp)) < 8:
+        return jsonify({"error": "Name and a valid WhatsApp number are required"}), 400
+
+    # Two-stage capture: step 1 sends a "new inquiry" email + fires Lead CAPI;
+    # step 5 sends an "enrichment" email with the qualifying answers and skips the CAPI re-fire.
+    is_enrichment = bool(data.get("is_enrichment"))
 
     # Send notification email
     if RESEND_API_KEY:
         try:
             import resend
             resend.api_key = RESEND_API_KEY
+            subject_prefix = "Inquiry Enrichment" if is_enrichment else "New Inquiry"
             resend.Emails.send({
                 "from": "MK7 Media <notifications@lumenmarketing.co>",
                 "to": NOTIFY_RECIPIENTS,
-                "subject": f"New Inquiry: {name} — {service_type}",
+                "subject": f"{subject_prefix}: {name}" + (f" — {service_type}" if service_type else ""),
                 "html": _build_inquiry_email(name, email, whatsapp, business, website, service_type, budget, worked_with_agency, goals)
             })
         except Exception as e:
             print(f"[email] Failed to send notification: {e}")
+
+    # On enrichment, return early without re-firing the CAPI Lead event
+    if is_enrichment:
+        return jsonify({"ok": True, "stage": "enrichment"})
 
     # Meta CAPI — Lead event (deduped against browser Pixel via event_id)
     event_id = (data.get("event_id") or str(uuid.uuid4())).strip()
