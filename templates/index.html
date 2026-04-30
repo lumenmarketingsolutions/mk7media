@@ -1336,6 +1336,18 @@
 </footer>
 
 <script>
+// Always start at the top, even when an ad / shared link arrives with a
+// hash like /#inquiry or /#about. Browsers default to auto-scrolling to
+// the matched element on first paint, which dumps ad visitors halfway
+// down the page before they see the hero.
+if (window.location.hash) {
+  history.replaceState(null, '', window.location.pathname + window.location.search);
+}
+window.scrollTo(0, 0);
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+
 window.addEventListener('scroll', () => {
   document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40);
 });
@@ -1343,16 +1355,7 @@ window.addEventListener('scroll', () => {
 function scrollToTarget(target) {
   if (!target) return;
   const navHeight = 80;
-  // Compute fresh position every time. iOS Safari sometimes returns stale rects on first paint.
-  const rect = target.getBoundingClientRect();
-  let top = rect.top + window.scrollY - navHeight;
-  // Special case: when the target is the form (#inquiry), it lives at the very end of the page.
-  // Scroll to the maximum scrollable position so the form lands at the top of viewport regardless
-  // of any layout quirks that might miscalculate the bounding rect on iOS.
-  if (target.id === 'inquiry') {
-    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-    top = Math.max(top, maxScroll);
-  }
+  const top = target.getBoundingClientRect().top + window.scrollY - navHeight;
   window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
 }
 
@@ -1364,8 +1367,6 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     if (target) {
       e.preventDefault();
       scrollToTarget(target);
-      // Fallback: re-scroll after smooth animation completes in case iOS reflowed the page
-      setTimeout(() => scrollToTarget(target), 700);
       document.getElementById('navLinks').classList.remove('open');
     }
   });
@@ -1379,8 +1380,7 @@ const quizData = {};
 // Form is now embedded inline in the #inquiry section. No modal to open or close.
 // Keeping these stubs in case any external CTAs still reference them; they just scroll to the form.
 function openQuiz() {
-  const target = document.getElementById('inquiry');
-  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  scrollToTarget(document.getElementById('inquiry'));
   if (window.mk7Track) mk7Track('QuizStarted', { content_name: 'Form scrolled into view' }, { dedupeKey: 'scroll' });
 }
 
