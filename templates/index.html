@@ -1076,7 +1076,7 @@
         <div class="result-divider"></div>
         <div class="result-desc">880 leads generated for a service business entering a new market. $7,376 total ad spend turned into $290K in net revenue within 82 days. 129 closed sales at $2,319 average ticket.</div>
         <div class="result-detail">22,861 clicks. Full funnel built from scratch. On track for their best year ever.</div>
-        <img src="/static/case-880-leads.jpg" alt="Meta Ads dashboard showing 880 leads at $8.38 CPL and $290K revenue" class="result-img" loading="lazy">
+        <img src="/static/case-880-leads.jpg" alt="Meta Ads dashboard showing 880 leads at $8.38 CPL and $290K revenue" class="result-img">
       </div>
 
       <div class="result-card fade-in d2">
@@ -1086,7 +1086,7 @@
         <div class="result-divider"></div>
         <div class="result-desc">Four campaign iterations driving 435 qualified leads from $9,868 in total spend. 466,449 impressions across 9,086 clicks. Each campaign version refined targeting and creative to push cost per lead down.</div>
         <div class="result-detail">Lead Campaign v1.00 hit $10.17 CPL with 164 leads from just $1,668 in spend.</div>
-        <img src="/static/case-435-leads.jpg" alt="Meta Ads pivot table showing 435 total leads across 4 campaigns" class="result-img" loading="lazy">
+        <img src="/static/case-435-leads.jpg" alt="Meta Ads pivot table showing 435 total leads across 4 campaigns" class="result-img">
       </div>
 
       <div class="result-card fade-in d3">
@@ -1096,7 +1096,7 @@
         <div class="result-divider"></div>
         <div class="result-desc">127 inbound inquiries generated from just $1,890 in Meta ad spend. 4,740 link clicks driving qualified leads directly into the CRM pipeline for follow-up and conversion.</div>
         <div class="result-detail">Real-time lead tracking with every inquiry captured and routed automatically.</div>
-        <img src="/static/case-127-leads.jpg" alt="Dashboard showing 127 leads from $1.89K spend with 4,740 clicks" class="result-img" loading="lazy">
+        <img src="/static/case-127-leads.jpg" alt="Dashboard showing 127 leads from $1.89K spend with 4,740 clicks" class="result-img">
       </div>
 
       <div class="result-card fade-in d4">
@@ -1106,7 +1106,7 @@
         <div class="result-divider"></div>
         <div class="result-desc">High ticket product launch that generated $1,193,605 in revenue during the campaign period. Complete funnel strategy with ads, landing pages, and conversion tracking.</div>
         <div class="result-detail">From zero to over a million in product revenue.</div>
-        <img src="/static/case-1m-revenue.jpg" alt="Revenue report showing $1,193,605.83 this period versus $0 last period" class="result-img" loading="lazy">
+        <img src="/static/case-1m-revenue.jpg" alt="Revenue report showing $1,193,605.83 this period versus $0 last period" class="result-img">
       </div>
 
       <div class="result-card fade-in d5">
@@ -1239,11 +1239,14 @@
 </section>
 
 <!-- ── CTA Banner with Embedded Form ── -->
-<section class="cta-banner">
+<!-- id="inquiry" lives on the section so every CTA on the page scrolls to
+     the "Ready to See What Real Results Look Like" header with the form
+     just below, instead of jumping past the headline into the form alone -->
+<section class="cta-banner" id="inquiry">
   <h2 class="fade-in">Ready to See What <span class="grad-text">Real Results</span> Look Like?</h2>
   <p class="fade-in">Takes 60 seconds. Tell us about your business and we will show you what is possible.</p>
 
-  <div class="quiz-modal quiz-inline fade-in" id="inquiry">
+  <div class="quiz-modal quiz-inline fade-in">
     <div class="quiz-header">
       <div class="quiz-progress" id="quizProgress">
         <div class="bar active"></div>
