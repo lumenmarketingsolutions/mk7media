@@ -23,6 +23,8 @@
   src="https://www.facebook.com/tr?id=1180057140863760&ev=PageView&noscript=1"/></noscript>
 <!-- End Meta Pixel -->
 <script src="/static/mk7-pixel.js" defer></script>
+<link rel="stylesheet" href="/static/phone-input.css">
+<script src="/static/phone-input.js" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -818,7 +820,9 @@
       <h2 class="section-title reveal" style="text-align:center;">Let us show you what this looks like for your business.</h2>
       <p class="section-sub reveal" style="text-align:center;max-width:440px;margin:0 auto 36px;">Drop your WhatsApp below. We will reach out with more information and a way to book your free call.</p>
       <form id="leadForm" class="reveal">
-        <input type="tel" name="whatsapp" id="f-whatsapp" placeholder="Your WhatsApp number" required autocomplete="tel">
+        <div data-phone-input>
+          <input type="tel" name="whatsapp" id="f-whatsapp" placeholder="Your WhatsApp number" required autocomplete="tel">
+        </div>
         <input type="text" name="name" id="f-name" placeholder="Your name" autocomplete="name">
         <input type="text" name="business" id="f-business" placeholder="Your business name">
         <select name="need" id="f-need">
@@ -878,15 +882,28 @@
   const waInput = document.getElementById('f-whatsapp');
   let partialSaved = false;
 
-  // Save WhatsApp on blur (partial capture)
+  function fullWa() {
+    return (window.PhoneInput && window.PhoneInput.fullNumber)
+      ? window.PhoneInput.fullNumber(waInput)
+      : waInput.value.trim();
+  }
+  function waValid() {
+    return (window.PhoneInput && window.PhoneInput.isValid)
+      ? window.PhoneInput.isValid(waInput)
+      : waInput.value.replace(/\D/g, '').length >= 8;
+  }
+
+  // Save WhatsApp on blur (partial capture) — only once we have a country code
+  // AND enough digits, otherwise we'd save unreachable numbers like the one
+  // that triggered this fix.
   waInput.addEventListener('blur', function() {
-    if (this.value.trim() && !partialSaved) {
+    if (waValid() && !partialSaved) {
       partialSaved = true;
       fetch('/api/grow/lead', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
-          whatsapp: this.value.trim(),
+          whatsapp: fullWa(),
           source_page: window.location.pathname,
           market: '{{ market }}'
         })
@@ -896,11 +913,18 @@
 
   form.addEventListener('submit', function(e) {
     e.preventDefault();
+
+    if (!waValid()) {
+      waInput.style.borderColor = '#e84da0';
+      waInput.focus();
+      return;
+    }
+
     const eventId = (crypto && crypto.randomUUID) ? crypto.randomUUID() : ('ev_' + Date.now() + '_' + Math.random().toString(36).slice(2));
     const cookie = (n) => { const m = document.cookie.match(new RegExp('(?:^|; )' + n + '=([^;]+)')); return m ? decodeURIComponent(m[1]) : ''; };
 
     const data = {
-      whatsapp: document.getElementById('f-whatsapp').value.trim(),
+      whatsapp: fullWa(),
       name: document.getElementById('f-name').value.trim(),
       business: document.getElementById('f-business').value.trim(),
       need: document.getElementById('f-need').value,

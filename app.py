@@ -199,8 +199,12 @@ def inquiry():
     worked_with_agency = data.get("worked_with_agency", "").strip()
     goals = data.get("goals", "").strip()
 
-    if not name or len(_whatsapp_digits(whatsapp)) < 8:
-        return jsonify({"error": "Name and a valid WhatsApp number are required"}), 400
+    # Min 10 digits guarantees an international number with a country code.
+    # An 8-digit Lebanon local sneaking through here is what caused the
+    # "can't message the lead" bug — frontend now forces a country code,
+    # backend enforces it as a second line of defense.
+    if not name or len(_whatsapp_digits(whatsapp)) < 10:
+        return jsonify({"error": "Name and a full WhatsApp number with country code are required"}), 400
 
     # Two-stage capture: step 1 sends a "new inquiry" email + fires Lead CAPI;
     # step 5 sends an "enrichment" email with the qualifying answers and skips the CAPI re-fire.
@@ -274,8 +278,9 @@ def grow_lead_submit():
     source_page = (data.get("source_page") or "").strip()
     market = (data.get("market") or "").strip()
 
-    if not whatsapp:
-        return jsonify({"error": "WhatsApp number is required"}), 400
+    # Min 10 digits = country code + reasonable national number
+    if len(_whatsapp_digits(whatsapp)) < 10:
+        return jsonify({"error": "Valid WhatsApp number with country code is required"}), 400
 
     market_labels = {"lb": "Lebanon", "gcc": "GCC/Dubai", "": "Unknown"}
     ml = market_labels.get(market, market)

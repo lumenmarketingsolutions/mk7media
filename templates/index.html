@@ -27,6 +27,8 @@
     src="https://www.facebook.com/tr?id=1180057140863760&ev=PageView&noscript=1"/></noscript>
   <!-- End Meta Pixel -->
   <script src="/static/mk7-pixel.js" defer></script>
+  <link rel="stylesheet" href="/static/phone-input.css">
+  <script src="/static/phone-input.js" defer></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -1258,7 +1260,9 @@
         <div class="quiz-question">How can we reach you?</div>
         <div class="quiz-hint">We will message you on WhatsApp within 24 hours.</div>
         <input class="quiz-input" type="text" id="q_name" placeholder="Your full name" required>
-        <input class="quiz-input" type="tel" id="q_whatsapp" placeholder="WhatsApp number (with country code)" required>
+        <div data-phone-input>
+          <input class="quiz-input" type="tel" id="q_whatsapp" placeholder="WhatsApp number" required autocomplete="tel">
+        </div>
         <input class="quiz-input" type="text" id="q_business" placeholder="Business name (optional)">
       </div>
 
@@ -1448,18 +1452,26 @@ async function nextStep() {
   // even if they bail before completing the qualifying questions.
   if (currentStep === 1) {
     const name = document.getElementById('q_name').value.trim();
-    const whatsapp = document.getElementById('q_whatsapp').value.trim();
+    const waInput = document.getElementById('q_whatsapp');
     const business = document.getElementById('q_business').value.trim();
 
-    const whatsappDigits = whatsapp.replace(/\D/g, '');
-    if (!name || whatsappDigits.length < 8) {
+    // Build the full E.164 number from the country-code selector + the local digits.
+    // Refuses to advance unless a country was picked AND the local part has enough digits.
+    const fullWhatsapp = (window.PhoneInput && window.PhoneInput.fullNumber)
+      ? window.PhoneInput.fullNumber(waInput)
+      : waInput.value.trim();
+    const waValid = (window.PhoneInput && window.PhoneInput.isValid)
+      ? window.PhoneInput.isValid(waInput)
+      : (waInput.value.replace(/\D/g, '').length >= 8);
+
+    if (!name || !waValid) {
       document.getElementById('q_name').style.borderColor = name ? '' : '#e84da0';
-      document.getElementById('q_whatsapp').style.borderColor = whatsappDigits.length >= 8 ? '' : '#e84da0';
+      waInput.style.borderColor = waValid ? '' : '#e84da0';
       return;
     }
 
     quizData.name = name;
-    quizData.whatsapp = whatsapp;
+    quizData.whatsapp = fullWhatsapp;
     quizData.business = business;
 
     // Pixel + CAPI dedup: shared event_id, plus fbp/fbc cookies for browser-event matching
