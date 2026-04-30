@@ -138,6 +138,11 @@ def home():
 def marlatabet_proposal():
     return render_template("marlatabet.html")
 
+
+@app.route("/marlatabet/reel")
+def marlatabet_reel():
+    return render_template("marlatabet_reel.html")
+
 def _whatsapp_digits(value):
     return "".join(c for c in (value or "") if c.isdigit())
 
