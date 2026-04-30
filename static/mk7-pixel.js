@@ -105,4 +105,71 @@
     }
     mk7Track(name, custom, { dedupeKey: dedupeKey });
   });
+
+  // ── Audience tracking → lumenmarketing.co/admin ─────────────────
+  // Posts every page load + final time-on-page to the Lumen admin database
+  // so the /admin/audiences page can build retargeting audiences from MK7
+  // visitor IPs and dwell time. Runs on every page that loads this script,
+  // not just the grow funnel.
+  var AUDIENCE_ENDPOINT = 'https://lumenmarketing.co/api/grow/pageview';
+  // "mk7media.com/grow/lb", "mk7media.com/", etc. — readable, consistent
+  // across the whole site so the admin filter has stable page labels.
+  var pageLabel = 'mk7media.com' + window.location.pathname;
+  var pageStart = Date.now();
+  var sentDuration = false;
+
+  // Use text/plain so the request stays CORS-simple (no preflight needed).
+  // The Lumen endpoint parses with force=True, so JSON-stringified text/plain
+  // bodies are decoded the same as application/json.
+  function pingAudience(payload) {
+    try {
+      var body = JSON.stringify(payload);
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(AUDIENCE_ENDPOINT, new Blob([body], { type: 'text/plain' }));
+        return;
+      }
+      fetch(AUDIENCE_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: body,
+        keepalive: true,
+        mode: 'cors'
+      }).catch(function () {});
+    } catch (e) { /* noop */ }
+  }
+
+  // Fire the initial pageview once the document has a referrer to read
+  function sendInitialPageview() {
+    pingAudience({
+      page: pageLabel,
+      referrer: document.referrer || '',
+      time_on_page: 0
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', sendInitialPageview);
+  } else {
+    sendInitialPageview();
+  }
+
+  // Send time-on-page when the user actually leaves. visibilitychange→hidden
+  // is the most reliable signal on mobile Safari (where pagehide/beforeunload
+  // are flaky). beforeunload is the desktop fallback. Guard with sentDuration
+  // so we never double-count a single visit.
+  function sendDuration() {
+    if (sentDuration) return;
+    var seconds = Math.round((Date.now() - pageStart) / 1000);
+    if (seconds <= 0) return;
+    sentDuration = true;
+    pingAudience({
+      page: pageLabel,
+      referrer: document.referrer || '',
+      time_on_page: seconds
+    });
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') sendDuration();
+  });
+  window.addEventListener('pagehide', sendDuration);
+  window.addEventListener('beforeunload', sendDuration);
 })();
