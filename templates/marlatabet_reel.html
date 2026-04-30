@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Marla Tabet × MK7 Media · AI Reel</title>
-<meta name="description" content="A short reel of AI-generated cinematic clips — for Marla Tabet Jewelry, from MK7 Media.">
+<meta name="description" content="A short reel of AI-generated cinematic clips, for Marla Tabet Jewelry, from MK7 Media.">
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
 
-<meta property="og:title" content="Marla Tabet × MK7 Media — AI Reel">
+<meta property="og:title" content="Marla Tabet × MK7 Media · AI Reel">
 <meta property="og:description" content="A short reel of AI-generated cinematic clips, built around your brand.">
 <meta property="og:image" content="https://mk7media.com/static/og-marla-mk7.png">
 <meta property="og:image:width" content="1200">
@@ -119,16 +119,15 @@
   .intro strong { color: var(--ink); font-weight: 600; }
 
   /* ── REEL ── */
-  .reel { display: flex; flex-direction: column; gap: 70px; }
+  .reel { display: flex; flex-direction: column; gap: 80px; }
 
   .reel-item { }
   .reel-item__media {
     position: relative;
-    border: 1px solid var(--line-soft);
-    background: #000;
+    background: var(--bg-elevated);
     overflow: hidden;
-    border-radius: 2px;
-    box-shadow: 0 24px 60px -28px rgba(42, 34, 28, 0.25);
+    border-radius: 4px;
+    box-shadow: 0 30px 70px -28px rgba(42, 34, 28, 0.28);
   }
   .reel-item__media iframe,
   .reel-item__media video {
@@ -137,10 +136,19 @@
     height: 100%;
     border: 0;
   }
-  .reel-item__media .ratio-16-9 { position: relative; padding-top: 56.25%; }
-  .reel-item__media .ratio-16-9 > * { position: absolute; inset: 0; }
-  .reel-item__media .ratio-9-16 { position: relative; padding-top: 177.77%; max-width: 380px; margin: 0 auto; }
-  .reel-item__media .ratio-9-16 > * { position: absolute; inset: 0; }
+  /* 16:9 — landscape (YouTube full embeds) */
+  .reel-item__media.ratio-16-9 {
+    aspect-ratio: 16 / 9;
+  }
+  /* 9:16 — vertical (Kive items, YouTube Shorts). Bigger max width so
+     the videos feel substantial on desktop while still respecting the
+     editorial wrap, and the centered container drops cleanly into the
+     cream page without dark borders. */
+  .reel-item__media.ratio-9-16 {
+    aspect-ratio: 9 / 16;
+    max-width: 520px;
+    margin: 0 auto;
+  }
   .reel-item__media img {
     display: block;
     width: 100%;
@@ -291,7 +299,7 @@
   <div class="wrap--narrow hero-inner">
     <div class="eyebrow">A short reel · For Marla &amp; Stephanie</div>
     <h1>Cinematic AI<br><span class="italic">for Marla Tabet.</span></h1>
-    <p class="sub">A few examples of where this craft is, and where we'd take your line.</p>
+    <p class="sub">A short reel of what AI video can do for jewelry today, and how we would build it for your line.</p>
   </div>
 </section>
 
@@ -299,8 +307,8 @@
 <section class="intro" style="padding-top:0">
   <div class="wrap--narrow">
     <p class="lead">Every clip on this page was created with AI.</p>
-    <p>None of these were filmed. No studio, no jib, no $40,000 day rate. Each one began as a single still — a product shot, a model photo, a piece of reference — and was rendered into motion with the same engines we'll use for your line.</p>
-    <p>The point of this page is to put the friction to bed. <strong>"AI-generated"</strong> in 2026 doesn't mean what it meant six months ago. It means a director's-grade cinematic surface, built from your own product photography, at a fraction of what it used to cost.</p>
+    <p>Each one started as a single still photograph. A product shot, a model frame, a piece of reference. From there it is rendered into full motion using the same engines we would use for your line. The whole pipeline runs without a shoot, a studio, or the day rates that come with both.</p>
+    <p>The current generation of AI engines produces cinematic quality you can put next to a real shoot without losing face. Every clip gets built from your own product photography. The cost is a fraction of what a traditional production would run.</p>
   </div>
 </section>
 
@@ -312,151 +320,190 @@
       <!-- 01 — Sapphire & diamond editorial (AI still) -->
       <div class="reel-item">
         <div class="reel-item__media">
-          <img src="/static/marla-reel/jewelry-hero.jpg" alt="AI-generated jewelry editorial — sapphire and diamond pieces on blue silk">
+          <img src="/static/marla-reel/jewelry-hero.jpg" alt="AI-generated jewelry editorial: sapphire and diamond pieces on blue silk">
         </div>
         <div class="reel-item__caption">
           <div class="reel-item__num">01</div>
           <div class="reel-item__text">
             <div class="reel-item__title">Sapphire &amp; diamond editorial</div>
             <div class="reel-item__meta">AI still · Reference</div>
-            <div class="reel-item__note">The kind of hero frame your homepage wants — except this took an afternoon, not a shoot day.</div>
+            <div class="reel-item__note">A homepage hero frame at the standard a real shoot would produce. Built in an afternoon.</div>
           </div>
         </div>
       </div>
 
-      <!-- 02 — Dookia / Veo 3 jewelry ad -->
+      <!-- 02 — Solis & Luna portrait (AI still) -->
       <div class="reel-item">
         <div class="reel-item__media">
-          <div class="ratio-16-9">
-            <iframe
-              src="https://www.youtube-nocookie.com/embed/0GWaScBxKao?rel=0&modestbranding=1"
-              title="The Future of Jewellery Ads — Google Veo 3"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowfullscreen
-              loading="lazy"></iframe>
-          </div>
+          <img src="/static/marla-reel/portrait-solis-luna.jpg" alt="AI-generated portrait product photography: Solis &amp; Luna fragrance held to face">
         </div>
         <div class="reel-item__caption">
           <div class="reel-item__num">02</div>
           <div class="reel-item__text">
+            <div class="reel-item__title">Portrait product photography</div>
+            <div class="reel-item__meta">AI still · Reference</div>
+            <div class="reel-item__note">Every pixel rendered, including the catch light in the eyes and the grain of the wooden cap. This is where AI quality sits today for luxury beauty and jewelry.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 03 — Cryo Scrub portrait (AI still) -->
+      <div class="reel-item">
+        <div class="reel-item__media">
+          <img src="/static/marla-reel/portrait-cryo-scrub.jpg" alt="AI-generated portrait product photography: skincare jar held against face">
+        </div>
+        <div class="reel-item__caption">
+          <div class="reel-item__num">03</div>
+          <div class="reel-item__text">
+            <div class="reel-item__title">The same engine, a different brief</div>
+            <div class="reel-item__meta">AI still · Reference</div>
+            <div class="reel-item__note">Quality holds across categories, which is why this approach moves so fast for any luxury product line.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 04 — Dookia / Veo 3 jewelry ad -->
+      <div class="reel-item">
+        <div class="reel-item__media ratio-16-9">
+          <iframe
+            src="https://www.youtube-nocookie.com/embed/0GWaScBxKao?rel=0&modestbranding=1"
+            title="The Future of Jewellery Ads, Google Veo 3"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+            loading="lazy"></iframe>
+        </div>
+        <div class="reel-item__caption">
+          <div class="reel-item__num">04</div>
+          <div class="reel-item__text">
             <div class="reel-item__title">The future of jewellery ads</div>
             <div class="reel-item__meta">Google Veo 3 · via Dookia</div>
-            <div class="reel-item__note">A study in what end-to-end AI ad production looks like for jewelry, today. Not the format we'd run for you — but the surface quality is the bar.</div>
+            <div class="reel-item__note">A full jewelry ad built entirely with AI. The format we will run for your line is shorter and more product driven, and this is the surface quality we are working from.</div>
             <div class="reel-item__source"><a href="https://www.youtube.com/watch?v=0GWaScBxKao" target="_blank" rel="noopener">Open on YouTube ↗</a></div>
           </div>
         </div>
       </div>
 
-      <!-- 03 — Kive #1 (Mae) -->
+      <!-- 05 — Kive: interior, golden hour -->
       <div class="reel-item">
-        <div class="reel-item__media">
-          <div class="ratio-9-16">
-            <iframe
-              src="https://customer-kpj1bfjruzfsfior.cloudflarestream.com/06aa3dddb8e13ecff76454c17b342419/iframe?poster=https%3A%2F%2Fassets.kive.ai%2Fsizes%252Fmkf3mGTDC5XNoDR6mYXu%252FsIcAlK8W5qVMpLosq4XO_1600.jpg"
-              title="Kive — interior portrait"
-              allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
-              allowfullscreen
-              loading="lazy"></iframe>
-          </div>
+        <div class="reel-item__media ratio-9-16">
+          <iframe
+            src="https://customer-kpj1bfjruzfsfior.cloudflarestream.com/06aa3dddb8e13ecff76454c17b342419/iframe?poster=https%3A%2F%2Fassets.kive.ai%2Fsizes%252Fmkf3mGTDC5XNoDR6mYXu%252FsIcAlK8W5qVMpLosq4XO_1600.jpg"
+            title="Kive: interior portrait, golden hour"
+            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+            allowfullscreen
+            loading="lazy"></iframe>
         </div>
         <div class="reel-item__caption">
-          <div class="reel-item__num">03</div>
+          <div class="reel-item__num">05</div>
           <div class="reel-item__text">
             <div class="reel-item__title">Interior, golden hour</div>
             <div class="reel-item__meta">Kive · Bohemian preset</div>
-            <div class="reel-item__note">Vertical 9:16, the format Meta and TikTok actually serve. Notice the ambient camera move — that's the kind of shot we'd put your hero piece into.</div>
+            <div class="reel-item__note">Vertical 9:16, the format Meta and TikTok actually serve. The ambient camera move is the kind of shot your hero piece deserves on a feed.</div>
             <div class="reel-item__source"><a href="https://kive.ai/discover/item/sIcAlK8W5qVMpLosq4XO" target="_blank" rel="noopener">View on Kive ↗</a></div>
           </div>
         </div>
       </div>
 
-      <!-- 04 — Kive #2 (Zoe in pinstripe) -->
+      <!-- 06 — Kive: editorial range, desert pinstripe -->
       <div class="reel-item">
-        <div class="reel-item__media">
-          <div class="ratio-9-16">
-            <iframe
-              src="https://customer-kpj1bfjruzfsfior.cloudflarestream.com/ec41c555bedcc047b8c68324605dd6ec/iframe?poster=https%3A%2F%2Fassets.kive.ai%2Fsizes%252Fmkf3mGTDC5XNoDR6mYXu%252FjfntRQdaLBMT1mWxrOln_1600.jpg"
-              title="Kive — desert pinstripe"
-              allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
-              allowfullscreen
-              loading="lazy"></iframe>
-          </div>
+        <div class="reel-item__media ratio-9-16">
+          <iframe
+            src="https://customer-kpj1bfjruzfsfior.cloudflarestream.com/ec41c555bedcc047b8c68324605dd6ec/iframe?poster=https%3A%2F%2Fassets.kive.ai%2Fsizes%252Fmkf3mGTDC5XNoDR6mYXu%252FjfntRQdaLBMT1mWxrOln_1600.jpg"
+            title="Kive: editorial range, desert pinstripe"
+            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+            allowfullscreen
+            loading="lazy"></iframe>
         </div>
         <div class="reel-item__caption">
-          <div class="reel-item__num">04</div>
+          <div class="reel-item__num">06</div>
           <div class="reel-item__text">
             <div class="reel-item__title">Editorial range</div>
             <div class="reel-item__meta">Kive · Slacklining preset</div>
-            <div class="reel-item__note">Outside the jewelry vertical on purpose — proof that the camera language is genuinely cinematic, not a slideshow with motion.</div>
+            <div class="reel-item__note">Intentionally outside the jewelry vertical. The camera language stays genuinely cinematic, not a slideshow with motion added.</div>
             <div class="reel-item__source"><a href="https://kive.ai/discover/item/jfntRQdaLBMT1mWxrOln" target="_blank" rel="noopener">View on Kive ↗</a></div>
           </div>
         </div>
       </div>
 
-      <!-- 05 — Kive #3 (Ada / basketball court) -->
+      <!-- 07 — Kive: courtside, golden hour -->
       <div class="reel-item">
-        <div class="reel-item__media">
-          <div class="ratio-9-16">
-            <iframe
-              src="https://customer-kpj1bfjruzfsfior.cloudflarestream.com/45b419e1f1f78cdf1281121b9a10de8a/iframe?poster=https%3A%2F%2Fassets.kive.ai%2Fsizes%252Fmkf3mGTDC5XNoDR6mYXu%252F8AVWyrarrjR1bprblIeY_1600.jpg"
-              title="Kive — courtside, golden hour"
-              allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
-              allowfullscreen
-              loading="lazy"></iframe>
-          </div>
+        <div class="reel-item__media ratio-9-16">
+          <iframe
+            src="https://customer-kpj1bfjruzfsfior.cloudflarestream.com/45b419e1f1f78cdf1281121b9a10de8a/iframe?poster=https%3A%2F%2Fassets.kive.ai%2Fsizes%252Fmkf3mGTDC5XNoDR6mYXu%252F8AVWyrarrjR1bprblIeY_1600.jpg"
+            title="Kive: courtside, golden hour"
+            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+            allowfullscreen
+            loading="lazy"></iframe>
         </div>
         <div class="reel-item__caption">
-          <div class="reel-item__num">05</div>
+          <div class="reel-item__num">07</div>
           <div class="reel-item__text">
             <div class="reel-item__title">Courtside, golden hour</div>
             <div class="reel-item__meta">Kive · Lifestyle</div>
-            <div class="reel-item__note">Skin tone, fabric, depth of field — all rendered. This is the texture quality your hero piece deserves on Instagram and TikTok.</div>
+            <div class="reel-item__note">Skin tone, fabric, and depth of field, all rendered. This is the texture quality your hero piece deserves on Instagram and TikTok.</div>
             <div class="reel-item__source"><a href="https://kive.ai/discover/item/8AVWyrarrjR1bprblIeY" target="_blank" rel="noopener">View on Kive ↗</a></div>
           </div>
         </div>
       </div>
 
-      <!-- 06 — Kive #4 (Mae / street, two-cup carrier) -->
+      <!-- 08 — Kive: street, soft light -->
       <div class="reel-item">
-        <div class="reel-item__media">
-          <div class="ratio-9-16">
-            <iframe
-              src="https://customer-kpj1bfjruzfsfior.cloudflarestream.com/9555e5eb221a951fbd972d1523b4677c/iframe?poster=https%3A%2F%2Fassets.kive.ai%2Fsizes%252Fmkf3mGTDC5XNoDR6mYXu%252F06xPEo3nuSmWTxZVpbZI_1600.jpg"
-              title="Kive — street, soft light"
-              allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
-              allowfullscreen
-              loading="lazy"></iframe>
-          </div>
+        <div class="reel-item__media ratio-9-16">
+          <iframe
+            src="https://customer-kpj1bfjruzfsfior.cloudflarestream.com/9555e5eb221a951fbd972d1523b4677c/iframe?poster=https%3A%2F%2Fassets.kive.ai%2Fsizes%252Fmkf3mGTDC5XNoDR6mYXu%252F06xPEo3nuSmWTxZVpbZI_1600.jpg"
+            title="Kive: street, soft light"
+            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+            allowfullscreen
+            loading="lazy"></iframe>
         </div>
         <div class="reel-item__caption">
-          <div class="reel-item__num">06</div>
+          <div class="reel-item__num">08</div>
           <div class="reel-item__text">
             <div class="reel-item__title">Street, soft light</div>
             <div class="reel-item__meta">Kive · Lifestyle</div>
-            <div class="reel-item__note">Same world your customer lives in. A worn-piece moment, captured without ever pulling out a camera.</div>
+            <div class="reel-item__note">The same world your customer lives in. A worn moment, captured without ever pulling out a camera.</div>
             <div class="reel-item__source"><a href="https://kive.ai/discover/item/06xPEo3nuSmWTxZVpbZI" target="_blank" rel="noopener">View on Kive ↗</a></div>
           </div>
         </div>
       </div>
 
-      <!-- 07 — Zoda Shorts: How to make an AI jewelry product video -->
+      <!-- 09 — Kive: editorial portrait in motion -->
       <div class="reel-item">
-        <div class="reel-item__media">
-          <div class="ratio-9-16">
-            <iframe
-              src="https://www.youtube-nocookie.com/embed/PwstvS0AUUo?rel=0&modestbranding=1"
-              title="How to Make a Jewelry Product Video with AI — Zoda Shorts"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowfullscreen
-              loading="lazy"></iframe>
-          </div>
+        <div class="reel-item__media ratio-9-16">
+          <iframe
+            src="https://customer-kpj1bfjruzfsfior.cloudflarestream.com/1024abb30e4ead85877c782da9e8b213/iframe?poster=https%3A%2F%2Fassets.kive.ai%2Fsizes%252Fmkf3mGTDC5XNoDR6mYXu%252Fqt1zXWLE77G6WR1QNnuY_1600.jpg"
+            title="Kive: editorial portrait in motion"
+            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+            allowfullscreen
+            loading="lazy"></iframe>
         </div>
         <div class="reel-item__caption">
-          <div class="reel-item__num">07</div>
+          <div class="reel-item__num">09</div>
+          <div class="reel-item__text">
+            <div class="reel-item__title">Editorial portrait in motion</div>
+            <div class="reel-item__meta">Kive · Editorial</div>
+            <div class="reel-item__note">Fabric, light on skin, the steadiness of the gaze. Every detail holds across the clip, which is the bar that used to require a real director and a real crew.</div>
+            <div class="reel-item__source"><a href="https://kive.ai/discover/item/qt1zXWLE77G6WR1QNnuY" target="_blank" rel="noopener">View on Kive ↗</a></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 10 — Zoda Shorts: how an AI jewelry video gets made -->
+      <div class="reel-item">
+        <div class="reel-item__media ratio-9-16">
+          <iframe
+            src="https://www.youtube-nocookie.com/embed/PwstvS0AUUo?rel=0&modestbranding=1"
+            title="How to Make a Jewelry Product Video with AI, Zoda Shorts"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+            loading="lazy"></iframe>
+        </div>
+        <div class="reel-item__caption">
+          <div class="reel-item__num">10</div>
           <div class="reel-item__text">
             <div class="reel-item__title">How an AI jewelry product video gets made</div>
             <div class="reel-item__meta">Zoda Shorts · YouTube</div>
-            <div class="reel-item__note">A 60-second walkthrough of the process — start with a still, end with a clip. The same loop we'd run for your line, with your pieces.</div>
+            <div class="reel-item__note">A 60 second walkthrough of the process from a single still to a finished clip. The same loop we run for your line, with your pieces.</div>
             <div class="reel-item__source"><a href="https://youtube.com/shorts/PwstvS0AUUo" target="_blank" rel="noopener">Open on YouTube ↗</a></div>
           </div>
         </div>
@@ -467,8 +514,9 @@
     <!-- ── How these get cut together ── -->
     <div class="how">
       <h3>How these come together for you</h3>
-      <p>None of the clips above are an ad on their own. Each is a fragment — three to six seconds, one camera move, one mood. The work is in the edit.</p>
-      <p>For your line, we'd render eight to twelve fragments per concept: a hero close-up of the stone, a worn shot on a model, a packaging detail, a hand close-up, a mood frame. Cut to a 15- or 30-second ad, scored, with your brand language on the end card. The result feels like a $150K production — because in every frame except the rendering itself, it is one.</p>
+      <p>Each clip above is a single fragment, three to six seconds long, one camera move, one mood. On its own it is reference. Cut together with intent, the fragments become an ad.</p>
+      <p>For your line we would render eight to twelve fragments per concept. A hero close up of the stone, a worn shot on a model, a packaging detail, a hand near the face, a mood frame. We then edit those into a 15 or 30 second ad, score it, and finish with your brand language on the end card.</p>
+      <p>The result reads as a $150,000 production. In every frame outside of the rendering itself, it actually is one.</p>
     </div>
 
     <a href="/marlatabet" class="back-link">← Back to the proposal</a>
@@ -480,7 +528,7 @@
   <div class="wrap--narrow">
     <div class="signoff">
       <div class="serif">Custom clips from your own line, next.</div>
-      <p style="color: var(--ink-soft); font-size: 16px; line-height: 1.7; margin: 0 auto; max-width: 460px;">Once you've watched these, send a few of your favorite product shots and we'll render one or two clips from your actual pieces. That's the moment this stops being theoretical.</p>
+      <p style="color: var(--ink-soft); font-size: 16px; line-height: 1.7; margin: 0 auto; max-width: 460px;">Once you've watched these, send us a few of your favorite product shots. We'll render one or two clips from your actual pieces and have them back to you within the week. That's the moment this stops being a reference page and becomes your reel.</p>
       <div class="names">
         <strong>Kendall Davis</strong> &amp; <strong>Marykate Zareh Ghazarian</strong><br>
         MK7 Media
