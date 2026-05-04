@@ -954,7 +954,7 @@
     </svg>
     <span>MK7 Media</span>
   </a>
-  <a href="?product=land5" class="payhip-buy-button nav-cta" data-product="J0xhM" data-theme="green" data-track-buy="nav">Buy Now · $30</a>
+  <a href="?product=land5" class="nav-cta buy-trigger" data-product="J0xhM" data-track-buy="nav">Buy Now · $30</a>
 </nav>
 
 <!-- ── Hero ── -->
@@ -967,7 +967,7 @@
     <h1>From zero to <span class="grad-text">5 retainer clients</span> in the next 30 days.</h1>
     <p class="hero-sub">The exact system MK7 Media uses to land paying ad clients. Audience, offer, ad, page, qualification, sales, pricing, the 30 day plan. Built from over $2.8M in tracked client revenue.</p>
     <div class="hero-ctas">
-      <a href="?product=land5" class="payhip-buy-button btn-primary" data-product="J0xhM" data-theme="green" data-track-buy="hero">Get the Playbook · $30 <span class="arrow">→</span></a>
+      <a href="?product=land5" class="btn-primary buy-trigger" data-product="J0xhM" data-theme="green" data-track-buy="hero">Get the Playbook · $30 <span class="arrow">→</span></a>
     </div>
     <div class="hero-trust">
       <span class="stars">★★★★★</span>
@@ -1211,7 +1211,7 @@
       <span class="price-big">$30</span>
     </div>
     <div class="stack-cta">
-      <a href="?product=land5" class="payhip-buy-button btn-primary" data-product="J0xhM" data-theme="green" data-track-buy="stack">Get the Playbook Now <span class="arrow">→</span></a>
+      <a href="?product=land5" class="btn-primary buy-trigger" data-product="J0xhM" data-theme="green" data-track-buy="stack">Get the Playbook Now <span class="arrow">→</span></a>
     </div>
     <div class="stack-fineprint">Instant download. PDF. Read on any device.</div>
   </div>
@@ -1303,7 +1303,7 @@
       <span class="now">$30</span>
     </div>
     <div>
-      <a href="?product=land5" class="payhip-buy-button btn-primary" data-product="J0xhM" data-theme="green" data-track-buy="final">Get the Playbook Now <span class="arrow">→</span></a>
+      <a href="?product=land5" class="btn-primary buy-trigger" data-product="J0xhM" data-theme="green" data-track-buy="final">Get the Playbook Now <span class="arrow">→</span></a>
     </div>
     <p style="margin-top: 22px; font-size: 13px; color: var(--text-dim);">Secure checkout · Instant download · Read on any device</p>
   </div>
@@ -1311,8 +1311,11 @@
 
 <!-- ── Sticky mobile CTA ── -->
 <div class="mobile-cta">
-  <a href="?product=land5" class="payhip-buy-button btn-primary" data-product="J0xhM" data-theme="green" data-track-buy="sticky">Get the Playbook · $30 <span class="arrow">→</span></a>
+  <a href="?product=land5" class="btn-primary buy-trigger" data-product="J0xhM" data-theme="green" data-track-buy="sticky">Get the Playbook · $30 <span class="arrow">→</span></a>
 </div>
+
+<!-- ── Hidden Payhip trigger (used to fire the checkout modal without inheriting Payhip's green styling) ── -->
+<a id="payhipTrigger" class="payhip-buy-button" data-product="J0xhM" href="https://payhip.com/b/J0xhM" style="display:none !important;" aria-hidden="true">.</a>
 
 <!-- ── Footer ── -->
 <footer>
@@ -1342,10 +1345,13 @@
     if (!open) item.classList.add('open');
   }
 
-  // Track buy clicks for Meta Pixel + CAPI
-  document.querySelectorAll('[data-track-buy]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const source = btn.getAttribute('data-track-buy');
+  // Trigger Payhip checkout + fire Meta Pixel + CAPI on every Buy click.
+  // Visible buttons do NOT carry Payhip's class (which auto-styles them green) — instead
+  // we click a hidden .payhip-buy-button trigger so Payhip's modal opens with our styling intact.
+  document.querySelectorAll('.buy-trigger').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const source = btn.getAttribute('data-track-buy') || 'unknown';
       const eventId = 'init_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
       // Browser pixel
       if (window.fbq) {
@@ -1379,6 +1385,10 @@
           }
         })
       }).catch(() => {});
+
+      // Open the Payhip checkout modal by clicking the hidden trigger
+      const trigger = document.getElementById('payhipTrigger');
+      if (trigger) trigger.click();
     });
   });
 </script>
