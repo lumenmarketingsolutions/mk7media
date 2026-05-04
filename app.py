@@ -269,6 +269,11 @@ def playbook_land_5():
     return render_template("playbook_land_5.html")
 
 
+@app.route("/playbooks/double-clients")
+def playbook_double_clients():
+    return render_template("playbook_double_clients.html")
+
+
 @app.route("/grow")
 @app.route("/grow/<market>")
 def grow_page(market=None):
