@@ -88,22 +88,43 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 24px;
-      padding: 11px 16px 12px;
+      gap: 18px;
+      padding: 10px 16px 11px;
       background: linear-gradient(180deg, rgba(22, 22, 32, 0.94) 0%, rgba(13, 13, 20, 0.94) 100%);
       backdrop-filter: blur(24px) saturate(140%);
       -webkit-backdrop-filter: blur(24px) saturate(140%);
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 1px 0 rgba(0,0,0,0.6);
-      color: rgba(255,255,255,0.86);
-      font-size: 12px;
-      font-weight: 500;
-      letter-spacing: 0.3px;
+      color: rgba(255,255,255,0.82);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
     }
-    .trust-strip .dot { width: 4px; height: 4px; background: rgba(255,255,255,0.3); border-radius: 50%; flex-shrink: 0; }
+    .trust-strip .label { color: rgba(255,255,255,0.55); font-size: 10px; letter-spacing: 1.5px; }
+    .trust-strip .partner-pair {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .trust-strip .partner-pair img {
+      height: 16px;
+      width: auto;
+      display: block;
+      opacity: 0.95;
+    }
+    .trust-strip .partner-pair .name {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: none;
+      color: #fff;
+    }
+    .trust-strip .dot { width: 3px; height: 3px; background: rgba(255,255,255,0.25); border-radius: 50%; flex-shrink: 0; }
     @media (max-width: 720px) {
-      .trust-strip { gap: 12px; font-size: 11px; padding: 10px 12px; }
-      .trust-strip .ts-hide-mobile { display: none; }
-      .trust-strip .dot { width: 3px; height: 3px; }
+      .trust-strip { gap: 12px; padding: 9px 12px; }
+      .trust-strip .label { display: none; }
+      .trust-strip .partner-pair img { height: 14px; }
+      .trust-strip .partner-pair .name { font-size: 10.5px; }
     }
 
     /* ── Navigation ── */
@@ -259,13 +280,14 @@
     .btn-secondary:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.04); }
 
     .hero-trust {
-      display: inline-flex;
+      display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 14px;
+      gap: 8px;
       font-size: 13px;
       color: var(--text-dim);
     }
-    .hero-trust .stars { color: #ffc857; letter-spacing: 1px; }
+    .hero-trust .stars { color: #ffc857; letter-spacing: 2px; font-size: 14px; }
 
     .hero-mockup {
       margin: 56px auto 0;
@@ -891,26 +913,79 @@
       background-clip: text;
     }
 
-    /* ── Sticky mobile CTA ── */
-    .mobile-cta {
-      display: none;
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      z-index: 95;
-      padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-      background: linear-gradient(180deg, rgba(5,5,7,0.85) 0%, rgba(5,5,7,0.98) 60%);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-top: 1px solid var(--border);
+    /* ── Timeline (replaces chapter cards) ── */
+    .timeline-wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      position: relative;
+      padding: 8px 0;
     }
-    .mobile-cta .btn-primary {
-      width: 100%;
-      justify-content: center;
-      padding: 16px;
+    .timeline-wrap::before {
+      content: '';
+      position: absolute;
+      top: 12px;
+      bottom: 12px;
+      left: 19px;
+      width: 2px;
+      background: linear-gradient(180deg, var(--blue) 0%, var(--pink) 100%);
+      border-radius: 2px;
+      opacity: 0.5;
     }
-    @media (max-width: 768px) {
-      .mobile-cta { display: block; }
-      body { padding-bottom: 96px; }
+    .timeline-step {
+      position: relative;
+      padding-left: 60px;
+      padding-bottom: 36px;
+    }
+    .timeline-step:last-child { padding-bottom: 0; }
+    .timeline-step::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 6px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--gradient);
+      box-shadow: 0 0 18px rgba(77,124,245,0.5), 0 0 0 4px rgba(5,5,7,1), 0 0 0 5px rgba(255,255,255,0.04);
+    }
+    .timeline-step .step-num {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--blue-bright);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .timeline-step h3 {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      line-height: 1.25;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .timeline-step p {
+      font-size: 14.5px;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+    .timeline-step.featured h3 {
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .timeline-step.featured::before {
+      width: 28px; height: 28px;
+      left: 6px; top: 4px;
+      box-shadow: 0 0 24px rgba(232,77,160,0.6), 0 0 0 4px rgba(5,5,7,1), 0 0 0 5px rgba(255,255,255,0.06);
+    }
+    @media (max-width: 540px) {
+      .timeline-wrap::before { left: 15px; }
+      .timeline-step { padding-left: 52px; padding-bottom: 32px; }
+      .timeline-step::before { width: 20px; height: 20px; left: 6px; }
+      .timeline-step.featured::before { width: 24px; height: 24px; left: 4px; }
+      .timeline-step h3 { font-size: 17px; }
     }
 
     /* ── Footer ── */
@@ -937,11 +1012,10 @@
 
 <!-- ── Top trust strip ── -->
 <div class="trust-strip">
-  <span><strong style="color:#fff;">Meta Business Partner</strong></span>
+  <span class="label">Partners</span>
+  <span class="partner-pair"><img src="/static/logos/meta.png" alt="Meta"><span class="name">Meta</span></span>
   <span class="dot"></span>
-  <span class="ts-hide-mobile"><strong style="color:#fff;">Shopify Partner</strong></span>
-  <span class="dot ts-hide-mobile"></span>
-  <span><strong style="color:#fff;">Certified Performance Marketers</strong></span>
+  <span class="partner-pair"><img src="/static/logos/shopify.svg" alt="Shopify"><span class="name">Shopify</span></span>
 </div>
 
 <!-- ── Navigation ── -->
@@ -967,7 +1041,7 @@
     <h1>From zero to <span class="grad-text">5 retainer clients</span> in the next 30 days.</h1>
     <p class="hero-sub">The exact system MK7 Media uses to land paying ad clients. Audience, offer, ad, page, qualification, sales, pricing, the 30 day plan. Built from over $2.8M in tracked client revenue.</p>
     <div class="hero-ctas">
-      <a href="?product=land5" class="btn-primary buy-trigger" data-product="J0xhM" data-theme="green" data-track-buy="hero">Get the Playbook · $30 <span class="arrow">→</span></a>
+      <a href="?product=land5" class="btn-primary buy-trigger" data-product="J0xhM" data-track-buy="hero">Get the Playbook · $30 <span class="arrow">→</span></a>
     </div>
     <div class="hero-trust">
       <span class="stars">★★★★★</span>
@@ -1017,86 +1091,38 @@
   </div>
 </div>
 
-<!-- ── Problem section ── -->
-<section class="section">
-  <div class="section-label">The Real Reason</div>
-  <h2 class="section-title">You can run ads. You still can't get clients. Here is what is actually breaking.</h2>
-  <p class="section-subtitle">Most new media buyers stay stuck because the work around the work is missing. The ad part is fine. The system around it does not exist yet.</p>
-  <div class="problem-list">
-    <div class="problem-item">
-      <span class="x">!</span>
-      <p>You rely on referrals and posting case studies that go nowhere, hoping the next client shows up.</p>
+<!-- ── Value stack (moved up — best element first) ── -->
+<section class="section section-narrow section-center">
+  <div class="section-label">What You Are Getting</div>
+  <h2 class="section-title">The full system, every framework, every script.</h2>
+  <p class="section-subtitle" style="margin-bottom: 40px; margin-left:auto; margin-right:auto;">Priced one way as components. Bundled today as one playbook for a fraction of that.</p>
+
+  <div class="stack-card">
+    <ul class="stack-list">
+      <li><span class="item">Audience research framework + 8 piece offer builder</span><span class="price">$147</span></li>
+      <li><span class="item">Ad creative formula, hook patterns, iPhone style scripts</span><span class="price">$97</span></li>
+      <li><span class="item">Landing page structure + 4 to 6 question qualification form</span><span class="price">$97</span></li>
+      <li><span class="item">30 minute discovery call script + 4 real objection handlers</span><span class="price">$147</span></li>
+      <li><span class="item">Audit offer pricing model + tiered package templates</span><span class="price">$97</span></li>
+      <li><span class="item">30 day day by day action plan with checkboxes</span><span class="price">$147</span></li>
+      <li><span class="item">10 viral hook templates + 4 cold DM scripts + ad audit checklist</span><span class="price">$97</span></li>
+    </ul>
+    <div class="stack-total">
+      <span class="label">Total Value</span>
+      <span class="strikethrough">$829</span>
     </div>
-    <div class="problem-item">
-      <span class="x">!</span>
-      <p>You take whatever work walks through the door, then end up with bad fit clients you can't fire.</p>
+    <div class="stack-today">
+      <span class="label">Today</span>
+      <span class="price-big">$30</span>
     </div>
-    <div class="problem-item">
-      <span class="x">!</span>
-      <p>You compete on price because nothing about your offer makes the right buyer pick you on value.</p>
+    <div class="stack-cta">
+      <a href="?product=land5" class="btn-primary buy-trigger" data-product="J0xhM" data-track-buy="stack">Get the Playbook Now <span class="arrow">→</span></a>
     </div>
-    <div class="problem-item">
-      <span class="x">!</span>
-      <p>You jump from strategy to strategy every two weeks because none of them are part of an actual system.</p>
-    </div>
+    <div class="stack-fineprint">Instant download. PDF. Read on any device.</div>
   </div>
 </section>
 
-<!-- ── What's inside ── -->
-<section class="section">
-  <div class="section-label">What's Inside</div>
-  <h2 class="section-title">A complete client acquisition system, broken into 9 chapters.</h2>
-  <p class="section-subtitle">Every framework, script, and template inside this playbook is the same one MK7 Media runs inside paying client accounts. None of this is theory.</p>
-  <div class="chapters">
-    <div class="chapter-card">
-      <div class="chapter-num">Chapter 01</div>
-      <h3>Audience and Offer Foundation</h3>
-      <p>The 8 piece offer framework, the audience research method that finds the exact words your buyer uses, and the bad offer vs strong offer rewrite that flips price into a non issue.</p>
-    </div>
-    <div class="chapter-card">
-      <div class="chapter-num">Chapter 02</div>
-      <h3>The Ad That Stops the Scroll</h3>
-      <p>The 3 ingredient creative formula, hook patterns Meta actually rewards, and the iPhone style talking head ad that beats studio production almost every time.</p>
-    </div>
-    <div class="chapter-card">
-      <div class="chapter-num">Chapter 03</div>
-      <h3>Landing Page and Qualification Filter</h3>
-      <p>The page structure that converts cold ad clicks, the 4 to 6 question qualification form that filters tire kickers, and where every section needs to live for trust to compound.</p>
-    </div>
-    <div class="chapter-card">
-      <div class="chapter-num">Chapter 04</div>
-      <h3>Speed to Lead and Sales Conversation</h3>
-      <p>The under 60 second response protocol that protects you from the 80% drop in conversion after 15 minutes, plus a 30 minute discovery call script with the 4 objections every prospect raises and the exact responses.</p>
-    </div>
-    <div class="chapter-card">
-      <div class="chapter-num">Chapter 05</div>
-      <h3>Pricing Your First 5 Clients</h3>
-      <p>The audit offer model ($197 to $497) that gets prospects paying you before they sign a retainer, plus three tiered packages from $1k to $5k a month.</p>
-    </div>
-    <div class="chapter-card">
-      <div class="chapter-num">Chapter 06</div>
-      <h3>Tracking and Operating Rhythm</h3>
-      <p>The creative tracking spreadsheet that tells you which hook, script, and offer is actually winning, and the weekly rhythm that compounds wins instead of resetting them.</p>
-    </div>
-    <div class="chapter-card featured">
-      <div class="chapter-num">Chapter 07</div>
-      <h3>Your 30 Day Action Plan</h3>
-      <p>Day by day execution from Day 1 through Day 30. Foundation, launch, scale, optimize. Each day's task takes 1 to 3 hours. By Day 30 the system is live, conversations are active, and the first paying clients are signed.</p>
-    </div>
-    <div class="chapter-card">
-      <div class="chapter-num">Bonus</div>
-      <h3>Hooks, Scripts, and Audit Checklist</h3>
-      <p>10 viral hook templates, 4 cold DM scripts that open conversations without sounding like spam, and the full ad account audit checklist you can charge $500 to run.</p>
-    </div>
-    <div class="chapter-card">
-      <div class="chapter-num">Intro</div>
-      <h3>Why You Don't Have Clients Yet</h3>
-      <p>The mindset reset that separates buyers who land 5 clients from buyers who keep watching courses. Reps over theory. The system makes reps efficient, but the reps are non negotiable.</p>
-    </div>
-  </div>
-</section>
-
-<!-- ── Real results ── -->
+<!-- ── Real results (case studies as proof) ── -->
 <section class="results-section">
   <div class="results-inner">
     <div class="section-label" style="text-align:center; margin-bottom: 14px;">The Numbers Behind the Playbook</div>
@@ -1136,6 +1162,56 @@
   </div>
 </section>
 
+<!-- ── What's inside (timeline view, replaces the 9 cards) ── -->
+<section class="section section-narrow">
+  <div class="section-label section-center" style="text-align:center;">What's Inside</div>
+  <h2 class="section-title section-center" style="text-align:center; max-width: 720px; margin: 0 auto 18px;">The complete system, end to end.</h2>
+  <p class="section-subtitle section-center" style="margin: 0 auto 64px;">Audience to offer to ad to page to call to close. Every step pressure tested inside paying client accounts.</p>
+
+  <div class="timeline-wrap">
+    <div class="timeline-step">
+      <div class="step-num">Chapter 01</div>
+      <h3>Audience and Offer Foundation</h3>
+      <p>The 8 piece offer framework, the audience research method that finds the exact words your buyer uses, and the bad vs strong offer rewrite that flips price into a non issue.</p>
+    </div>
+    <div class="timeline-step">
+      <div class="step-num">Chapter 02</div>
+      <h3>The Ad That Stops the Scroll</h3>
+      <p>The 3 ingredient creative formula, hook patterns Meta actually rewards, and the iPhone style talking head ad that beats studio production almost every time.</p>
+    </div>
+    <div class="timeline-step">
+      <div class="step-num">Chapter 03</div>
+      <h3>Landing Page and Qualification Filter</h3>
+      <p>The page structure that converts cold ad clicks and the 4 to 6 question qualification form that filters tire kickers before they reach you.</p>
+    </div>
+    <div class="timeline-step">
+      <div class="step-num">Chapter 04</div>
+      <h3>Speed to Lead and Sales Conversation</h3>
+      <p>The under 60 second response protocol, plus a 30 minute discovery call script with the 4 real objections every prospect raises and the exact responses.</p>
+    </div>
+    <div class="timeline-step">
+      <div class="step-num">Chapter 05</div>
+      <h3>Pricing Your First 5 Clients</h3>
+      <p>The audit offer model ($197 to $497) that gets prospects paying you before they sign a retainer, plus three tiered packages from $1k to $5k a month.</p>
+    </div>
+    <div class="timeline-step">
+      <div class="step-num">Chapter 06</div>
+      <h3>Tracking and Operating Rhythm</h3>
+      <p>The creative tracking spreadsheet that tells you which hook, script, and offer is actually winning, and the weekly rhythm that compounds wins.</p>
+    </div>
+    <div class="timeline-step featured">
+      <div class="step-num">Chapter 07 · The 30 Day Plan</div>
+      <h3>Day by day execution from Day 1 to Day 30.</h3>
+      <p>Foundation, launch, scale, optimize. Each day's task takes 1 to 3 hours. By Day 30 the system is live, conversations are active, and the first paying clients are signed.</p>
+    </div>
+    <div class="timeline-step">
+      <div class="step-num">Bonus</div>
+      <h3>Hooks, Scripts, and Audit Checklist</h3>
+      <p>10 viral hook templates, 4 cold DM scripts that open conversations without sounding like spam, and the full ad account audit checklist you can charge $500 to run.</p>
+    </div>
+  </div>
+</section>
+
 <!-- ── Why it works ── -->
 <section class="section">
   <div class="section-label">Why This Beats the Threads</div>
@@ -1155,6 +1231,31 @@
       <div class="num">03</div>
       <h3>It comes from operators with $2.8M in tracked revenue, not influencers.</h3>
       <p>Every script, framework, and template was pressure tested inside paying client accounts. If a play didn't produce qualified leads, signed retainers, or tracked revenue, it didn't make the page.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Problem section (moved down — qualifies the buyer) ── -->
+<section class="section">
+  <div class="section-label">The Real Reason</div>
+  <h2 class="section-title">You can run ads. You still can't get clients. Here is what is actually breaking.</h2>
+  <p class="section-subtitle">Most new media buyers stay stuck because the work around the work is missing. The ad part is fine. The system around it does not exist yet.</p>
+  <div class="problem-list">
+    <div class="problem-item">
+      <span class="x">!</span>
+      <p>You rely on referrals and posting case studies that go nowhere, hoping the next client shows up.</p>
+    </div>
+    <div class="problem-item">
+      <span class="x">!</span>
+      <p>You take whatever work walks through the door, then end up with bad fit clients you can't fire.</p>
+    </div>
+    <div class="problem-item">
+      <span class="x">!</span>
+      <p>You compete on price because nothing about your offer makes the right buyer pick you on value.</p>
+    </div>
+    <div class="problem-item">
+      <span class="x">!</span>
+      <p>You jump from strategy to strategy every two weeks because none of them are part of an actual system.</p>
     </div>
   </div>
 </section>
@@ -1183,37 +1284,6 @@
         <li>Are looking for "secrets" instead of an executable system</li>
       </ul>
     </div>
-  </div>
-</section>
-
-<!-- ── Value stack ── -->
-<section class="section section-narrow section-center">
-  <div class="section-label">What You Are Getting</div>
-  <h2 class="section-title">The full system, every framework, every script.</h2>
-  <p class="section-subtitle" style="margin-bottom: 40px;">Priced one way as components. Bundled today as one playbook for a fraction of that.</p>
-
-  <div class="stack-card">
-    <ul class="stack-list">
-      <li><span class="item">Audience research framework + 8 piece offer builder</span><span class="price">$147</span></li>
-      <li><span class="item">Ad creative formula, hook patterns, iPhone style scripts</span><span class="price">$97</span></li>
-      <li><span class="item">Landing page structure + 4 to 6 question qualification form</span><span class="price">$97</span></li>
-      <li><span class="item">30 minute discovery call script + 4 real objection handlers</span><span class="price">$147</span></li>
-      <li><span class="item">Audit offer pricing model + tiered package templates</span><span class="price">$97</span></li>
-      <li><span class="item">30 day day by day action plan with checkboxes</span><span class="price">$147</span></li>
-      <li><span class="item">10 viral hook templates + 4 cold DM scripts + ad audit checklist</span><span class="price">$97</span></li>
-    </ul>
-    <div class="stack-total">
-      <span class="label">Total Value</span>
-      <span class="strikethrough">$829</span>
-    </div>
-    <div class="stack-today">
-      <span class="label">Today</span>
-      <span class="price-big">$30</span>
-    </div>
-    <div class="stack-cta">
-      <a href="?product=land5" class="btn-primary buy-trigger" data-product="J0xhM" data-theme="green" data-track-buy="stack">Get the Playbook Now <span class="arrow">→</span></a>
-    </div>
-    <div class="stack-fineprint">Instant download. PDF. Read on any device.</div>
   </div>
 </section>
 
@@ -1303,16 +1373,11 @@
       <span class="now">$30</span>
     </div>
     <div>
-      <a href="?product=land5" class="btn-primary buy-trigger" data-product="J0xhM" data-theme="green" data-track-buy="final">Get the Playbook Now <span class="arrow">→</span></a>
+      <a href="?product=land5" class="btn-primary buy-trigger" data-product="J0xhM" data-track-buy="final">Get the Playbook Now <span class="arrow">→</span></a>
     </div>
     <p style="margin-top: 22px; font-size: 13px; color: var(--text-dim);">Secure checkout · Instant download · Read on any device</p>
   </div>
 </section>
-
-<!-- ── Sticky mobile CTA ── -->
-<div class="mobile-cta">
-  <a href="?product=land5" class="btn-primary buy-trigger" data-product="J0xhM" data-theme="green" data-track-buy="sticky">Get the Playbook · $30 <span class="arrow">→</span></a>
-</div>
 
 <!-- ── Hidden Payhip trigger (used to fire the checkout modal without inheriting Payhip's green styling) ── -->
 <a id="payhipTrigger" class="payhip-buy-button" data-product="J0xhM" href="https://payhip.com/b/J0xhM" style="display:none !important;" aria-hidden="true">.</a>
