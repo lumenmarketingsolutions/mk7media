@@ -264,6 +264,11 @@ def inquiry():
 
     return jsonify({"ok": True})
 
+@app.route("/playbooks/land-5-clients")
+def playbook_land_5():
+    return render_template("playbook_land_5.html")
+
+
 @app.route("/grow")
 @app.route("/grow/<market>")
 def grow_page(market=None):
