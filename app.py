@@ -693,6 +693,11 @@ def admin_login():
     if request.method == "POST":
         email = (request.form.get("email") or "").strip().lower()
         password = (request.form.get("password") or "").strip()
+        # Safe diagnostic — logs byte counts and whether each side matched, no plaintext.
+        print(f"[admin-login] attempt: email_match={email == ADMIN_EMAIL.lower()} "
+              f"submitted_email_len={len(email)} expected_email_len={len(ADMIN_EMAIL)} "
+              f"password_match={password == ADMIN_PASSWORD} "
+              f"submitted_pw_len={len(password)} expected_pw_len={len(ADMIN_PASSWORD)}")
         if email == ADMIN_EMAIL.lower() and password == ADMIN_PASSWORD:
             session["admin_logged_in"] = True
             session["admin_email"] = email
