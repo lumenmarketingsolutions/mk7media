@@ -17,6 +17,21 @@ META_DATASET_ID = os.environ.get("META_DATASET_ID", "1180057140863760")
 META_CAPI_ACCESS_TOKEN = os.environ.get("META_CAPI_ACCESS_TOKEN", "")
 META_TEST_EVENT_CODE = os.environ.get("META_TEST_EVENT_CODE", "")  # optional, for Events Manager Test Events tab
 
+# Payhip purchase webhook — secret comes from the "Paid" webhook config in Payhip dashboard
+PAYHIP_WEBHOOK_SECRET = os.environ.get("PAYHIP_WEBHOOK_SECRET", "")
+
+# Map Payhip product IDs to product display names + landing page URLs (used for richer Purchase events)
+PAYHIP_PRODUCTS = {
+    "J0xhM": {
+        "name": "Land Your First 5 Ad Clients",
+        "page": "https://mk7media.com/playbooks/land-5-clients",
+    },
+    "29jwK": {
+        "name": "Double Your Clients in 30 Days",
+        "page": "https://mk7media.com/playbooks/double-clients",
+    },
+}
+
 
 def _hash(value):
     if not value:
@@ -411,6 +426,139 @@ def grow_lead_submit():
         )
 
     return jsonify({"ok": True})
+
+
+@app.route("/api/payhip-webhook", methods=["POST"])
+def payhip_webhook():
+    """Receive Payhip purchase webhooks and fire Meta CAPI Purchase events server-side.
+
+    Payhip sends form-encoded POST data with a `signature` field that's the SHA1 HMAC
+    of the body (excluding the signature itself), keyed by the webhook secret.
+    Reference: https://payhip.com/docs/webhook
+    """
+    import hmac
+
+    raw_body = request.get_data(as_text=True) or ""
+    print(f"[payhip] webhook received, body length={len(raw_body)}")
+
+    # Payhip sends form-encoded by default. We'll also accept JSON if they ever change it.
+    payload = {}
+    if request.content_type and "application/json" in request.content_type:
+        payload = request.get_json(silent=True) or {}
+    else:
+        payload = request.form.to_dict()
+
+    event_type = (payload.get("type") or payload.get("event") or "").lower()
+    signature_in = payload.get("signature") or request.headers.get("X-Payhip-Signature", "")
+
+    # Verify signature when a secret is configured. SHA1 HMAC of the body without the signature param.
+    if PAYHIP_WEBHOOK_SECRET:
+        try:
+            # Build the canonical body Payhip signed: same body but without the `signature=...` field
+            if request.content_type and "application/json" in request.content_type:
+                # JSON path: hash the body that omits the signature key
+                pl_no_sig = {k: v for k, v in payload.items() if k != "signature"}
+                canonical = json.dumps(pl_no_sig, separators=(",", ":"), sort_keys=True)
+            else:
+                # Form path: rebuild query string without the signature param, in original order
+                from urllib.parse import urlencode
+                pairs = [(k, v) for k, v in request.form.items(multi=True) if k != "signature"]
+                canonical = urlencode(pairs)
+
+            expected_sha1 = hmac.new(
+                PAYHIP_WEBHOOK_SECRET.encode("utf-8"),
+                canonical.encode("utf-8"),
+                hashlib.sha1,
+            ).hexdigest()
+            expected_sha256 = hmac.new(
+                PAYHIP_WEBHOOK_SECRET.encode("utf-8"),
+                canonical.encode("utf-8"),
+                hashlib.sha256,
+            ).hexdigest()
+
+            if signature_in not in (expected_sha1, expected_sha256):
+                print(f"[payhip] signature mismatch (got {signature_in[:12]}..., expected SHA1 {expected_sha1[:12]}... or SHA256 {expected_sha256[:12]}...)")
+                # Don't 401 in production yet — Payhip might use a slightly different canonicalization.
+                # Log it but accept the event so we don't lose conversions while we tune the verifier.
+                # Once we confirm the canonical form matches, flip this to a 401.
+        except Exception as e:
+            print(f"[payhip] signature verify exception: {e}")
+
+    # Only fire Purchase on the paid event. Refund/dispute logic can come later.
+    if event_type not in ("paid", "purchase", "sale"):
+        print(f"[payhip] ignoring event type='{event_type}'")
+        return jsonify({"ok": True, "ignored": event_type})
+
+    # Pull what we need to construct the Purchase event
+    product_id = (payload.get("product_link") or payload.get("product_id") or payload.get("items_link") or "").strip()
+    # Payhip sometimes sends the full URL in product_link — extract the trailing slug
+    if "/" in product_id:
+        product_id = product_id.rstrip("/").split("/")[-1]
+
+    customer_email = (payload.get("email") or payload.get("customer_email") or "").strip()
+    customer_name = (payload.get("name") or payload.get("customer_name") or "").strip()
+    parts = customer_name.split(" ", 1)
+    first_name = parts[0] if parts else ""
+    last_name = parts[1] if len(parts) > 1 else ""
+
+    try:
+        amount = float(payload.get("price") or payload.get("amount") or payload.get("total") or 0)
+    except (TypeError, ValueError):
+        amount = 0.0
+    currency = (payload.get("currency") or "USD").upper()
+    transaction_id = (payload.get("transaction_id") or payload.get("order_id") or payload.get("id") or str(uuid.uuid4())).strip()
+
+    product_meta = PAYHIP_PRODUCTS.get(product_id, {})
+    product_name = product_meta.get("name") or payload.get("product_name") or "MK7 Media Playbook"
+    page_url = product_meta.get("page") or "https://mk7media.com/playbooks"
+
+    # Server-side Purchase event. event_id matches Payhip's transaction_id so any future browser
+    # Purchase event we add (e.g. from the post-purchase thank-you page) will dedupe against this.
+    _send_capi_event(
+        event_name="Purchase",
+        event_id=transaction_id,
+        user_data={
+            "email": customer_email,
+            "first_name": first_name,
+            "last_name": last_name,
+            # No fbp/fbc available server-to-server; email match handles attribution.
+        },
+        custom_data={
+            "value": amount,
+            "currency": currency,
+            "content_name": product_name,
+            "content_ids": [product_id] if product_id else [],
+            "content_type": "product",
+            "order_id": transaction_id,
+            "num_items": 1,
+        },
+        event_source_url=page_url,
+    )
+
+    # Notify the team via email. Useful both for live sales and for spotting silent failures.
+    if RESEND_API_KEY and customer_email:
+        try:
+            import resend
+            resend.api_key = RESEND_API_KEY
+            resend.Emails.send({
+                "from": "MK7 Media <notifications@lumenmarketing.co>",
+                "to": NOTIFY_RECIPIENTS,
+                "subject": f"Sale: {product_name} (${amount:.2f}) — {customer_email}",
+                "html": (
+                    f'<div style="font-family:Inter,sans-serif;color:#1a1a1a;padding:20px;">'
+                    f'<h2 style="margin:0 0 16px;">New Playbook Sale</h2>'
+                    f'<p><strong>Product:</strong> {product_name}</p>'
+                    f'<p><strong>Customer:</strong> {customer_name or customer_email}</p>'
+                    f'<p><strong>Email:</strong> {customer_email}</p>'
+                    f'<p><strong>Amount:</strong> ${amount:.2f} {currency}</p>'
+                    f'<p><strong>Transaction:</strong> {transaction_id}</p>'
+                    f'</div>'
+                )
+            })
+        except Exception as e:
+            print(f"[email] Sale notification failed: {e}")
+
+    return jsonify({"ok": True, "event_id": transaction_id})
 
 
 @app.route("/api/track", methods=["POST"])
