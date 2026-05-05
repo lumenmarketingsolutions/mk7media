@@ -3,9 +3,64 @@ import json
 import hashlib
 import time
 import uuid
-from flask import Flask, render_template, request, jsonify
+import sqlite3
+from datetime import datetime, timedelta
+from functools import wraps
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 
 app = Flask(__name__)
+
+# Session secret — set FLASK_SECRET_KEY in Railway. Random fallback for local dev only.
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-" + uuid.uuid4().hex)
+
+# Admin login credentials. Override via Railway env vars.
+ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "mary@mk7media.com")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "Ghazarian123$$")
+
+# IPs to log but exclude from analytics averages (Kendall's phone, etc.)
+ANALYTICS_IGNORE_IPS = {"209.127.238.130"}
+
+# Local SQLite analytics store
+ANALYTICS_DB = os.environ.get("ANALYTICS_DB_PATH", "mk7_analytics.db")
+
+def _analytics_conn():
+    conn = sqlite3.connect(ANALYTICS_DB)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def _init_analytics_db():
+    conn = _analytics_conn()
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS analytics_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_type TEXT NOT NULL,
+            page_path TEXT NOT NULL,
+            session_id TEXT,
+            ip TEXT,
+            user_agent TEXT,
+            referrer TEXT,
+            time_on_page INTEGER,
+            button_source TEXT,
+            event_metadata TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_events_path_created ON analytics_events(page_path, created_at)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_events_session ON analytics_events(session_id)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_events_type ON analytics_events(event_type)")
+    conn.commit()
+    conn.close()
+
+_init_analytics_db()
+
+
+def admin_required(view):
+    @wraps(view)
+    def wrapper(*args, **kwargs):
+        if not session.get("admin_logged_in"):
+            return redirect(url_for("admin_login"))
+        return view(*args, **kwargs)
+    return wrapper
 
 # ── Config ──
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
@@ -587,6 +642,152 @@ def track_event():
         event_source_url=data.get("page_url") or "https://mk7media.com/",
     )
     return jsonify({"ok": True})
+
+
+@app.route("/api/admin-track", methods=["POST"])
+def admin_track():
+    """Local analytics ingestion. Stores pageview / time_on_page / button_click events to SQLite."""
+    data = request.get_json(silent=True) or {}
+    event_type = (data.get("event_type") or "").strip()
+    page_path = (data.get("page_path") or request.headers.get("Referer", "")).strip()
+    session_id = (data.get("session_id") or "").strip()
+    referrer = (data.get("referrer") or "").strip()
+
+    if not event_type or event_type not in ("pageview", "time_on_page", "button_click"):
+        return jsonify({"ok": False, "error": "invalid event_type"}), 400
+
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr or "").split(",")[0].strip()
+    ua = request.headers.get("User-Agent", "")[:500]
+
+    time_on_page = data.get("time_on_page")
+    if time_on_page is not None:
+        try:
+            time_on_page = int(time_on_page)
+        except (TypeError, ValueError):
+            time_on_page = None
+
+    button_source = (data.get("button_source") or "").strip() or None
+    metadata = data.get("metadata")
+    metadata_json = json.dumps(metadata) if metadata else None
+
+    try:
+        conn = _analytics_conn()
+        conn.execute(
+            """INSERT INTO analytics_events
+               (event_type, page_path, session_id, ip, user_agent, referrer, time_on_page, button_source, event_metadata)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (event_type, page_path, session_id, ip, ua, referrer, time_on_page, button_source, metadata_json)
+        )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[admin-track] insert failed: {e}")
+        return jsonify({"ok": False}), 500
+
+    return jsonify({"ok": True})
+
+
+@app.route("/admin/login", methods=["GET", "POST"])
+def admin_login():
+    error = None
+    if request.method == "POST":
+        email = (request.form.get("email") or "").strip().lower()
+        password = (request.form.get("password") or "").strip()
+        if email == ADMIN_EMAIL.lower() and password == ADMIN_PASSWORD:
+            session["admin_logged_in"] = True
+            session["admin_email"] = email
+            return redirect(url_for("admin_dashboard"))
+        error = "Wrong email or password."
+    return render_template("admin_login.html", error=error)
+
+
+@app.route("/admin/logout")
+def admin_logout():
+    session.clear()
+    return redirect(url_for("admin_login"))
+
+
+@app.route("/admin")
+@admin_required
+def admin_dashboard():
+    """Analytics dashboard. Shows page views, time on page, button clicks, and recent visits."""
+    page_filter = request.args.get("page", "").strip()
+    days = int(request.args.get("days", "7"))
+    days = max(1, min(days, 90))
+
+    since = (datetime.utcnow() - timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
+    ignore_ip_placeholders = ",".join("?" * len(ANALYTICS_IGNORE_IPS)) or "''"
+    ignore_ip_list = list(ANALYTICS_IGNORE_IPS)
+
+    conn = _analytics_conn()
+
+    # Pages summary (counts and avg time on page; excludes ignore-IPs from avg only)
+    page_rows = conn.execute(f"""
+        SELECT
+            page_path,
+            COUNT(CASE WHEN event_type = 'pageview' THEN 1 END) as views,
+            COUNT(CASE WHEN event_type = 'pageview' AND ip NOT IN ({ignore_ip_placeholders}) THEN 1 END) as views_clean,
+            COUNT(CASE WHEN event_type = 'button_click' THEN 1 END) as clicks,
+            ROUND(AVG(CASE WHEN event_type = 'time_on_page' AND ip NOT IN ({ignore_ip_placeholders}) THEN time_on_page END), 1) as avg_seconds,
+            COUNT(DISTINCT session_id) as sessions
+        FROM analytics_events
+        WHERE created_at >= ?
+        GROUP BY page_path
+        ORDER BY views DESC
+    """, ignore_ip_list + ignore_ip_list + [since]).fetchall()
+
+    # Button click breakdown (by source)
+    where_page = "AND page_path = ?" if page_filter else ""
+    button_params = [since] + ([page_filter] if page_filter else [])
+    button_rows = conn.execute(f"""
+        SELECT button_source, COUNT(*) as clicks
+        FROM analytics_events
+        WHERE event_type = 'button_click' AND created_at >= ? {where_page}
+        GROUP BY button_source
+        ORDER BY clicks DESC
+    """, button_params).fetchall()
+
+    # Recent sessions (one row per session, with key metrics)
+    session_params = [since] + ([page_filter] if page_filter else [])
+    recent_rows = conn.execute(f"""
+        SELECT
+            session_id,
+            MAX(page_path) as page_path,
+            MAX(ip) as ip,
+            MAX(user_agent) as user_agent,
+            MAX(referrer) as referrer,
+            MIN(created_at) as visited_at,
+            MAX(time_on_page) as time_on_page,
+            COUNT(CASE WHEN event_type = 'button_click' THEN 1 END) as clicks
+        FROM analytics_events
+        WHERE created_at >= ? AND session_id != '' {where_page}
+        GROUP BY session_id
+        ORDER BY visited_at DESC
+        LIMIT 100
+    """, session_params).fetchall()
+
+    # Top-line totals (clean = excludes ignore IPs)
+    totals_row = conn.execute(f"""
+        SELECT
+            COUNT(CASE WHEN event_type = 'pageview' AND ip NOT IN ({ignore_ip_placeholders}) THEN 1 END) as views,
+            COUNT(CASE WHEN event_type = 'button_click' AND ip NOT IN ({ignore_ip_placeholders}) THEN 1 END) as clicks,
+            COUNT(DISTINCT CASE WHEN ip NOT IN ({ignore_ip_placeholders}) THEN session_id END) as sessions,
+            ROUND(AVG(CASE WHEN event_type = 'time_on_page' AND ip NOT IN ({ignore_ip_placeholders}) THEN time_on_page END), 1) as avg_seconds
+        FROM analytics_events
+        WHERE created_at >= ?
+    """, ignore_ip_list * 4 + [since]).fetchone()
+
+    conn.close()
+
+    return render_template(
+        "admin_dashboard.html",
+        days=days,
+        page_filter=page_filter,
+        pages=[dict(r) for r in page_rows],
+        buttons=[dict(r) for r in button_rows],
+        recent=[dict(r) for r in recent_rows],
+        totals=dict(totals_row) if totals_row else {"views": 0, "clicks": 0, "sessions": 0, "avg_seconds": 0},
+    )
 
 
 @app.route("/api/health")

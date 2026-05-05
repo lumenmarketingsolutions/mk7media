@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MK7 Media Admin · Analytics</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050507;
+      --bg-card: #0d0d12;
+      --bg-elevated: #111118;
+      --text: #f0f0f5;
+      --text-muted: #8888a0;
+      --text-dim: #55556a;
+      --blue: #4d7cf5;
+      --blue-bright: #6b93ff;
+      --pink: #e84da0;
+      --pink-bright: #ff6bbf;
+      --gradient: linear-gradient(135deg, #4d7cf5, #e84da0);
+      --gradient-text: linear-gradient(135deg, #6b93ff, #ff6bbf);
+      --border: rgba(255,255,255,0.06);
+      --border-hover: rgba(255,255,255,0.12);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100svh;
+      padding: 24px;
+      line-height: 1.6;
+    }
+    .grad-text {
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .container { max-width: 1280px; margin: 0 auto; }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .logo svg { width: 26px; height: 26px; }
+    .logo span { font-size: 14px; font-weight: 700; letter-spacing: -0.2px; }
+    .header-right { display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--text-dim); }
+    .header-right a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+    .header-right a:hover { color: var(--text); }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .filter-btn {
+      padding: 7px 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+    .filter-btn:hover { color: var(--text); border-color: var(--border-hover); }
+    .filter-btn.active {
+      background: rgba(77,124,245,0.12);
+      border-color: rgba(77,124,245,0.4);
+      color: var(--blue-bright);
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 24px;
+    }
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      line-height: 1.05;
+    }
+    .stat-value.blue { color: var(--blue-bright); }
+    .stat-value.pink { color: var(--pink-bright); }
+    .stat-value.grad {
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-sub { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+    @media (max-width: 900px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 540px) {
+      .stats-row { grid-template-columns: 1fr; }
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+    .panel {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+    }
+    .panel h2 {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 11px 8px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+    td { color: var(--text); }
+    td.muted { color: var(--text-muted); }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+    th.num { text-align: right; }
+    tr:last-child td { border-bottom: none; }
+    tr.row-hover:hover td { background: rgba(255,255,255,0.02); }
+
+    .empty {
+      padding: 28px 8px;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 13px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+    }
+    .badge.gold { background: rgba(255,200,87,0.12); color: #ffc857; }
+    .badge.dim { background: rgba(255,255,255,0.04); color: var(--text-dim); }
+
+    .scroll-wrap { overflow-x: auto; }
+    .truncate { max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; color: var(--text-dim); }
+
+    .footnote {
+      margin-top: 24px;
+      font-size: 11.5px;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <header>
+      <a href="/admin" class="logo">
+        <svg viewBox="0 0 40 40" fill="none">
+          <path d="M20 2 L33.5 8 L37 22 L30 34 L10 34 L3 22 L6.5 8 Z" stroke="url(#lg)" stroke-width="2" fill="none"/>
+          <path d="M12 26 L12 14 L20 22 L28 14 L28 26" stroke="#f0f0f5" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs><linearGradient id="lg" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#4d7cf5"/><stop offset="1" stop-color="#e84da0"/></linearGradient></defs>
+        </svg>
+        <span>MK7 Media · <span class="grad-text">Analytics</span></span>
+      </a>
+      <div class="header-right">
+        <span>{{ session.admin_email }}</span>
+        <a href="/admin/logout">Sign out</a>
+      </div>
+    </header>
+
+    <div class="filters">
+      {% set base_qs = '&page=' ~ page_filter if page_filter else '' %}
+      <a class="filter-btn {% if days == 1 %}active{% endif %}" href="?days=1{{ base_qs }}">Today</a>
+      <a class="filter-btn {% if days == 7 %}active{% endif %}" href="?days=7{{ base_qs }}">7 days</a>
+      <a class="filter-btn {% if days == 30 %}active{% endif %}" href="?days=30{{ base_qs }}">30 days</a>
+      <a class="filter-btn {% if days == 90 %}active{% endif %}" href="?days=90{{ base_qs }}">90 days</a>
+      {% if page_filter %}
+        <a class="filter-btn active" href="?days={{ days }}">Page: {{ page_filter }} ✕</a>
+      {% endif %}
+    </div>
+
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-label">Page Views</div>
+        <div class="stat-value blue">{{ totals.views or 0 }}</div>
+        <div class="stat-sub">last {{ days }} day{% if days != 1 %}s{% endif %}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Unique Sessions</div>
+        <div class="stat-value pink">{{ totals.sessions or 0 }}</div>
+        <div class="stat-sub">distinct visitors</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Button Clicks</div>
+        <div class="stat-value grad">{{ totals.clicks or 0 }}</div>
+        <div class="stat-sub">across all CTAs</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Avg Time on Page</div>
+        <div class="stat-value">{{ '%0.0f' % (totals.avg_seconds or 0) }}s</div>
+        <div class="stat-sub">excluding internal IPs</div>
+      </div>
+    </div>
+
+    <div class="grid">
+
+      <div class="panel">
+        <h2>Pages</h2>
+        <div class="scroll-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Path</th>
+                <th class="num">Views</th>
+                <th class="num">Sessions</th>
+                <th class="num">Clicks</th>
+                <th class="num">Avg Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in pages %}
+              <tr class="row-hover">
+                <td><a class="muted" href="?days={{ days }}&page={{ p.page_path }}" style="color: inherit; text-decoration: none;">{{ p.page_path or '(unknown)' }}</a></td>
+                <td class="num">{{ p.views_clean or 0 }}</td>
+                <td class="num">{{ p.sessions or 0 }}</td>
+                <td class="num">{{ p.clicks or 0 }}</td>
+                <td class="num">{{ '%0.0f' % (p.avg_seconds or 0) }}s</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="5" class="empty">No pageviews yet in this window.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Button Clicks by Source{% if page_filter %} · {{ page_filter }}{% endif %}</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th class="num">Clicks</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in buttons %}
+            <tr class="row-hover">
+              <td>
+                {% if b.button_source in ['hero', 'nav', 'stack', 'final', 'sticky'] %}
+                  <span class="badge gold">{{ b.button_source }}</span>
+                {% else %}
+                  <span class="badge dim">{{ b.button_source or '(none)' }}</span>
+                {% endif %}
+              </td>
+              <td class="num">{{ b.clicks }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="2" class="empty">No button clicks yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <div class="panel">
+      <h2>Recent Sessions{% if page_filter %} · {{ page_filter }}{% endif %}</h2>
+      <div class="scroll-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Visited</th>
+              <th>Page</th>
+              <th>IP</th>
+              <th>Referrer</th>
+              <th class="num">Time</th>
+              <th class="num">Clicks</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in recent %}
+            <tr class="row-hover">
+              <td class="muted">{{ s.visited_at }}</td>
+              <td><span class="truncate" style="display:inline-block;">{{ s.page_path }}</span></td>
+              <td class="mono">{{ s.ip or '—' }}</td>
+              <td class="muted truncate" style="max-width: 200px;">{{ s.referrer or '—' }}</td>
+              <td class="num">{{ s.time_on_page or 0 }}s</td>
+              <td class="num">{{ s.clicks or 0 }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="empty">No sessions yet in this window.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="footnote">
+      Internal IPs ({{ ', '.join(['209.127.238.130']) }}) are logged but excluded from averages and totals so test traffic does not skew analytics. Page views, time on page, and button clicks are stored locally in <code>mk7_analytics.db</code> on the server.
+    </div>
+
+  </div>
+</body>
+</html>

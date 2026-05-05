@@ -112,11 +112,59 @@
   // visitor IPs and dwell time. Runs on every page that loads this script,
   // not just the grow funnel.
   var AUDIENCE_ENDPOINT = 'https://lumenmarketing.co/api/grow/pageview';
+  var ADMIN_TRACK_ENDPOINT = '/api/admin-track';
   // "mk7media.com/grow/lb", "mk7media.com/", etc. — readable, consistent
   // across the whole site so the admin filter has stable page labels.
   var pageLabel = 'mk7media.com' + window.location.pathname;
   var pageStart = Date.now();
   var sentDuration = false;
+
+  // Stable session id stored in sessionStorage so a single visit groups together
+  // across pageview + time_on_page + button_click events.
+  function getSessionId() {
+    try {
+      var existing = sessionStorage.getItem('mk7_session_id');
+      if (existing) return existing;
+      var fresh = uuid();
+      sessionStorage.setItem('mk7_session_id', fresh);
+      return fresh;
+    } catch (e) {
+      return 'no-storage-' + Date.now();
+    }
+  }
+  var sessionId = getSessionId();
+
+  // Local mk7media.com admin tracker. Same beacon pattern, same JSON payload shape.
+  function pingAdmin(payload) {
+    try {
+      payload.session_id = sessionId;
+      payload.page_path = pageLabel;
+      var body = JSON.stringify(payload);
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(ADMIN_TRACK_ENDPOINT, new Blob([body], { type: 'application/json' }));
+        return;
+      }
+      fetch(ADMIN_TRACK_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: body,
+        keepalive: true
+      }).catch(function () {});
+    } catch (e) { /* noop */ }
+  }
+
+  // Also fire admin ping for [data-track-buy] / [data-track] button clicks so
+  // the dashboard sees per-button click counts (hero / nav / stack / final).
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest && e.target.closest('[data-track-buy], [data-track]');
+    if (!el) return;
+    var src = el.getAttribute('data-track-buy') || el.getAttribute('data-track-source') || el.getAttribute('data-track') || 'unknown';
+    pingAdmin({
+      event_type: 'button_click',
+      button_source: src,
+      referrer: document.referrer || ''
+    });
+  });
 
   // Use text/plain so the request stays CORS-simple (no preflight needed).
   // The Lumen endpoint parses with force=True, so JSON-stringified text/plain
@@ -145,6 +193,10 @@
       referrer: document.referrer || '',
       time_on_page: 0
     });
+    pingAdmin({
+      event_type: 'pageview',
+      referrer: document.referrer || ''
+    });
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', sendInitialPageview);
@@ -165,6 +217,11 @@
       page: pageLabel,
       referrer: document.referrer || '',
       time_on_page: seconds
+    });
+    pingAdmin({
+      event_type: 'time_on_page',
+      time_on_page: seconds,
+      referrer: document.referrer || ''
     });
   }
   document.addEventListener('visibilitychange', function () {

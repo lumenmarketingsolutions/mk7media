@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MK7 Media Admin · Login</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050507;
+      --bg-elevated: #111118;
+      --text: #f0f0f5;
+      --text-muted: #8888a0;
+      --text-dim: #55556a;
+      --blue: #4d7cf5;
+      --pink: #e84da0;
+      --gradient: linear-gradient(135deg, #4d7cf5, #e84da0);
+      --border: rgba(255,255,255,0.08);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100svh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    body::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 50% 40% at 30% 30%, rgba(77,124,245,0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 35% at 70% 70%, rgba(232,77,160,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .card {
+      position: relative;
+      width: 100%;
+      max-width: 380px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 36px 32px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .logo svg { width: 28px; height: 28px; }
+    .logo span { font-size: 14px; font-weight: 700; letter-spacing: -0.2px; }
+    h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+      margin-top: 16px;
+    }
+    label:first-of-type { margin-top: 0; }
+    input {
+      width: 100%;
+      padding: 13px 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus { border-color: var(--blue); }
+    button {
+      width: 100%;
+      margin-top: 24px;
+      padding: 14px;
+      background: var(--gradient);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    button:hover { opacity: 0.92; }
+    .error {
+      margin-top: 16px;
+      padding: 12px 14px;
+      background: rgba(232,77,160,0.08);
+      border: 1px solid rgba(232,77,160,0.2);
+      border-radius: 8px;
+      color: #ff6bbf;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <svg viewBox="0 0 40 40" fill="none">
+        <path d="M20 2 L33.5 8 L37 22 L30 34 L10 34 L3 22 L6.5 8 Z" stroke="url(#lg)" stroke-width="2" fill="none"/>
+        <path d="M12 26 L12 14 L20 22 L28 14 L28 26" stroke="#f0f0f5" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <defs><linearGradient id="lg" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#4d7cf5"/><stop offset="1" stop-color="#e84da0"/></linearGradient></defs>
+      </svg>
+      <span>MK7 Media Admin</span>
+    </div>
+    <h1>Sign in</h1>
+    <p class="subtitle">Analytics for the playbook funnel.</p>
+    <form method="post">
+      <label>Email</label>
+      <input name="email" type="email" autocomplete="email" required autofocus>
+      <label>Password</label>
+      <input name="password" type="password" autocomplete="current-password" required>
+      <button type="submit">Sign in</button>
+      {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    </form>
+  </div>
+</body>
+</html>
