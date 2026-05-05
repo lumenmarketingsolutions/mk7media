@@ -501,11 +501,15 @@ def payhip_webhook():
     first_name = parts[0] if parts else ""
     last_name = parts[1] if len(parts) > 1 else ""
 
+    # Payhip sends amounts in the smallest currency unit (cents for USD).
+    # A $5.00 sale arrives as 500 in `price`/`amount`/`total`. Divide by 100 to get dollars.
     try:
-        amount = float(payload.get("price") or payload.get("amount") or payload.get("total") or 0)
+        raw_amount = float(payload.get("price") or payload.get("amount") or payload.get("total") or 0)
     except (TypeError, ValueError):
-        amount = 0.0
+        raw_amount = 0.0
+    amount = raw_amount / 100.0
     currency = (payload.get("currency") or "USD").upper()
+    print(f"[payhip] sale parsed: product={product_id} amount=${amount:.2f} {currency} email={customer_email}")
     transaction_id = (payload.get("transaction_id") or payload.get("order_id") or payload.get("id") or str(uuid.uuid4())).strip()
 
     product_meta = PAYHIP_PRODUCTS.get(product_id, {})
