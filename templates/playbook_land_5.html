@@ -88,49 +88,39 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 18px;
-      padding: 10px 16px 11px;
+      gap: 14px;
+      padding: 8px 16px 9px;
       background: linear-gradient(180deg, rgba(22, 22, 32, 0.94) 0%, rgba(13, 13, 20, 0.94) 100%);
       backdrop-filter: blur(24px) saturate(140%);
       -webkit-backdrop-filter: blur(24px) saturate(140%);
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 1px 0 rgba(0,0,0,0.6);
-      color: rgba(255,255,255,0.82);
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 1.2px;
-      text-transform: uppercase;
+      color: rgba(255,255,255,0.65);
     }
-    .trust-strip .label { color: rgba(255,255,255,0.55); font-size: 10px; letter-spacing: 1.5px; }
-    .trust-strip .partner-pair {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .trust-strip .partner-pair img {
-      height: 16px;
+    .trust-strip img {
+      height: 13px;
       width: auto;
       display: block;
-      opacity: 0.95;
+      opacity: 0.92;
     }
-    .trust-strip .partner-pair .name {
-      font-size: 11px;
+    .trust-strip .partners-label {
+      font-size: 9.5px;
       font-weight: 600;
-      letter-spacing: 0.5px;
-      text-transform: none;
-      color: #fff;
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      margin-left: 4px;
     }
-    .trust-strip .dot { width: 3px; height: 3px; background: rgba(255,255,255,0.25); border-radius: 50%; flex-shrink: 0; }
+    .trust-strip .dot { width: 3px; height: 3px; background: rgba(255,255,255,0.22); border-radius: 50%; flex-shrink: 0; }
     @media (max-width: 720px) {
-      .trust-strip { gap: 12px; padding: 9px 12px; }
-      .trust-strip .label { display: none; }
-      .trust-strip .partner-pair img { height: 14px; }
-      .trust-strip .partner-pair .name { font-size: 10.5px; }
+      .trust-strip { gap: 10px; padding: 7px 12px 8px; }
+      .trust-strip img { height: 11px; }
+      .trust-strip .partners-label { font-size: 8.5px; letter-spacing: 1.4px; }
     }
 
     /* ── Navigation ── */
     nav {
       position: fixed;
-      top: 40px; left: 0; right: 0;
+      top: 30px; left: 0; right: 0;
       z-index: 100;
       padding: 16px 32px;
       display: flex;
@@ -169,7 +159,7 @@
     }
     .nav-cta:hover { opacity: 0.9; }
     @media (max-width: 540px) {
-      nav { padding: 14px 18px; top: 36px; }
+      nav { padding: 14px 18px; top: 26px; }
       .nav-logo span { font-size: 14px; }
       .nav-cta { padding: 9px 16px; font-size: 12px; }
     }
@@ -356,9 +346,12 @@
       .hero-sub { font-size: 15px; margin-bottom: 28px; }
       .hero-ctas { flex-direction: column; gap: 10px; width: 100%; }
       .hero-ctas .btn-primary, .hero-ctas .btn-secondary { width: 100%; justify-content: center; }
-      .hero-mockup { margin: 44px auto 0; max-width: 280px; }
-      .hero-mockup .book { padding: 36px 24px; }
-      .hero-mockup .book-title { font-size: 20px; }
+      .hero-mockup { margin: 44px auto 0; max-width: 300px; }
+      .hero-mockup .book { padding: 38px 26px; }
+      .hero-mockup .book-meta { font-size: 10.5px; letter-spacing: 2.4px; }
+      .hero-mockup .book-title { font-size: 26px; line-height: 1.12; letter-spacing: -0.6px; }
+      .hero-mockup .book-footer { font-size: 10.5px; letter-spacing: 1.7px; }
+      .hero-mockup .book-vol { padding: 4px 9px; font-size: 10px; }
     }
 
     /* ── Proof bar ── */
@@ -366,13 +359,22 @@
       border-top: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
       background: var(--bg-card);
-      padding: 36px 24px;
+      padding: 44px 24px 40px;
+    }
+    .proof-bar-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      text-align: center;
+      margin-bottom: 22px;
     }
     .proof-bar-inner {
-      max-width: 1140px;
+      max-width: 980px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 24px;
       align-items: center;
     }
@@ -402,12 +404,11 @@
       color: var(--text-dim);
       font-weight: 600;
     }
-    @media (max-width: 900px) {
-      .proof-bar-inner { grid-template-columns: repeat(2, 1fr); gap: 28px 20px; }
-      .proof-stat:last-child { grid-column: 1 / -1; }
-    }
-    @media (max-width: 480px) {
-      .proof-bar { padding: 28px 18px; }
+    @media (max-width: 540px) {
+      .proof-bar { padding: 36px 18px 32px; }
+      .proof-bar-inner { gap: 14px; }
+      .proof-stat .num { font-size: 22px; }
+      .proof-stat .lbl { font-size: 10px; letter-spacing: 0.8px; }
     }
 
     /* ── Section base ── */
@@ -1012,10 +1013,10 @@
 
 <!-- ── Top trust strip ── -->
 <div class="trust-strip">
-  <span class="label">Partners</span>
-  <span class="partner-pair"><img src="/static/logos/meta.png" alt="Meta"><span class="name">Meta</span></span>
+  <img src="/static/logos/meta.png" alt="Meta">
   <span class="dot"></span>
-  <span class="partner-pair"><img src="/static/logos/shopify.svg" alt="Shopify"><span class="name">Shopify</span></span>
+  <img src="/static/logos/shopify.svg" alt="Shopify">
+  <span class="partners-label">Partners</span>
 </div>
 
 <!-- ── Navigation ── -->
@@ -1039,7 +1040,7 @@
       <span>The MK7 Media Playbook · Vol. 01</span>
     </div>
     <h1>From zero to <span class="grad-text">5 retainer clients</span> in the next 30 days.</h1>
-    <p class="hero-sub">The exact system MK7 Media uses to land paying ad clients. Audience, offer, ad, page, qualification, sales, pricing, the 30 day plan. Built from over $2.8M in tracked client revenue.</p>
+    <p class="hero-sub">The system we use to land paying ad clients, proven across $2.8M+ in tracked client revenue.</p>
     <div class="hero-ctas">
       <a href="?product=land5" class="btn-primary buy-trigger" data-product="J0xhM" data-track-buy="hero">Get the Playbook · $29 <span class="arrow">→</span></a>
     </div>
@@ -1067,6 +1068,7 @@
 
 <!-- ── Proof bar ── -->
 <div class="proof-bar">
+  <div class="proof-bar-title">This system has produced</div>
   <div class="proof-bar-inner">
     <div class="proof-stat">
       <div class="num blue">7,800+</div>
@@ -1080,14 +1082,6 @@
       <div class="num grad">$5.93</div>
       <div class="lbl">Average CPL</div>
     </div>
-    <div class="proof-stat">
-      <div class="num blue">14x</div>
-      <div class="lbl">ROAS on beauty</div>
-    </div>
-    <div class="proof-stat">
-      <div class="num pink">30x</div>
-      <div class="lbl">ROAS on cosmetics</div>
-    </div>
   </div>
 </div>
 
@@ -1099,13 +1093,13 @@
 
   <div class="stack-card">
     <ul class="stack-list">
-      <li><span class="item">Audience research framework + 8 piece offer builder</span><span class="price">$147</span></li>
-      <li><span class="item">Ad creative formula, hook patterns, iPhone style scripts</span><span class="price">$97</span></li>
-      <li><span class="item">Landing page structure + 4 to 6 question qualification form</span><span class="price">$97</span></li>
-      <li><span class="item">30 minute discovery call script + 4 real objection handlers</span><span class="price">$147</span></li>
-      <li><span class="item">Audit offer pricing model + tiered package templates</span><span class="price">$97</span></li>
-      <li><span class="item">30 day day by day action plan with checkboxes</span><span class="price">$147</span></li>
-      <li><span class="item">10 viral hook templates + 4 cold DM scripts + ad audit checklist</span><span class="price">$97</span></li>
+      <li><span class="item">Build offers buyers say yes to instantly</span><span class="price">$147</span></li>
+      <li><span class="item">Run ads that actually get clicks</span><span class="price">$97</span></li>
+      <li><span class="item">A landing page that closes cold ad clicks</span><span class="price">$97</span></li>
+      <li><span class="item">Sales calls that close in 7 days</span><span class="price">$147</span></li>
+      <li><span class="item">Pricing that ends the undercharging cycle</span><span class="price">$97</span></li>
+      <li><span class="item">A clear plan for the next 30 days</span><span class="price">$147</span></li>
+      <li><span class="item">10 viral hooks, 4 cold DM scripts, and the audit checklist</span><span class="price">$97</span></li>
     </ul>
     <div class="stack-total">
       <span class="label">Total Value</span>
@@ -1122,7 +1116,34 @@
   </div>
 </section>
 
-<!-- ── Real results (case studies as proof) ── -->
+<!-- ── For / Not For (moved up — qualifies the buyer right after the offer) ── -->
+<section class="section">
+  <div class="section-label">Who This Is For</div>
+  <h2 class="section-title">Built for media buyers who are ready to run reps. Not built for everyone.</h2>
+  <p class="section-subtitle">The system only works if you work the system. We tell people who it isn't for so the right buyers know exactly what they are getting.</p>
+  <div class="for-grid">
+    <div class="for-col yes">
+      <h3>This is for you if you</h3>
+      <ul>
+        <li>Have 0 to 1 clients and want a roster of 5 in the next 30 days</li>
+        <li>Can already run ads but cannot land consistent retainer clients</li>
+        <li>Are ready to put in 1 to 3 hours of focused work per day</li>
+        <li>Want a step by step plan instead of more theory and threads</li>
+      </ul>
+    </div>
+    <div class="for-col no">
+      <h3>This is not for you if you</h3>
+      <ul>
+        <li>Want a passive shortcut that does not involve daily reps</li>
+        <li>Already run an agency at $10k a month and need scaling, not foundation</li>
+        <li>Refuse to film iPhone style content or do daily outreach</li>
+        <li>Are looking for "secrets" instead of an executable system</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ── Real results (case studies as the closer) ── -->
 <section class="results-section">
   <div class="results-inner">
     <div class="section-label" style="text-align:center; margin-bottom: 14px;">The Numbers Behind the Playbook</div>
@@ -1158,33 +1179,6 @@
         <p>One offer, one page, one creative system. The pricing model and audit offer in Chapter 5 are how high ticket close rates double without raising the ad spend.</p>
         <div class="result-img-wrap"><img src="/static/case-1m-revenue.jpg" alt="$1.193M revenue case study" class="result-img"></div>
       </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── For / Not For ── -->
-<section class="section">
-  <div class="section-label">Who This Is For</div>
-  <h2 class="section-title">Built for media buyers who are ready to run reps. Not built for everyone.</h2>
-  <p class="section-subtitle">The system only works if you work the system. We tell people who it isn't for so the right buyers know exactly what they are getting.</p>
-  <div class="for-grid">
-    <div class="for-col yes">
-      <h3>This is for you if you</h3>
-      <ul>
-        <li>Have 0 to 1 clients and want a roster of 5 in the next 30 days</li>
-        <li>Can already run ads but cannot land consistent retainer clients</li>
-        <li>Are ready to put in 1 to 3 hours of focused work per day</li>
-        <li>Want a step by step plan instead of more theory and threads</li>
-      </ul>
-    </div>
-    <div class="for-col no">
-      <h3>This is not for you if you</h3>
-      <ul>
-        <li>Want a passive shortcut that does not involve daily reps</li>
-        <li>Already run an agency at $10k a month and need scaling, not foundation</li>
-        <li>Refuse to film iPhone style content or do daily outreach</li>
-        <li>Are looking for "secrets" instead of an executable system</li>
-      </ul>
     </div>
   </div>
 </section>
