@@ -264,6 +264,11 @@ def inquiry():
 
     return jsonify({"ok": True})
 
+@app.route("/playbooks")
+def playbooks_catalog():
+    return render_template("playbooks_catalog.html")
+
+
 @app.route("/playbooks/land-5-clients")
 def playbook_land_5():
     return render_template("playbook_land_5.html")
@@ -272,6 +277,61 @@ def playbook_land_5():
 @app.route("/playbooks/double-clients")
 def playbook_double_clients():
     return render_template("playbook_double_clients.html")
+
+
+@app.route("/api/playbook-waitlist", methods=["POST"])
+def playbook_waitlist():
+    """Capture emails for coming-soon Vol 03/04 playbooks. Notifies team via Resend, fires CAPI Lead."""
+    data = request.get_json(silent=True) or {}
+    email = (data.get("email") or "").strip()
+    product_id = (data.get("product_id") or "").strip()
+    page_url = (data.get("page_url") or "").strip()
+
+    if not email or "@" not in email:
+        return jsonify({"error": "Valid email required"}), 400
+
+    # Send notification email
+    if RESEND_API_KEY:
+        try:
+            import resend
+            resend.api_key = RESEND_API_KEY
+            resend.Emails.send({
+                "from": "MK7 Media <notifications@lumenmarketing.co>",
+                "to": NOTIFY_RECIPIENTS,
+                "subject": f"Playbook waitlist: {product_id}",
+                "html": (
+                    f'<div style="font-family:Inter,sans-serif;color:#1a1a1a;padding:20px;">'
+                    f'<h2 style="margin:0 0 16px;">New Playbook Waitlist Signup</h2>'
+                    f'<p><strong>Email:</strong> {email}</p>'
+                    f'<p><strong>Product:</strong> {product_id}</p>'
+                    f'<p><strong>Source:</strong> {page_url}</p>'
+                    f'</div>'
+                )
+            })
+        except Exception as e:
+            print(f"[email] Waitlist notification failed: {e}")
+
+    # CAPI Lead event
+    event_id = (data.get("event_id") or str(uuid.uuid4())).strip()
+    ctx = _client_ctx()
+    _send_capi_event(
+        event_name="Lead",
+        event_id=event_id,
+        user_data={
+            "email": email,
+            "client_ip": ctx["client_ip"],
+            "client_ua": ctx["client_ua"],
+            "fbp": (data.get("fbp") or "").strip() or None,
+            "fbc": (data.get("fbc") or "").strip() or None,
+        },
+        custom_data={
+            "lead_source": "playbook_waitlist",
+            "content_name": f"Waitlist: {product_id}",
+        },
+        event_source_url=page_url or "https://mk7media.com/playbooks",
+    )
+
+    return jsonify({"ok": True})
 
 
 @app.route("/grow")

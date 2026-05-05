@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The MK7 Media Playbooks — Operator Manuals for Media Buyers</title>
+  <meta name="description" content="The MK7 Media Playbook series. Operator manuals from the team behind 7,800+ leads and $2.8M+ in tracked revenue. Land clients, scale revenue, run Meta ads.">
+  <meta property="og:title" content="The MK7 Media Playbooks">
+  <meta property="og:description" content="Operator manuals from the team behind 7,800+ leads and $2.8M+ in tracked revenue.">
+  <meta property="og:image" content="/static/og-image.png">
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+
+  <!-- Meta Pixel -->
+  <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1180057140863760');
+    fbq('track', 'PageView');
+    fbq('track', 'ViewContent', { content_name: 'Playbooks Catalog', content_category: 'Catalog' });
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=1180057140863760&ev=PageView&noscript=1"/></noscript>
+  <script src="/static/mk7-pixel.js" defer></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #050507;
+      --bg-card: #0d0d12;
+      --bg-elevated: #111118;
+      --text: #f0f0f5;
+      --text-muted: #8888a0;
+      --text-dim: #55556a;
+      --blue: #4d7cf5;
+      --blue-bright: #6b93ff;
+      --pink: #e84da0;
+      --pink-bright: #ff6bbf;
+      --gradient: linear-gradient(135deg, #4d7cf5, #e84da0);
+      --gradient-soft: linear-gradient(135deg, rgba(77,124,245,0.12), rgba(232,77,160,0.12));
+      --gradient-text: linear-gradient(135deg, #6b93ff, #ff6bbf);
+      --border: rgba(255,255,255,0.06);
+      --border-hover: rgba(255,255,255,0.12);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    .grad-text {
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Trust strip ── */
+    .trust-strip {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 99;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      padding: 11px 16px 12px;
+      background: linear-gradient(180deg, rgba(22,22,32,0.94) 0%, rgba(13,13,20,0.94) 100%);
+      backdrop-filter: blur(24px) saturate(140%);
+      -webkit-backdrop-filter: blur(24px) saturate(140%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 1px 0 rgba(0,0,0,0.6);
+      color: rgba(255,255,255,0.86);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+    .trust-strip .dot { width: 4px; height: 4px; background: rgba(255,255,255,0.3); border-radius: 50%; }
+    @media (max-width: 720px) {
+      .trust-strip { gap: 12px; font-size: 11px; padding: 10px 12px; }
+      .trust-strip .ts-hide-mobile { display: none; }
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed;
+      top: 40px; left: 0; right: 0;
+      z-index: 100;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    nav.scrolled {
+      background: rgba(5,5,7,0.88);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow: 0 1px 0 var(--border);
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .nav-logo svg { width: 30px; height: 30px; }
+    .nav-logo span { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-link:hover { color: var(--text); }
+    @media (max-width: 540px) {
+      nav { padding: 14px 18px; top: 36px; }
+      .nav-logo span { font-size: 14px; }
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 160px 24px 60px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 50% 40% at 50% 45%, rgba(232,77,160,0.10) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 35% at 25% 35%, rgba(77,124,245,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 35% 30% at 75% 55%, rgba(232,77,160,0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero-inner { max-width: 820px; margin: 0 auto; position: relative; z-index: 1; }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      background: rgba(77,124,245,0.08);
+      border: 1px solid rgba(77,124,245,0.2);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--blue-bright);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .hero-badge .pulse {
+      width: 6px; height: 6px;
+      background: var(--blue-bright);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--blue-bright);
+    }
+    .hero h1 {
+      font-size: clamp(38px, 6vw, 56px);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -1.8px;
+      margin-bottom: 22px;
+    }
+    .hero p {
+      font-size: clamp(16px, 1.5vw, 19px);
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+    @media (max-width: 540px) {
+      .hero { padding: 130px 20px 50px; }
+    }
+
+    /* ── Proof bar ── */
+    .proof-bar {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-card);
+      padding: 32px 24px;
+    }
+    .proof-bar-inner {
+      max-width: 1140px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 24px;
+      align-items: center;
+    }
+    .proof-stat { text-align: center; }
+    .proof-stat .num {
+      font-size: clamp(20px, 2.4vw, 28px);
+      font-weight: 900;
+      letter-spacing: -0.8px;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+    .proof-stat .num.blue { color: var(--blue-bright); }
+    .proof-stat .num.pink { color: var(--pink-bright); }
+    .proof-stat .num.grad {
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .proof-stat .lbl {
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+    @media (max-width: 900px) {
+      .proof-bar-inner { grid-template-columns: repeat(2, 1fr); gap: 28px 20px; }
+      .proof-stat:last-child { grid-column: 1 / -1; }
+    }
+
+    /* ── Catalog grid ── */
+    .catalog {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 100px 24px 60px;
+    }
+    .section-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--blue-bright);
+      margin-bottom: 14px;
+    }
+    .section-title {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.15;
+      margin-bottom: 14px;
+    }
+    .section-sub {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 540px;
+      margin-bottom: 44px;
+    }
+    @media (max-width: 768px) {
+      .catalog { padding: 80px 20px 40px; }
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .product-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.25s, transform 0.25s;
+    }
+    .product-card.live:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-3px);
+    }
+    .product-card .vol-badge {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      background: var(--gradient);
+      color: #fff;
+      padding: 5px 11px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+    }
+    .product-card.soon .vol-badge {
+      background: rgba(255,255,255,0.06);
+      color: var(--text-dim);
+    }
+    .product-card .book-mock {
+      width: 100%;
+      aspect-ratio: 8.5 / 11;
+      background: linear-gradient(155deg, #0a0a10 0%, #1a1a26 100%);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.55), 0 0 40px rgba(77,124,245,0.10);
+      padding: 36px 28px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      max-width: 230px;
+      margin: 0 auto;
+    }
+    .product-card .book-mock::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--gradient);
+    }
+    .product-card.soon .book-mock {
+      filter: grayscale(70%) brightness(0.7);
+    }
+    .product-card.soon .book-mock::before {
+      background: rgba(255,255,255,0.15);
+    }
+    .book-mock .meta {
+      font-size: 8px;
+      letter-spacing: 1.6px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .book-mock .title {
+      font-size: 18px;
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.6px;
+      color: var(--text);
+    }
+    .book-mock .title .accent { display: block; }
+    .book-mock .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      font-size: 8px;
+      letter-spacing: 1.2px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .book-mock .footer .vol-tag {
+      background: var(--gradient);
+      color: #fff;
+      padding: 3px 6px;
+      border-radius: 2px;
+      font-weight: 700;
+    }
+    .product-card.soon .book-mock .footer .vol-tag {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .product-info { flex: 1; }
+    .product-card h3 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      line-height: 1.15;
+      margin-bottom: 10px;
+    }
+    .product-card .outcome {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 18px;
+    }
+    .product-card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .product-card li {
+      display: flex;
+      gap: 10px;
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .product-card li::before {
+      content: '';
+      width: 5px; height: 5px;
+      flex-shrink: 0;
+      margin-top: 9px;
+      border-radius: 50%;
+      background: var(--gradient);
+    }
+    .product-card.soon li::before { background: rgba(255,255,255,0.15); }
+
+    .product-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding-top: 22px;
+      border-top: 1px solid var(--border);
+    }
+    .product-foot .price {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: -0.6px;
+    }
+    .product-foot .price.live {
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .product-foot .price.soon { color: var(--text-dim); }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 22px;
+      background: var(--gradient);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.2s;
+      font-family: 'Inter', sans-serif;
+      letter-spacing: 0.2px;
+    }
+    .btn-primary:hover { opacity: 0.92; transform: translateY(-1px); }
+    .btn-primary .arrow { font-weight: 700; transition: transform 0.2s; }
+    .btn-primary:hover .arrow { transform: translateX(2px); }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 11px 20px;
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.07); }
+
+    @media (max-width: 768px) {
+      .product-grid { grid-template-columns: 1fr; }
+      .product-card { padding: 28px 24px; }
+      .product-card .book-mock { max-width: 200px; }
+    }
+
+    /* ── Waitlist input ── */
+    .waitlist-form {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+    .waitlist-form input {
+      flex: 1;
+      padding: 11px 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+      min-width: 0;
+    }
+    .waitlist-form input:focus { border-color: var(--blue); }
+    .waitlist-form input::placeholder { color: var(--text-dim); }
+    .waitlist-form button {
+      flex-shrink: 0;
+      padding: 11px 18px;
+    }
+    .waitlist-msg {
+      font-size: 12px;
+      color: var(--blue-bright);
+      margin-top: 10px;
+      min-height: 16px;
+    }
+
+    /* ── About strip ── */
+    .about-strip {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 80px 24px 100px;
+      text-align: center;
+    }
+    .about-strip h2 {
+      font-size: clamp(24px, 3.4vw, 34px);
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      margin-bottom: 18px;
+    }
+    .about-strip p {
+      font-size: 16px;
+      color: var(--text-muted);
+      line-height: 1.75;
+      max-width: 640px;
+      margin: 0 auto 32px;
+    }
+    .partners-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 28px 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+    .partner-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .partner-badge img {
+      height: 22px;
+      width: auto;
+      opacity: 0.85;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 48px 24px 32px;
+      border-top: 1px solid var(--border);
+    }
+    footer .footer-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    footer .footer-logo svg { width: 22px; height: 22px; }
+    footer .footer-logo span { font-size: 14px; font-weight: 700; }
+    footer p { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
+    footer p a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+    footer p a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+
+<!-- ── Trust strip ── -->
+<div class="trust-strip">
+  <span><strong style="color:#fff;">Meta Business Partner</strong></span>
+  <span class="dot"></span>
+  <span class="ts-hide-mobile"><strong style="color:#fff;">Shopify Partner</strong></span>
+  <span class="dot ts-hide-mobile"></span>
+  <span><strong style="color:#fff;">Certified Performance Marketers</strong></span>
+</div>
+
+<!-- ── Nav ── -->
+<nav id="nav">
+  <a href="/" class="nav-logo">
+    <svg viewBox="0 0 40 40" fill="none">
+      <path d="M20 2 L33.5 8 L37 22 L30 34 L10 34 L3 22 L6.5 8 Z" stroke="url(#navGrad)" stroke-width="2" fill="none"/>
+      <path d="M12 26 L12 14 L20 22 L28 14 L28 26" stroke="#f0f0f5" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <defs><linearGradient id="navGrad" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#4d7cf5"/><stop offset="1" stop-color="#e84da0"/></linearGradient></defs>
+    </svg>
+    <span>MK7 Media</span>
+  </a>
+  <a href="/" class="nav-link">← Back to MK7</a>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">
+      <span class="pulse"></span>
+      <span>The MK7 Media Playbooks</span>
+    </div>
+    <h1>Operator manuals from the team behind <span class="grad-text">$2.8M+ in tracked client revenue.</span></h1>
+    <p>A growing series of step by step playbooks for media buyers and agencies. Audience and offers, ad creative, sales, pricing, automation. Each volume is the same system we run for paying clients.</p>
+  </div>
+</section>
+
+<!-- ── Proof bar ── -->
+<div class="proof-bar">
+  <div class="proof-bar-inner">
+    <div class="proof-stat"><div class="num blue">7,800+</div><div class="lbl">Leads generated</div></div>
+    <div class="proof-stat"><div class="num pink">$2.8M+</div><div class="lbl">Tracked revenue</div></div>
+    <div class="proof-stat"><div class="num grad">$5.93</div><div class="lbl">Average CPL</div></div>
+    <div class="proof-stat"><div class="num blue">14x</div><div class="lbl">ROAS on beauty</div></div>
+    <div class="proof-stat"><div class="num pink">30x</div><div class="lbl">ROAS on cosmetics</div></div>
+  </div>
+</div>
+
+<!-- ── Catalog ── -->
+<section class="catalog">
+  <div class="section-label">The Series</div>
+  <h2 class="section-title">Pick your volume.</h2>
+  <p class="section-sub">Two playbooks live. Two more shipping. Built in order so each volume builds on the last, but every one stands on its own.</p>
+
+  <div class="product-grid">
+
+    <!-- Vol 01 — LIVE -->
+    <div class="product-card live">
+      <span class="vol-badge">VOL 01</span>
+      <div class="book-mock">
+        <div class="meta">MK7 Media · Series</div>
+        <div class="title">
+          <span>Land Your First</span>
+          <span class="accent grad-text">5 Ad Clients</span>
+          <span>in 30 Days</span>
+        </div>
+        <div class="footer"><span>The Playbook</span><span class="vol-tag">VOL 01</span></div>
+      </div>
+      <div class="product-info">
+        <h3>Land Your First 5 Ad Clients in 30 Days</h3>
+        <p class="outcome">The full client acquisition system from offer to signed retainer. Audience, ad, page, qualification, sales, pricing, and the 30 day plan.</p>
+        <ul>
+          <li>Audience research, offer building, and the 8 piece offer framework</li>
+          <li>Ad creative, landing page, qualification, and speed to lead</li>
+          <li>30 minute discovery call script with the 4 real objection handlers</li>
+          <li>30 day day by day action plan with checkboxes</li>
+        </ul>
+      </div>
+      <div class="product-foot">
+        <span class="price live">$29</span>
+        <a href="/playbooks/land-5-clients" class="btn-primary">Read more <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- Vol 02 — LIVE (page coming) -->
+    <div class="product-card live">
+      <span class="vol-badge">VOL 02</span>
+      <div class="book-mock">
+        <div class="meta">MK7 Media · Series</div>
+        <div class="title">
+          <span>Double Your</span>
+          <span class="accent grad-text">Ad Clients</span>
+          <span>in 30 Days</span>
+        </div>
+        <div class="footer"><span>The Playbook</span><span class="vol-tag">VOL 02</span></div>
+      </div>
+      <div class="product-info">
+        <h3>Double Your Clients in 30 Days</h3>
+        <p class="outcome">The system to double agency revenue without burning more hours, hiring, or chasing cold leads. Math, audits, pricing, retention.</p>
+        <ul>
+          <li>The math of doubling, broken across new clients, pricing, and roster upgrades</li>
+          <li>The roster audit that finds upgrade revenue inside your current book</li>
+          <li>Lost deal reach out script for prospects who said no in the last 90 days</li>
+          <li>Tiered pricing system from $1.5k to $10k+ per month</li>
+        </ul>
+      </div>
+      <div class="product-foot">
+        <span class="price live">$29</span>
+        <a href="/playbooks/double-clients" class="btn-primary">Read more <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- Vol 03 — COMING SOON -->
+    <div class="product-card soon">
+      <span class="vol-badge">VOL 03</span>
+      <div class="book-mock">
+        <div class="meta">MK7 Media · Series</div>
+        <div class="title">
+          <span>Proven Meta</span>
+          <span class="accent grad-text">Ad Cheatcodes</span>
+        </div>
+        <div class="footer"><span>Coming Soon</span><span class="vol-tag">VOL 03</span></div>
+      </div>
+      <div class="product-info">
+        <h3>Proven Meta Ad Cheatcodes</h3>
+        <p class="outcome">The deep Meta playbook. Pixel and CAPI setup, event prioritization, algorithm hacks pro buyers use to compress CPL and scale spend.</p>
+        <ul>
+          <li>Full pixel and CAPI server side setup</li>
+          <li>Event prioritization for the iOS era</li>
+          <li>The scaling rules used to take spend from $50 a day to $500 a day without breaking ROAS</li>
+          <li>The campaign structures that win on Meta in 2026</li>
+        </ul>
+      </div>
+      <div class="product-foot" style="flex-direction: column; align-items: stretch; gap: 8px;">
+        <form class="waitlist-form" data-product-id="meta-cheatcodes">
+          <input type="email" name="email" placeholder="your@email.com" required>
+          <button type="submit" class="btn-primary">Notify me</button>
+        </form>
+        <div class="waitlist-msg"></div>
+      </div>
+    </div>
+
+    <!-- Vol 04 — COMING SOON -->
+    <div class="product-card soon">
+      <span class="vol-badge">VOL 04</span>
+      <div class="book-mock">
+        <div class="meta">MK7 Media · Series</div>
+        <div class="title">
+          <span>The</span>
+          <span class="accent grad-text">Automation</span>
+          <span>Playbook</span>
+        </div>
+        <div class="footer"><span>Coming Soon</span><span class="vol-tag">VOL 04</span></div>
+      </div>
+      <div class="product-info">
+        <h3>The Automation Playbook</h3>
+        <p class="outcome">For agencies past 20+ leads a day. The full automation stack to replace manual work with systems that scale without breaking.</p>
+        <ul>
+          <li>The exact automation stack to install when volume passes 20+ leads a day</li>
+          <li>Lead capture, qualification, routing, and follow up sequences end to end</li>
+          <li>Client onboarding and reporting flows that run themselves</li>
+          <li>Where to use AI inside the funnel and where to keep humans</li>
+        </ul>
+      </div>
+      <div class="product-foot" style="flex-direction: column; align-items: stretch; gap: 8px;">
+        <form class="waitlist-form" data-product-id="automation-playbook">
+          <input type="email" name="email" placeholder="your@email.com" required>
+          <button type="submit" class="btn-primary">Notify me</button>
+        </form>
+        <div class="waitlist-msg"></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── About strip ── -->
+<section class="about-strip">
+  <div class="section-label" style="display:inline-block;">Behind the Series</div>
+  <h2>MK7 Media is a performance marketing agency based in Beirut.</h2>
+  <p>We work with service businesses and ecommerce brands worldwide. Every framework inside this series is the same one we run inside paying client accounts that have generated 7,800+ leads, $2.8M+ in tracked revenue, and ROAS up to 30x.</p>
+  <div class="partners-row">
+    <div class="partner-badge"><img src="/static/logos/meta.png" alt="Meta">Meta Business Partner</div>
+    <div class="partner-badge"><img src="/static/logos/shopify.svg" alt="Shopify">Shopify Partner</div>
+    <div class="partner-badge"><span style="font-size:18px;">★</span>Certified Performance Marketers</div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="footer-logo">
+    <svg viewBox="0 0 40 40" fill="none">
+      <path d="M20 2 L33.5 8 L37 22 L30 34 L10 34 L3 22 L6.5 8 Z" stroke="url(#footGrad)" stroke-width="2" fill="none"/>
+      <path d="M12 26 L12 14 L20 22 L28 14 L28 26" stroke="#f0f0f5" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <defs><linearGradient id="footGrad" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#4d7cf5"/><stop offset="1" stop-color="#e84da0"/></linearGradient></defs>
+    </svg>
+    <span>MK7 Media</span>
+  </div>
+  <p>© 2026 MK7 Media · <a href="https://mk7media.com">mk7media.com</a></p>
+</footer>
+
+<script>
+  // Nav scroll state
+  window.addEventListener('scroll', () => {
+    const n = document.getElementById('nav');
+    if (window.scrollY > 40) n.classList.add('scrolled'); else n.classList.remove('scrolled');
+  });
+
+  // Waitlist forms
+  document.querySelectorAll('.waitlist-form').forEach(form => {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const productId = form.dataset.productId;
+      const email = form.querySelector('input[name="email"]').value.trim();
+      const msg = form.parentElement.querySelector('.waitlist-msg');
+      const btn = form.querySelector('button');
+
+      if (!email || !email.includes('@')) {
+        msg.textContent = 'Enter a valid email.';
+        msg.style.color = '#ff6bbf';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.style.opacity = '0.6';
+
+      try {
+        const res = await fetch('/api/playbook-waitlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, product_id: productId, page_url: window.location.href })
+        });
+        if (res.ok) {
+          msg.textContent = 'You are on the list. We will email when it ships.';
+          msg.style.color = '#6b93ff';
+          form.reset();
+          if (window.fbq) {
+            fbq('track', 'Lead', { content_name: productId, lead_type: 'playbook_waitlist' });
+          }
+        } else {
+          msg.textContent = 'Something broke. Try again.';
+          msg.style.color = '#ff6bbf';
+        }
+      } catch (err) {
+        msg.textContent = 'Connection error. Try again.';
+        msg.style.color = '#ff6bbf';
+      }
+
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    });
+  });
+</script>
+
+</body>
+</html>
