@@ -216,17 +216,8 @@ def marlatabet_reel():
 def _whatsapp_digits(value):
     return "".join(c for c in (value or "") if c.isdigit())
 
-def _build_inquiry_email(name, email, whatsapp, business, website, service_type, budget, worked_with_agency, goals):
+def _build_inquiry_email(name, whatsapp, website):
     dash = "\u2014"
-    goals_block = ""
-    if goals:
-        goals_block = (
-            '<div style="margin-top: 24px; padding: 16px; background: #f9f9f9; border-radius: 8px;">'
-            '<p style="margin: 0 0 4px; color: #888; font-size: 13px;">Goals</p>'
-            f'<p style="margin: 0; color: #111;">{goals}</p>'
-            '</div>'
-        )
-
     wa_button = ""
     wa_digits = _whatsapp_digits(whatsapp)
     if wa_digits:
@@ -249,14 +240,8 @@ def _build_inquiry_email(name, email, whatsapp, business, website, service_type,
         '<table style="width: 100%; border-collapse: collapse;">'
         f'<tr><td style="padding: 8px 0; color: #888; width: 140px;">Name</td><td style="padding: 8px 0; color: #111; font-weight: 600;">{name}</td></tr>'
         f'<tr><td style="padding: 8px 0; color: #888;">WhatsApp</td><td style="padding: 8px 0; color: #111; font-weight: 600;">{whatsapp or dash}</td></tr>'
-        f'<tr><td style="padding: 8px 0; color: #888;">Email</td><td style="padding: 8px 0; color: #111;">{email}</td></tr>'
-        f'<tr><td style="padding: 8px 0; color: #888;">Business</td><td style="padding: 8px 0; color: #111;">{business or dash}</td></tr>'
         f'<tr><td style="padding: 8px 0; color: #888;">Website</td><td style="padding: 8px 0; color: #111;">{website or dash}</td></tr>'
-        f'<tr><td style="padding: 8px 0; color: #888;">Service</td><td style="padding: 8px 0; color: #111;">{service_type or dash}</td></tr>'
-        f'<tr><td style="padding: 8px 0; color: #888;">Monthly Budget</td><td style="padding: 8px 0; color: #111;">{budget or dash}</td></tr>'
-        f'<tr><td style="padding: 8px 0; color: #888;">Worked w/ Agency</td><td style="padding: 8px 0; color: #111;">{worked_with_agency or dash}</td></tr>'
         '</table>'
-        f'{goals_block}'
         f'{wa_button}'
         '</div>'
     )
@@ -295,7 +280,7 @@ def inquiry():
                 "from": "MK7 Media <notifications@lumenmarketing.co>",
                 "to": NOTIFY_RECIPIENTS,
                 "subject": f"{subject_prefix}: {name}" + (f" — {service_type}" if service_type else ""),
-                "html": _build_inquiry_email(name, email, whatsapp, business, website, service_type, budget, worked_with_agency, goals)
+                "html": _build_inquiry_email(name, whatsapp, website)
             })
         except Exception as e:
             print(f"[email] Failed to send notification: {e}")
