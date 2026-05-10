@@ -861,8 +861,10 @@ def admin_whatsapp_send():
         body_params = parts
     else:
         body_params = None
-    # Default template has one named var {{customer_name}} — fill it from the lead name.
-    if body_params is None and template_name == wa.DEFAULT_TEMPLATE:
+    # Our templates use a single named var {{customer_name}} — if you didn't pass
+    # any params, auto-fill it from the lead name (or "there"). (If you ever make a
+    # template with no variables, pass `params` = anything so this doesn't add one.)
+    if body_params is None:
         first_name = (lead_name or "").split(" ", 1)[0].strip() or "there"
         body_params = {"customer_name": first_name}
 
