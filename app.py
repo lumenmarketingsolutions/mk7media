@@ -15,9 +15,15 @@ app = Flask(__name__)
 # Session secret — set FLASK_SECRET_KEY in Railway. Random fallback for local dev only.
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-" + uuid.uuid4().hex)
 
-# Admin login credentials. Override via Railway env vars.
+# Admin login credentials. Override via Railway env vars. Two accounts are accepted
+# so both Marykate (analytics) and Kendall (WhatsApp portal) can log in.
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "mary@mk7media.com")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "Ghazarian123$$")
+ADMIN_EMAIL_2 = os.environ.get("ADMIN_EMAIL_2", "kendall@lumenmarketing.co")
+ADMIN_PASSWORD_2 = os.environ.get("ADMIN_PASSWORD_2", "Wifimoney420!")
+_ADMIN_ACCOUNTS = {(ADMIN_EMAIL.strip().lower(), ADMIN_PASSWORD)}
+if ADMIN_EMAIL_2 and ADMIN_PASSWORD_2:
+    _ADMIN_ACCOUNTS.add((ADMIN_EMAIL_2.strip().lower(), ADMIN_PASSWORD_2))
 
 # IPs to log but exclude from analytics averages (Kendall's phone, etc.)
 ANALYTICS_IGNORE_IPS = {"209.127.238.130"}
@@ -202,8 +208,15 @@ def _client_ctx():
         "client_ua": request.headers.get("User-Agent", ""),
     }
 
+def _is_whatsapp_host():
+    return (request.host or "").lower().split(":")[0].startswith("whatsapp.")
+
+
 @app.route("/")
 def home():
+    # whatsapp.mk7media.com is the WhatsApp portal's front door — drop straight into it.
+    if _is_whatsapp_host():
+        return redirect(url_for("admin_whatsapp"))
     return render_template("index.html")
 
 @app.route("/marlatabet")
@@ -680,15 +693,14 @@ def admin_login():
     if request.method == "POST":
         email = (request.form.get("email") or "").strip().lower()
         password = (request.form.get("password") or "").strip()
-        # Safe diagnostic — logs byte counts and whether each side matched, no plaintext.
-        print(f"[admin-login] attempt: email_match={email == ADMIN_EMAIL.lower()} "
-              f"submitted_email_len={len(email)} expected_email_len={len(ADMIN_EMAIL)} "
-              f"password_match={password == ADMIN_PASSWORD} "
-              f"submitted_pw_len={len(password)} expected_pw_len={len(ADMIN_PASSWORD)}")
-        if email == ADMIN_EMAIL.lower() and password == ADMIN_PASSWORD:
+        ok = (email, password) in _ADMIN_ACCOUNTS
+        print(f"[admin-login] attempt: ok={ok} email_known={any(e == email for e, _ in _ADMIN_ACCOUNTS)} "
+              f"submitted_email_len={len(email)} submitted_pw_len={len(password)}")
+        if ok:
             session["admin_logged_in"] = True
             session["admin_email"] = email
-            return redirect(url_for("admin_dashboard"))
+            # On the WhatsApp subdomain, land in the portal; otherwise the analytics dashboard.
+            return redirect(url_for("admin_whatsapp" if _is_whatsapp_host() else "admin_dashboard"))
         error = "Wrong email or password."
     return render_template("admin_login.html", error=error)
 

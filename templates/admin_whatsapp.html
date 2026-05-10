@@ -21,9 +21,12 @@
     }
     .wrap { max-width: 1080px; margin: 0 auto; }
     .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
-    .topbar h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
-    .topbar a { color: var(--text-muted); font-size: 13px; text-decoration: none; }
-    .topbar a:hover { color: var(--text); }
+    .brand { display: flex; align-items: center; gap: 11px; text-decoration: none; color: var(--text); }
+    .brand svg { width: 26px; height: 26px; flex-shrink: 0; }
+    .brand .name { font-size: 17px; font-weight: 800; letter-spacing: -0.4px; }
+    .brand .tag { font-size: 13px; font-weight: 500; color: var(--text-muted); border-left: 1px solid var(--border); padding-left: 11px; }
+    .topbar > a { color: var(--text-muted); font-size: 13px; text-decoration: none; }
+    .topbar > a:hover { color: var(--text); }
     .layout { display: grid; grid-template-columns: 1fr; gap: 28px; }
     @media (min-width: 880px) { .layout { grid-template-columns: 360px 1fr; } }
     .panel {
@@ -81,8 +84,16 @@
 <body>
   <div class="wrap">
     <div class="topbar">
-      <h1>WhatsApp Agent</h1>
-      <a href="/admin">← Analytics</a>
+      <a class="brand" href="/admin/whatsapp">
+        <svg viewBox="0 0 40 40" fill="none">
+          <path d="M20 2 L33.5 8 L37 22 L30 34 L10 34 L3 22 L6.5 8 Z" stroke="url(#mklg)" stroke-width="2" fill="none"/>
+          <path d="M12 26 L12 14 L20 22 L28 14 L28 26" stroke="#f0f0f5" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs><linearGradient id="mklg" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#4d7cf5"/><stop offset="1" stop-color="#e84da0"/></linearGradient></defs>
+        </svg>
+        <span class="name">MK7 Media</span>
+        <span class="tag">WhatsApp</span>
+      </a>
+      <a href="/admin">Analytics →</a>
     </div>
 
     <div class="layout">
