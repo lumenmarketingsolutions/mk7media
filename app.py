@@ -8,6 +8,8 @@ from datetime import datetime, timedelta
 from functools import wraps
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 
+import whatsapp_agent as wa
+
 app = Flask(__name__)
 
 # Session secret — set FLASK_SECRET_KEY in Railway. Random fallback for local dev only.
@@ -778,6 +780,102 @@ def admin_dashboard():
         recent=[dict(r) for r in recent_rows],
         totals=dict(totals_row) if totals_row else {"views": 0, "clicks": 0, "sessions": 0, "avg_seconds": 0},
     )
+
+
+# ── WhatsApp agent ───────────────────────────────────────────────────────────
+@app.route("/webhooks/whatsapp", methods=["GET"])
+def whatsapp_verify():
+    """Meta webhook verification handshake."""
+    challenge = wa.verify_webhook(request.args)
+    if challenge is not None:
+        return challenge, 200
+    return "Forbidden", 403
+
+
+@app.route("/webhooks/whatsapp", methods=["POST"])
+def whatsapp_receive():
+    """Inbound WhatsApp events. Always 200s quickly so Meta doesn't retry-storm."""
+    raw = request.get_data()
+    if not wa.verify_signature(raw, request.headers.get("X-Hub-Signature-256", "")):
+        return "Forbidden", 403
+    payload = request.get_json(silent=True) or {}
+    try:
+        wa.handle_webhook(payload)
+    except Exception as e:
+        print(f"[whatsapp] webhook handler error: {e}")
+    return "EVENT_RECEIVED", 200
+
+
+@app.route("/admin/whatsapp")
+@admin_required
+def admin_whatsapp():
+    """Lightweight viewer for WhatsApp conversations + a form to kick off an outreach template."""
+    detail_id = (request.args.get("id") or "").strip()
+    convos = wa.recent_conversations(limit=60)
+    detail = None
+    if detail_id:
+        detail = {"wa_id": detail_id, "contact": wa.get_contact(detail_id), "messages": wa.conversation(detail_id)}
+    return render_template("admin_whatsapp.html", convos=convos, detail=detail)
+
+
+@app.route("/admin/whatsapp/send", methods=["POST"])
+@admin_required
+def admin_whatsapp_send():
+    """Open a conversation with a lead by sending an approved message template.
+
+    `params` accepts either `name=value|name=value` (named placeholders, e.g.
+    customer_name=Sarah) or `a|b|c` (positional). With the default template and no
+    params given, customer_name is auto-filled from the lead's first name.
+    """
+    if request.is_json:
+        data = request.get_json(silent=True) or {}
+    else:
+        data = request.form.to_dict()
+    to = "".join(ch for ch in (data.get("to") or "") if ch.isdigit())
+    template_name = (data.get("template") or wa.DEFAULT_TEMPLATE).strip()
+    lang_code = (data.get("lang") or wa.DEFAULT_TEMPLATE_LANG).strip() or wa.DEFAULT_TEMPLATE_LANG
+    lead_name = (data.get("name") or "").strip() or None
+    lead_business = (data.get("business") or "").strip() or None
+    lead_source = (data.get("source") or "form").strip() or "form"
+
+    raw_params = (data.get("params") or "").strip()
+    parts = [p.strip() for p in raw_params.split("|") if p.strip()] if raw_params else []
+    if parts and all("=" in p for p in parts):
+        body_params = {p.split("=", 1)[0].strip(): p.split("=", 1)[1].strip() for p in parts}
+    elif parts:
+        body_params = parts
+    else:
+        body_params = None
+    # Default template has one named var {{customer_name}} — fill it from the lead name.
+    if body_params is None and template_name == wa.DEFAULT_TEMPLATE:
+        first_name = (lead_name or "").split(" ", 1)[0].strip() or "there"
+        body_params = {"customer_name": first_name}
+
+    if len(to) < 10 or not template_name:
+        msg = "A full number with country code and a template name are required."
+        if request.is_json:
+            return jsonify({"error": msg}), 400
+        return redirect(url_for("admin_whatsapp"))
+
+    result = wa.start_outreach(
+        to, template_name=template_name, lang_code=lang_code, body_params=body_params,
+        lead_name=lead_name, lead_business=lead_business, lead_source=lead_source,
+    )
+    ok = bool(result)
+    if request.is_json:
+        return jsonify({"ok": ok, "result": result})
+    return redirect(url_for("admin_whatsapp", id=to))
+
+
+@app.route("/admin/whatsapp/handoff", methods=["POST"])
+@admin_required
+def admin_whatsapp_handoff():
+    """Toggle a conversation between agent-driven ('active') and human-owned ('handed_off')."""
+    wa_id = "".join(ch for ch in (request.form.get("wa_id") or "") if ch.isdigit())
+    new_status = (request.form.get("status") or "handed_off").strip()
+    if wa_id and new_status in ("active", "handed_off", "opted_out"):
+        wa.set_contact_status(wa_id, new_status)
+    return redirect(url_for("admin_whatsapp", id=wa_id))
 
 
 @app.route("/api/health")
