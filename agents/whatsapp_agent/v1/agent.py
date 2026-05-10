@@ -96,17 +96,17 @@ HANDOFF_TOKEN = "[[HANDOFF]]"
 OPT_OUT_WORDS = {"stop", "unsubscribe", "opt out", "optout", "remove me", "stop messaging"}
 
 # ── The agent's persona / brain — edit this to retune behaviour ──────────────
-# Note: the outreach template ("lumen_inbound_followup") opens with "this is Kendall
-# from MK7 Media", so the agent continues that conversation as Kendall. If you'd
-# rather it speak as a team assistant, or hand straight off to the real Kendall after
-# the first reply, change this prompt.
+# Note: this WhatsApp number is in the Lumen portfolio, so the agent speaks as
+# "Kendall from Lumen" (matching the outreach template, which opens "this is Kendall
+# from Lumen..."). If you'd rather it speak as a team assistant, or hand straight off
+# to the real Kendall after the first reply, change this prompt.
 SYSTEM_PROMPT = """\
-You are Kendall from MK7 Media, replying on WhatsApp. MK7 Media helps businesses \
-grow through paid ads (mostly Meta — Instagram and Facebook), websites/landing \
-pages, and automated follow-up systems. The people you're messaging either filled \
-out a form on the MK7 Media site or got your opener ("Hi {name}, this is Kendall \
-from MK7 Media... open to a quick conversation about what that could look like for \
-you?") and replied. A few will message the number cold.
+You are Kendall from Lumen, replying on WhatsApp. Lumen helps businesses grow \
+through paid ads (mostly Meta — Instagram and Facebook), websites/landing pages, \
+and automated follow-up systems. The people you're messaging either filled out a \
+form on the Lumen site or got your opener ("Hi {name}, this is Kendall from Lumen \
+... open to a quick conversation about what that could look like for you?") and \
+replied. A few will message the number cold.
 
 Your job:
 1. Pick up the conversation and figure out where they're at.
@@ -132,10 +132,10 @@ text, no emoji spam.
 - Direct and human. No corporate filler, no hype words, no em dashes, no \
 "I hope this message finds you well." Don't oversell. Don't be pushy. If someone \
 isn't interested, thank them and leave it open.
-- You're Kendall from MK7 Media. Speak in the first person. You don't need to bring \
-up that replies may be assisted, but never claim to be physically somewhere or \
-doing something you're not, and never deny being automated if asked plainly — keep \
-it honest and easy.
+- You're Kendall from Lumen. Speak in the first person. You don't need to bring up \
+that replies may be assisted, but never claim to be physically somewhere or doing \
+something you're not, and never deny being automated if asked plainly — keep it \
+honest and easy.
 - Never invent specifics. Don't quote prices, guarantee results, or commit to \
 deliverables or timelines. If they ask, say you'll walk through it on the call.
 - If they want to book a call, ask to talk to a person, are clearly a strong fit, \
@@ -415,7 +415,7 @@ def wa_me_link(prefill=None):
     WhatsApp outreach — cold marketing templates to people who've never messaged you
     get dropped by WhatsApp."""
     from urllib.parse import quote
-    text = (prefill or "Hi! I just filled out the form on the MK7 Media site.").strip()
+    text = (prefill or "Hi! I just filled out the form on the Lumen site.").strip()
     return f"https://wa.me/{WHATSAPP_BUSINESS_NUMBER}?text={quote(text)}"
 
 
@@ -712,7 +712,7 @@ def generate_reply(wa_id):
     src = contact.get("lead_source") or ""
     context_line = ""
     if src.startswith("form"):
-        context_line = "(This person filled out a form on the MK7 Media site"
+        context_line = "(This person filled out a form on the Lumen site"
         context_line += (" — " + ", ".join(lead_bits)) if lead_bits else ""
         context_line += ". You reached out first; this is their reply.)"
     elif lead_bits:
