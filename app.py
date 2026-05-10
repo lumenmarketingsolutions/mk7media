@@ -891,6 +891,32 @@ def admin_whatsapp_reply():
     return redirect(url_for("admin_whatsapp", id=wa_id))
 
 
+@app.route("/admin/whatsapp/debug")
+@admin_required
+def admin_whatsapp_debug():
+    """Raw dump of the WhatsApp tables + config — for troubleshooting."""
+    conn = sqlite3.connect(wa.WHATSAPP_DB)
+    conn.row_factory = sqlite3.Row
+    msgs = [dict(r) for r in conn.execute("SELECT * FROM wa_messages ORDER BY id DESC LIMIT 100")]
+    cts = [dict(r) for r in conn.execute("SELECT * FROM wa_contacts ORDER BY wa_id")]
+    conn.close()
+    return jsonify({
+        "db_path": wa.WHATSAPP_DB,
+        "config": {
+            "auto_reply": wa.WHATSAPP_AUTO_REPLY,
+            "model": wa.WHATSAPP_AGENT_MODEL,
+            "has_anthropic_key": bool(wa.ANTHROPIC_API_KEY),
+            "has_access_token": bool(wa.WHATSAPP_ACCESS_TOKEN),
+            "has_app_secret": bool(wa.WHATSAPP_APP_SECRET),
+            "handoff_number": wa.WHATSAPP_HANDOFF_NUMBER,
+            "default_template": wa.DEFAULT_TEMPLATE,
+            "default_template_lang": wa.DEFAULT_TEMPLATE_LANG,
+        },
+        "contacts": cts,
+        "messages": msgs,
+    })
+
+
 @app.route("/admin/whatsapp/handoff", methods=["POST"])
 @admin_required
 def admin_whatsapp_handoff():

@@ -329,6 +329,7 @@ def send_text(to_wa_id, body):
     window (i.e. after the contact has messaged you). Returns the Graph response or None."""
     body = (body or "").strip()
     if not body:
+        print(f"[whatsapp] send_text {to_wa_id}: empty body, skipped")
         return None
     if len(body) > MAX_OUTBOUND_CHARS:
         body = body[: MAX_OUTBOUND_CHARS - 1].rstrip() + "…"
@@ -344,6 +345,7 @@ def send_text(to_wa_id, body):
     if data and data.get("messages"):
         wamid = data["messages"][0].get("id")
     _record_message(to_wa_id, "out", "text", body, wamid=wamid, status="sent" if data else "failed")
+    print(f"[whatsapp] send_text {to_wa_id}: {('sent wamid=' + str(wamid)) if data else 'FAILED'} body={body[:60]!r}")
     return data
 
 
@@ -561,7 +563,8 @@ def _handle_inbound_message(msg, profiles):
         return  # they asked us to stop; stay quiet.
 
     if status == "handed_off":
-        # A human owns this thread now — just make sure they see the new message.
+        # A human owns this thread now — the agent stays out of the way, just notifies.
+        print(f"[whatsapp] inbound {wa_id}: {body[:60]!r} — conversation is HANDED_OFF, not auto-replying (notify only)")
         _notify_team(
             f"WhatsApp (handed-off) — new message from {contact.get('profile_name') or wa_id}",
             f"<p>{body}</p><hr>{_conversation_html(wa_id)}",
@@ -570,6 +573,7 @@ def _handle_inbound_message(msg, profiles):
 
     if text is None:
         # Non-text inbound (image / audio / location / etc.) — the agent can't read it.
+        print(f"[whatsapp] inbound {wa_id}: non-text ({msg_type}) — sending fallback + notify")
         send_text(wa_id, "Got it — I can't open that here, but I'll take a look. Anything you want to add in a quick message?")
         _notify_team(
             f"WhatsApp — non-text message from {contact.get('profile_name') or wa_id}",
@@ -578,6 +582,7 @@ def _handle_inbound_message(msg, profiles):
         return
 
     if not WHATSAPP_AUTO_REPLY:
+        print(f"[whatsapp] inbound {wa_id}: {body[:60]!r} — auto-reply disabled, notify only")
         _notify_team(
             f"WhatsApp — new message from {contact.get('profile_name') or wa_id}",
             f"<p>{body}</p><hr>{_conversation_html(wa_id)}",
@@ -585,16 +590,21 @@ def _handle_inbound_message(msg, profiles):
         return
 
     # Generate + send the reply off the request thread so the webhook acks fast.
+    print(f"[whatsapp] inbound {wa_id}: {body[:60]!r} (status={status}) — spawning reply")
     threading.Thread(target=_reply_async, args=(wa_id,), daemon=True).start()
 
 
 def _reply_async(wa_id):
     try:
         reply, wants_handoff = generate_reply(wa_id)
-        if not reply:
+        print(f"[whatsapp] _reply_async {wa_id}: handoff={wants_handoff} reply={(reply[:120] if reply else None)!r}")
+        if reply:
+            sent = send_text(wa_id, reply)
+            print(f"[whatsapp] _reply_async {wa_id}: send_text -> {'ok' if sent else 'FAILED/empty'}")
+        elif wants_handoff:
+            send_text(wa_id, "One sec — let me grab the right person for this.")
+        else:
             send_text(wa_id, "Thanks for the reply — I'll follow up with you here shortly.")
-            return
-        send_text(wa_id, reply)
         if wants_handoff:
             set_contact_status(wa_id, "handed_off")
             contact = get_contact(wa_id) or {}
@@ -604,13 +614,13 @@ def _reply_async(wa_id):
             _notify_team(
                 f"WhatsApp — HANDOFF needed: {label}",
                 f"<p>The agent flagged this conversation for a human. Open the inbox: "
-                f"<a href='https://mk7media.com/admin/whatsapp?id={wa_id}'>mk7media.com/admin/whatsapp</a> "
+                f"<a href='https://whatsapp.mk7media.com/admin/whatsapp?id={wa_id}'>whatsapp.mk7media.com</a> "
                 f"(or reply on WhatsApp: <a href='https://wa.me/{wa_id}'>wa.me/{wa_id}</a>).</p>"
                 f"<hr>{_conversation_html(wa_id)}",
             )
             notify_handoff_whatsapp(wa_id, summary)
     except Exception as e:
-        print(f"[whatsapp] reply error for {wa_id}: {e}")
+        print(f"[whatsapp] reply error for {wa_id}: {repr(e)}")
         try:
             send_text(wa_id, "Thanks — I'll follow up with you here shortly.")
         except Exception:
@@ -680,10 +690,12 @@ def generate_reply(wa_id):
             messages=messages,
         )
     except Exception as e:
-        print(f"[whatsapp] anthropic call failed: {e}")
+        print(f"[whatsapp] anthropic call FAILED for {wa_id}: {repr(e)}")
         return None, False
 
     text = "".join(b.text for b in resp.content if getattr(b, "type", None) == "text").strip()
+    print(f"[whatsapp] generate_reply {wa_id}: model={WHATSAPP_AGENT_MODEL} msgs={len(messages)} "
+          f"stop={getattr(resp, 'stop_reason', '?')} raw_len={len(text)} raw={text[:200]!r}")
     if not text:
         return None, False
 
