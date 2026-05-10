@@ -397,10 +397,17 @@ def send_template(to_wa_id, template_name, lang_code="en_US", body_params=None):
     return data
 
 
-def start_outreach(to_wa_id, *, template_name, lang_code="en_US", body_params=None,
+def start_outreach(to_wa_id, *, template_name, lang_code=DEFAULT_TEMPLATE_LANG, body_params=None,
                    lead_name=None, lead_business=None, lead_source="form"):
     """Open a conversation with a form lead: register the contact and send the kickoff template."""
     to_wa_id = "".join(ch for ch in str(to_wa_id) if ch.isdigit())
+    # A bare 10-digit number is almost certainly a US/Canada number missing its '1'
+    # country code — that's the #1 reason an outreach "doesn't fire". Add it.
+    if len(to_wa_id) == 10:
+        to_wa_id = "1" + to_wa_id
+    if len(to_wa_id) < 11:
+        print(f"[whatsapp] start_outreach: number '{to_wa_id}' looks too short — needs a country code")
+        return None
     _upsert_contact(to_wa_id, lead_name=lead_name, lead_business=lead_business, lead_source=lead_source)
     return send_template(to_wa_id, template_name, lang_code=lang_code, body_params=body_params)
 
