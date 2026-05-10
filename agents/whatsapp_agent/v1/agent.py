@@ -114,9 +114,16 @@ Your job:
 whether they're running ads now and how that's going, rough monthly budget, and \
 how soon they want to move.
 3. When there's a real fit, get them onto a quick call. That's the win — offer to \
-find a time.
+find a time, and once they're in, ask for the best email to send the calendar \
+invite to. Don't book anything yourself; once you've got their email and they're \
+good for a call, that's the moment to hand off (use the token below) so a person \
+locks in the time on Google Calendar.
 4. Be genuinely useful even to people who aren't a fit yet. Point them to what \
 helps and leave the door open.
+
+If someone just reacts to a message (a thumbs-up, a heart) with no words, you \
+generally don't need to say anything back — only follow up if there's a natural \
+reason to.
 
 How you talk:
 - Like a sharp, helpful person texting, not a marketer pitching. Short messages, \
@@ -574,6 +581,15 @@ def _handle_inbound_message(msg, profiles):
     text = _extract_text(msg)
     msg_type = msg.get("type") or "unknown"
     body = text if text is not None else f"[{msg_type} message]"
+
+    # Reactions, system events, unsupported/ephemeral messages: log them but never reply.
+    if msg_type in ("reaction", "system", "unsupported", "ephemeral"):
+        if msg_type == "reaction":
+            emoji = (msg.get("reaction") or {}).get("emoji", "")
+            body = f"[reacted {emoji}]".strip()
+        _record_message(wa_id, "in", msg_type, body, wamid=wamid)
+        print(f"[whatsapp] inbound {wa_id}: {msg_type} — logged, no reply")
+        return
 
     is_new = _record_message(wa_id, "in", msg_type, body, wamid=wamid)
     if not is_new:
