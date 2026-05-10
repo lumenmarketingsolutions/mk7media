@@ -861,9 +861,16 @@ def admin_whatsapp_send():
         body_params = parts
     else:
         body_params = None
-    # Our templates use a single named var {{customer_name}} — if you didn't pass
-    # any params, auto-fill it from the lead name (or "there"). (If you ever make a
-    # template with no variables, pass `params` = anything so this doesn't add one.)
+    # If you left "Lead name" blank but we already know this number (they've messaged
+    # in, or you pre-registered them), use the name on file.
+    if not lead_name and len(to) >= 10:
+        _norm = ("1" + to) if len(to) == 10 else to
+        existing = wa.get_contact(_norm)
+        if existing:
+            lead_name = existing.get("lead_name") or existing.get("profile_name") or None
+    # Our templates use a single named var {{customer_name}} — if you didn't pass any
+    # params, auto-fill it from the lead name (or "there"). (If you ever make a template
+    # with no variables, pass `params` = anything so this doesn't add an extra one.)
     if body_params is None:
         first_name = (lead_name or "").split(" ", 1)[0].strip() or "there"
         body_params = {"customer_name": first_name}
