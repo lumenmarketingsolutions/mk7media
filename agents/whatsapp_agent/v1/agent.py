@@ -54,6 +54,8 @@ WHATSAPP_APP_SECRET = os.environ.get("WHATSAPP_APP_SECRET", "")
 WHATSAPP_VERIFY_TOKEN = os.environ.get("WHATSAPP_VERIFY_TOKEN", "mk7-whatsapp-verify")
 WHATSAPP_PHONE_NUMBER_ID = os.environ.get("WHATSAPP_PHONE_NUMBER_ID", "1082296231636502")
 WHATSAPP_WABA_ID = os.environ.get("WHATSAPP_WABA_ID", "1457517218983357")
+# The display phone number (digits only) — used to build wa.me/<number> links.
+WHATSAPP_BUSINESS_NUMBER = "".join(ch for ch in os.environ.get("WHATSAPP_BUSINESS_NUMBER", "16235126504") if ch.isdigit())
 
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 WHATSAPP_AGENT_MODEL = os.environ.get("WHATSAPP_AGENT_MODEL", "claude-opus-4-7")
@@ -399,9 +401,36 @@ def send_template(to_wa_id, template_name, lang_code="en_US", body_params=None):
     return data
 
 
+def wa_me_link(prefill=None):
+    """Build a wa.me/<our number>?text=... link. Hand this to a lead (in an email,
+    on a thank-you page, in an SMS) — when they tap it, *they* message us first, which
+    opens the 24h window and the agent picks it up. This is the reliable way to do
+    WhatsApp outreach — cold marketing templates to people who've never messaged you
+    get dropped by WhatsApp."""
+    from urllib.parse import quote
+    text = (prefill or "Hi! I just filled out the form on the MK7 Media site.").strip()
+    return f"https://wa.me/{WHATSAPP_BUSINESS_NUMBER}?text={quote(text)}"
+
+
+def register_lead(wa_id, *, lead_name=None, lead_business=None, lead_source="outreach"):
+    """Pre-register a lead's number so the agent already knows their name/business when
+    they message in. Optional — only useful if you have their WhatsApp number ahead of time."""
+    wa_id = "".join(ch for ch in str(wa_id or "") if ch.isdigit())
+    if not wa_id:
+        return None
+    if len(wa_id) == 10:
+        wa_id = "1" + wa_id
+    _upsert_contact(wa_id, lead_name=lead_name, lead_business=lead_business, lead_source=lead_source)
+    return wa_id
+
+
 def start_outreach(to_wa_id, *, template_name, lang_code=DEFAULT_TEMPLATE_LANG, body_params=None,
                    lead_name=None, lead_business=None, lead_source="form"):
-    """Open a conversation with a form lead: register the contact and send the kickoff template."""
+    """Open a conversation with a form lead by sending the kickoff template.
+
+    NOTE: this is the *less reliable* path — WhatsApp drops cold MARKETING templates to
+    numbers that have never messaged you. Prefer `wa_me_link()` (have the lead message
+    you first). Kept for when you know the recipient will accept it (e.g. they've opted in)."""
     to_wa_id = "".join(ch for ch in str(to_wa_id) if ch.isdigit())
     # A bare 10-digit number is almost certainly a US/Canada number missing its '1'
     # country code — that's the #1 reason an outreach "doesn't fire". Add it.

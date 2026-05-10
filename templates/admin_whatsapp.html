@@ -97,10 +97,31 @@
     </div>
 
     <div class="layout">
-      <!-- Left: outreach form + conversation list -->
+      <!-- Left: outreach + conversation list -->
       <div>
         <div class="panel" style="margin-bottom: 24px;">
-          <h2>Start an outreach</h2>
+          <h2>Get a WhatsApp link &nbsp;<span style="color:var(--green);font-weight:600;text-transform:none;letter-spacing:0;">(recommended)</span></h2>
+          <div class="hint" style="margin-bottom:14px;">Hand this link to a lead (email, SMS, on a thank-you page) so <em>they</em> message you first — that always delivers and the agent picks it right up. Reliable, unlike blasting a template at someone cold.</div>
+          {% if generated_link %}
+            <div style="background:rgba(37,211,102,0.08);border:1px solid rgba(37,211,102,0.25);border-radius:10px;padding:12px;margin-bottom:14px;">
+              <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Copy &amp; send to your lead{% if registered_number %} (lead +{{ registered_number }} pre-registered){% endif %}</div>
+              <input readonly onclick="this.select()" value="{{ generated_link }}" style="background:rgba(0,0,0,0.2);font-size:13px;">
+            </div>
+          {% endif %}
+          <form method="post" action="/admin/whatsapp/outreach-link">
+            <label>Message it pre-fills for them (they can edit)</label>
+            <textarea name="prefill" rows="2" placeholder="Hi! I just filled out the form on the MK7 Media site." style="resize:vertical;"></textarea>
+            <label>Lead name (optional)</label>
+            <input name="name" placeholder="Sarah">
+            <label>Lead business (optional)</label>
+            <input name="business" placeholder="Bright Smile Dental">
+            <label>Lead's WhatsApp number (optional — pre-registers them so the agent knows their name)</label>
+            <input name="to" placeholder="16235551234">
+            <button type="submit">Generate link</button>
+          </form>
+        </div>
+        <div class="panel" style="margin-bottom: 24px;">
+          <h2>Send a template &nbsp;<span style="color:var(--text-dim);font-weight:500;text-transform:none;letter-spacing:0;">(less reliable for cold leads)</span></h2>
           <form method="post" action="/admin/whatsapp/send">
             <label>WhatsApp number (with country code)</label>
             <input name="to" placeholder="16235551234" required>

@@ -827,7 +827,10 @@ def admin_whatsapp():
     detail = None
     if detail_id:
         detail = {"wa_id": detail_id, "contact": wa.get_contact(detail_id), "messages": wa.conversation(detail_id)}
-    return render_template("admin_whatsapp.html", convos=convos, detail=detail)
+    return render_template(
+        "admin_whatsapp.html", convos=convos, detail=detail,
+        generated_link=request.args.get("link"), registered_number=request.args.get("registered"),
+    )
 
 
 @app.route("/admin/whatsapp/send", methods=["POST"])
@@ -889,6 +892,22 @@ def admin_whatsapp_reply():
     if wa_id and body:
         wa.human_reply(wa_id, body)
     return redirect(url_for("admin_whatsapp", id=wa_id))
+
+
+@app.route("/admin/whatsapp/outreach-link", methods=["POST"])
+@admin_required
+def admin_whatsapp_outreach_link():
+    """Generate a wa.me link to hand a lead so THEY message us first (the reliable
+    outreach path). Optionally pre-registers the lead's number so the agent knows them."""
+    data = request.form.to_dict()
+    prefill = (data.get("prefill") or "").strip() or None
+    lead_name = (data.get("name") or "").strip() or None
+    lead_business = (data.get("business") or "").strip() or None
+    number = "".join(ch for ch in (data.get("to") or "") if ch.isdigit())
+    if number:
+        wa.register_lead(number, lead_name=lead_name, lead_business=lead_business, lead_source="outreach")
+    link = wa.wa_me_link(prefill)
+    return redirect(url_for("admin_whatsapp", link=link, registered=number or None))
 
 
 @app.route("/admin/whatsapp/debug")
