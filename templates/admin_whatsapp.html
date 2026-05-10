@@ -165,6 +165,12 @@
               <div class="empty">No messages.</div>
             {% endfor %}
           </div>
+          <form method="post" action="/admin/whatsapp/reply" style="margin-top:16px; display:flex; gap:8px; align-items:flex-end;">
+            <input type="hidden" name="wa_id" value="{{ detail.wa_id }}">
+            <textarea name="body" rows="2" placeholder="Reply as Kendall through this number…" required style="flex:1; resize:vertical;"></textarea>
+            <button type="submit" style="margin-top:0;">Send</button>
+          </form>
+          <div class="hint" style="margin-top:6px;">Sending a reply pauses the agent on this conversation — use “Hand back to agent” above to resume it. Only works within 24h of the lead's last message.</div>
         {% else %}
           <div class="empty">Pick a conversation on the left to read the thread.</div>
         {% endif %}

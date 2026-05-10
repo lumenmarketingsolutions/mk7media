@@ -72,6 +72,16 @@ RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 DEFAULT_TEMPLATE = os.environ.get("WHATSAPP_DEFAULT_TEMPLATE", "lumen_inbound_followup")
 DEFAULT_TEMPLATE_LANG = os.environ.get("WHATSAPP_DEFAULT_TEMPLATE_LANG", "en")
 
+# Handoff alert: when the agent flags [[HANDOFF]] we email the team and also ping a
+# WhatsApp number (the setter). WhatsApp only allows free-text to a number that's
+# messaged us in the last 24h, so a reliable alert needs an approved (Utility)
+# template with one body variable {{1}} = the summary line. If WHATSAPP_HANDOFF_TEMPLATE
+# is set we use that (works anytime); otherwise we try a plain text message (only lands
+# if there's an open 24h window with the setter). The email always goes out regardless.
+WHATSAPP_HANDOFF_NUMBER = "".join(ch for ch in os.environ.get("WHATSAPP_HANDOFF_NUMBER", "") if ch.isdigit())
+WHATSAPP_HANDOFF_TEMPLATE = os.environ.get("WHATSAPP_HANDOFF_TEMPLATE", "")
+WHATSAPP_HANDOFF_TEMPLATE_LANG = os.environ.get("WHATSAPP_HANDOFF_TEMPLATE_LANG", "en")
+
 # History sent to the model per turn. WhatsApp threads are short; this is plenty.
 MAX_HISTORY = 40
 # Max characters in a single outbound WhatsApp text body (hard API limit is 4096).
@@ -337,6 +347,17 @@ def send_text(to_wa_id, body):
     return data
 
 
+def human_reply(wa_id, body):
+    """A teammate replying through the admin portal. Sends the text and parks the
+    conversation in 'handed_off' so the agent doesn't reply over the human. Use the
+    'Hand back to agent' control to resume the agent. Returns the Graph response or None.
+    (Only works inside the 24h window since the lead last messaged — which is exactly
+    when handoffs happen, so that's fine.)"""
+    data = send_text(wa_id, body)
+    set_contact_status(wa_id, "handed_off")
+    return data
+
+
 def send_template(to_wa_id, template_name, lang_code="en_US", body_params=None):
     """Send an approved message template — the only way to start a conversation with a
     number that hasn't messaged you.
@@ -411,6 +432,52 @@ def _conversation_html(wa_id, max_msgs=20):
         who = "Lead" if r["direction"] == "in" else "Agent"
         lines.append(f'<p style="margin:6px 0;"><strong>{who}:</strong> {(r["body"] or "")}</p>')
     return "".join(lines) or "<p>(no messages)</p>"
+
+
+def _last_inbound_body(wa_id):
+    conn = _conn()
+    row = conn.execute(
+        "SELECT body FROM wa_messages WHERE wa_id = ? AND direction = 'in' ORDER BY id DESC LIMIT 1",
+        (wa_id,),
+    ).fetchone()
+    conn.close()
+    return (row["body"] if row else "") or ""
+
+
+def notify_handoff_whatsapp(wa_id, summary):
+    """Ping the setter's WhatsApp number that a conversation needs a human.
+
+    Uses the WHATSAPP_HANDOFF_TEMPLATE template if one is configured (delivers any
+    time). Otherwise sends a plain text message, which only lands if the setter has
+    messaged the MK7 number in the last 24h. No-op if WHATSAPP_HANDOFF_NUMBER is
+    unset. System alert — not recorded in wa_messages. The email notice goes out
+    separately regardless of whether this succeeds."""
+    if not WHATSAPP_HANDOFF_NUMBER:
+        return
+    summary = (summary or "").strip()[:480] or "A WhatsApp lead needs you."
+    if WHATSAPP_HANDOFF_TEMPLATE:
+        payload = {
+            "messaging_product": "whatsapp",
+            "to": WHATSAPP_HANDOFF_NUMBER,
+            "type": "template",
+            "template": {
+                "name": WHATSAPP_HANDOFF_TEMPLATE,
+                "language": {"code": WHATSAPP_HANDOFF_TEMPLATE_LANG},
+                "components": [{"type": "body", "parameters": [{"type": "text", "text": summary}]}],
+            },
+        }
+    else:
+        payload = {
+            "messaging_product": "whatsapp",
+            "to": WHATSAPP_HANDOFF_NUMBER,
+            "type": "text",
+            "text": {
+                "body": f"🔔 WhatsApp lead needs a human — {summary}\nInbox: https://mk7media.com/admin/whatsapp?id={wa_id}",
+                "preview_url": False,
+            },
+        }
+    if _graph_post(payload) is None:
+        print(f"[whatsapp] handoff WhatsApp alert to {WHATSAPP_HANDOFF_NUMBER} did not send (no template + no open window, or send error)")
 
 
 # ── Inbound handling ─────────────────────────────────────────────────────────
@@ -496,7 +563,7 @@ def _handle_inbound_message(msg, profiles):
 
     if text is None:
         # Non-text inbound (image / audio / location / etc.) — the agent can't read it.
-        send_text(wa_id, "Got it. I can't open that here, but Marykate will take a look. Anything you want to add in a quick message?")
+        send_text(wa_id, "Got it — I can't open that here, but I'll take a look. Anything you want to add in a quick message?")
         _notify_team(
             f"WhatsApp — non-text message from {contact.get('profile_name') or wa_id}",
             f"<p>Type: {msg_type}</p><hr>{_conversation_html(wa_id)}",
@@ -518,21 +585,27 @@ def _reply_async(wa_id):
     try:
         reply, wants_handoff = generate_reply(wa_id)
         if not reply:
-            send_text(wa_id, "Thanks for the reply. Marykate will follow up with you here shortly.")
+            send_text(wa_id, "Thanks for the reply — I'll follow up with you here shortly.")
             return
         send_text(wa_id, reply)
         if wants_handoff:
             set_contact_status(wa_id, "handed_off")
             contact = get_contact(wa_id) or {}
+            label = contact.get("profile_name") or contact.get("lead_name") or ("+" + wa_id)
+            last_in = _last_inbound_body(wa_id)
+            summary = f'{label} — "{last_in[:140]}"' if last_in else label
             _notify_team(
-                f"WhatsApp — HANDOFF needed: {contact.get('profile_name') or contact.get('lead_name') or wa_id}",
-                f"<p>The agent flagged this conversation for a human. Jump in on WhatsApp "
-                f"(<a href='https://wa.me/{wa_id}'>wa.me/{wa_id}</a>).</p><hr>{_conversation_html(wa_id)}",
+                f"WhatsApp — HANDOFF needed: {label}",
+                f"<p>The agent flagged this conversation for a human. Open the inbox: "
+                f"<a href='https://mk7media.com/admin/whatsapp?id={wa_id}'>mk7media.com/admin/whatsapp</a> "
+                f"(or reply on WhatsApp: <a href='https://wa.me/{wa_id}'>wa.me/{wa_id}</a>).</p>"
+                f"<hr>{_conversation_html(wa_id)}",
             )
+            notify_handoff_whatsapp(wa_id, summary)
     except Exception as e:
         print(f"[whatsapp] reply error for {wa_id}: {e}")
         try:
-            send_text(wa_id, "Thanks — Marykate will follow up with you here shortly.")
+            send_text(wa_id, "Thanks — I'll follow up with you here shortly.")
         except Exception:
             pass
 

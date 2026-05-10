@@ -867,6 +867,18 @@ def admin_whatsapp_send():
     return redirect(url_for("admin_whatsapp", id=to))
 
 
+@app.route("/admin/whatsapp/reply", methods=["POST"])
+@admin_required
+def admin_whatsapp_reply():
+    """A teammate replying to a lead through the MK7 number. Pauses the agent on that
+    conversation (sets it to handed_off) so it doesn't reply over the human."""
+    wa_id = "".join(ch for ch in (request.form.get("wa_id") or "") if ch.isdigit())
+    body = (request.form.get("body") or "").strip()
+    if wa_id and body:
+        wa.human_reply(wa_id, body)
+    return redirect(url_for("admin_whatsapp", id=wa_id))
+
+
 @app.route("/admin/whatsapp/handoff", methods=["POST"])
 @admin_required
 def admin_whatsapp_handoff():
