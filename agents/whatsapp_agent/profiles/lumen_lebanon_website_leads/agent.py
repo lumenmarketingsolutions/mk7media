@@ -1,8 +1,12 @@
 # Profile: lumen_lebanon_website_leads — "Lumen Lebanon Agent - Website Leads".
+# Currently configured as LAYLA — a sales qualification agent for Lumen Marketing,
+# talking to Lebanese business owners who hit a WhatsApp link from a Lumen ad.
+# Goal: qualify fast (≤3 exchanges), book onto a call, hand off to the human team.
+# See profiles/lumen_lebanon_website_leads/README.md for the full behavioural spec.
 # Started as a verbatim copy of profiles/mk7_agent_v1_00/agent.py. Edit freely;
 # the MK7 V1.00 folder is the preserved original — don't touch that one.
 """
-WhatsApp Cloud API outreach agent for MK7 Media.
+WhatsApp Cloud API outreach agent for Lumen Marketing (Layla profile).
 
 Two halves:
   1. Inbound webhook  — /webhooks/whatsapp (wired in app.py). Receives messages,
@@ -39,9 +43,11 @@ Everything secret comes from env vars (set them in Railway):
 """
 
 import os
+import re
 import json
 import time
 import hmac
+import random
 import hashlib
 import sqlite3
 import threading
@@ -99,57 +105,154 @@ HANDOFF_TOKEN = "[[HANDOFF]]"
 OPT_OUT_WORDS = {"stop", "unsubscribe", "opt out", "optout", "remove me", "stop messaging"}
 
 # ── The agent's persona / brain — edit this to retune behaviour ──────────────
-# Note: this WhatsApp number is in the Lumen portfolio, so the agent speaks as
-# "Kendall from Lumen" (matching the outreach template, which opens "this is Kendall
-# from Lumen..."). If you'd rather it speak as a team assistant, or hand straight off
-# to the real Kendall after the first reply, change this prompt.
+# Layla — sales qualification agent for Lumen Marketing. Talks to Lebanese
+# business owners who tap a WhatsApp link from a Lumen ad. Lebanese-direct,
+# short, professional. Qualifies in 2-3 exchanges and books a call.
 SYSTEM_PROMPT = """\
-You are Kendall from Lumen, replying on WhatsApp. Lumen helps businesses grow \
-through paid ads (mostly Meta — Instagram and Facebook), websites/landing pages, \
-and automated follow-up systems. The people you're messaging either filled out a \
-form on the Lumen site or got your opener ("Hi {name}, this is Kendall from Lumen \
-... open to a quick conversation about what that could look like for you?") and \
-replied. A few will message the number cold.
+You are Layla, a sales qualification agent for Lumen Marketing. You work with Lebanese business owners who clicked an ad and reached out via WhatsApp. Your job is to qualify them quickly and book a call with the human team.
 
-Your job:
-1. Pick up the conversation and figure out where they're at.
-2. Understand their situation: what's the business, what they're trying to grow, \
-whether they're running ads now and how that's going, rough monthly budget, and \
-how soon they want to move.
-3. When there's a real fit, get them onto a quick call. That's the win — offer to \
-find a time, and once they're in, ask for the best email to send the calendar \
-invite to. Don't book anything yourself; once you've got their email and they're \
-good for a call, that's the moment to hand off (use the token below) so a person \
-locks in the time on Google Calendar.
-4. Be genuinely useful even to people who aren't a fit yet. Point them to what \
-helps and leave the door open.
+## Who you are
+Your name is Layla. You work for Lumen Marketing. You are based in Beirut and you communicate like a Lebanese local — direct, fast, short, professional. You do NOT sound like a chatbot. You sound like a sharp marketing operator texting from her phone.
 
-If someone just reacts to a message (a thumbs-up, a heart) with no words, you \
-generally don't need to say anything back — only follow up if there's a natural \
-reason to.
+## Your core mission
+Get qualified leads onto a call. Nothing else. You are not here to teach, explain, or convince. You are here to confirm fit and book.
 
-How you talk:
-- Like a sharp, helpful person texting, not a marketer pitching. Short messages, \
-usually one or two sentences. One question at a time. No bullet lists, no walls of \
-text, no emoji spam.
-- Direct and human. No corporate filler, no hype words, no em dashes, no \
-"I hope this message finds you well." Don't oversell. Don't be pushy. If someone \
-isn't interested, thank them and leave it open.
-- You're Kendall from Lumen. Speak in the first person. You don't need to bring up \
-that replies may be assisted, but never claim to be physically somewhere or doing \
-something you're not, and never deny being automated if asked plainly — keep it \
-honest and easy.
-- Never invent specifics. Don't quote prices, guarantee results, or commit to \
-deliverables or timelines. If they ask, say you'll walk through it on the call.
-- If they want to book a call, ask to talk to a person, are clearly a strong fit, \
-or are upset/confused in a way you shouldn't handle on autopilot, write your normal \
-reply and then put this exact token on its own last line: %s
-  (A teammate sees it and takes over. Never mention the token to the user.)
-- If you're just acknowledging them and have nothing to add, keep it to one short \
-human line.
+## What Lumen does
+- Custom ecommerce websites for Lebanese brands, starting at $750
+- Meta ad management (Facebook + Instagram), starting at $600/month
+- Full marketing systems combining both
+- Track record: 880 leads at $8.38 per lead for one client, $290k in revenue over 82 days. More case studies on mk7media.com and lumenmarketing.co
 
-Stay in the conversation. Keep it moving toward a call when a call makes sense.
-""" % HANDOFF_TOKEN
+Reference case studies ONLY when the lead is hesitating or asking about results. Never lead with them.
+
+## Communication style — CRITICAL
+- Lebanese Beirut style: direct, fast, short. Not American.
+- Maximum 2-3 short lines per message. Often just one line. Never paragraphs.
+- No emojis unless the lead uses one first
+- No "great question!" or filler enthusiasm
+- No American filler: never use "Awesome!" "Totally!" "Sounds great!" "Have a great day!"
+- Match brevity to their messages. They write one line, you write one line.
+- Sound like a person texting from her phone
+
+## The qualification flow (loose, not rigid)
+The lead came from an ad about websites or Meta ads. Use that context.
+
+Cover these in the first 2-3 exchanges, in whatever order feels natural:
+1. What kind of business they have / what they sell
+2. What they're trying to fix or grow (the real problem)
+3. Whether they're running ads or have a website already
+
+That is it. Three exchanges MAX before pushing for the call. Do NOT keep interrogating. Do NOT ask 5 questions before booking.
+
+## When to push for the call
+The moment you sense they are a real business with a real need, ask for the call. Don't wait for "perfect" qualification. Lebanese leads convert on speed.
+
+Good phrasings:
+- "Sounds like something we can help with. Want to hop on a quick call?"
+- "Easier to explain on a call. Free 15 mins this week?"
+- "Let's do a quick call, I'll show you what we'd actually do for you"
+
+## Pricing
+- Websites: starting at $750 — say it directly if asked
+- Meta ad management: starting at $600/month — say it directly if asked
+- For project-specific pricing: "Depends on what you actually need. Easier to give you a real number on a quick call."
+
+## Booking — slot logic
+When the lead says yes to a call, offer specific times in Beirut time.
+
+Primary window (always offer these first): 6pm to 11pm Beirut time, Monday through Friday. Offer 2-3 specific options across different days.
+
+Secondary window (only if lead pushes back on evenings): 9am to 11am Beirut time, Monday through Friday.
+
+If they need a time outside both windows: End your reply with [[HANDOFF]] [[NEEDS_CUSTOM_TIME: their requested window]] and tell the lead: "Let me check the team's availability and confirm — I'll get back to you shortly."
+
+Example slot offering:
+"Got it. Tuesday 7pm Beirut works, or Wednesday 8pm? Whichever's easier."
+
+Before confirming any booking, ask ONE question: "The call will be in English, that work for you?" If yes, confirm and trigger handoff. If no or unclear, [[HANDOFF]] [[LANGUAGE_CHECK]].
+
+## Language handling
+- Default to English
+- If the lead writes in Latin-letter Levantine Arabic (transliterated), respond in the same Levantine, but keep responses extra short (1-2 lines max). Be natural and casual, not formal Arabic. Examples: "Tamem, shu bishtighil?" / "Eh akid, ay yawm byinasbak?" / "Mneeh, yalla khaberne aktar"
+- If the lead writes in actual Arabic script (not Latin letters), reply once briefly in English ("Happy to help — can you write in English so we can move faster?"), then [[HANDOFF]] [[ARABIC_SCRIPT]] regardless of their response so a human can decide
+- Before booking, always confirm the call will be in English
+
+## Media handling
+- Images: you can see them. Respond naturally to what's in them.
+- Voice messages: reply with "Can't listen to voice messages here, can you type it?" Continue normally if they respond.
+- Documents/PDFs: same as voice — ask them to type the key info
+
+## Tone under pressure / disengagement
+If a lead is rude, dismissive, or hostile — stay calm, stay professional, do NOT match their energy.
+
+- "Not interested" / "Stop messaging me" → reply once: "All good, take care." then STOP. Do not message again.
+- Insults or aggression → reply once professionally: "Understood, no pressure." then STOP.
+- Going in circles → wind down naturally, stop.
+
+NEVER argue. NEVER defend. NEVER say "I'm just trying to help." Just disengage cleanly.
+
+If asked directly "are you a bot?" or "are you AI?" — answer honestly but briefly: "Yes, but there's a real team behind me. I'm here to get you to the right person." Then continue normally.
+
+## Silent leads
+If a lead stops responding mid-conversation, ONE soft follow-up after 4-6 hours is allowed. It MUST:
+- Reference what they specifically last said
+- Be under 10 words
+- Not be a generic "just checking in"
+
+Examples:
+- Lead said "I'll think about it" → "Still thinking it over?"
+- Lead said "Let me check my budget" → "Any luck with the budget?"
+- Lead asked about timeline then went silent → "Want me to send the timeline?"
+
+If still no response after the soft follow-up, STOP. Do not message again.
+
+## Uncertainty self-flagging
+If you encounter a question you don't know the answer to:
+1. Reply: "Let me check on that and get back to you — better to be sure than guess."
+2. End your reply with [[HANDOFF]] [[UNKNOWN_QUESTION: brief description of what was asked]]
+
+This flags it for human review so the knowledge base can be updated.
+
+## When to trigger [[HANDOFF]]
+End your reply with [[HANDOFF]] in these cases:
+- Lead has agreed to a specific call time (also add [[BOOKED: ...]])
+- Lead writes in Arabic script (add [[ARABIC_SCRIPT]])
+- Lead needs a time outside both booking windows (add [[NEEDS_CUSTOM_TIME: ...]])
+- Lead asks pricing that's outside the $750 / $600 starting ranges and can't be answered without specifics (add [[CUSTOM_PRICING]])
+- Lead asks about services outside Lumen's scope (add [[OUT_OF_SCOPE: ...]])
+- Lead becomes hostile or threatening (add [[HOSTILE]])
+- Lead asks to speak to a human directly (add [[REQUESTED_HUMAN]])
+- You genuinely don't know the answer (add [[UNKNOWN_QUESTION: ...]])
+
+## Booking handoff format
+When a call is booked, format the handoff as:
+
+[[HANDOFF]] [[BOOKED: day, time Beirut, business type, brief context]]
+
+Then ALSO include a brief structured summary at the very end of your message (after [[HANDOFF]]) so the email notification can extract it:
+
+---SUMMARY---
+Name: [name if shared, else "Not shared"]
+Business: [what they sell, where, scale if mentioned]
+Current setup: [website status, ad status]
+Real problem: [in their words, paraphrased]
+Time booked: [day, time Beirut + MST conversion]
+English confirmed: [yes/no/flagged]
+Notes: [anything notable from the conversation]
+---END---
+
+## Things you must NOT do
+- NO long paragraphs
+- NO marketing-speak ("transform your business", "unlock potential")
+- NO claims about results beyond the one case study above
+- NO promises about specific outcomes for their business
+- NO lying about being AI if directly asked
+- NO continuing to message someone who has clearly disengaged
+- NO more than 3 qualifying questions before asking for the call
+- NO instant responses (the system handles timing)
+- NO American filler language
+- NO emojis unless they use one first
+"""
 
 
 # ── DB ───────────────────────────────────────────────────────────────────────
@@ -620,9 +723,16 @@ def _handle_inbound_message(msg, profiles):
         return
 
     if text is None:
-        # Non-text inbound (image / audio / location / etc.) — the agent can't read it.
+        # Non-text inbound (image / audio / location / etc.) — Layla can't read it
+        # (no multimodal hookup yet). Send a brand-correct short reply and notify.
+        if msg_type in ("audio", "voice"):
+            fallback = "Can't listen to voice messages here, can you type it?"
+        elif msg_type in ("document", "image", "video", "sticker"):
+            fallback = "Can you type the key info? Easier to move from there."
+        else:
+            fallback = "Can you type that out? Easier on my end."
         print(f"[whatsapp] inbound {wa_id}: non-text ({msg_type}) — sending fallback + notify")
-        send_text(wa_id, "Got it — I can't open that here, but I'll take a look. Anything you want to add in a quick message?")
+        send_text(wa_id, fallback)
         _notify_team(
             f"WhatsApp — non-text message from {contact.get('profile_name') or wa_id}",
             f"<p>Type: {msg_type}</p><hr>{_conversation_html(wa_id)}",
@@ -642,55 +752,154 @@ def _handle_inbound_message(msg, profiles):
     threading.Thread(target=_reply_async, args=(wa_id,), daemon=True).start()
 
 
+# ── Layla handoff-tag + summary parsing ──────────────────────────────────────
+# Layla emits replies that may end with one or more [[TAG: payload]] tokens
+# (HANDOFF, BOOKED, ARABIC_SCRIPT, NEEDS_CUSTOM_TIME, CUSTOM_PRICING, OUT_OF_SCOPE,
+# HOSTILE, REQUESTED_HUMAN, UNKNOWN_QUESTION, LANGUAGE_CHECK) and, on a booking,
+# a `---SUMMARY---\nKey: value\n...\n---END---` block. None of that should reach
+# the lead — strip it before sending, but keep it for the notification email.
+_HANDOFF_TAG_RE = re.compile(r"\[\[\s*([A-Z_]+)(?:\s*:\s*([^\]]*))?\s*\]\]")
+_SUMMARY_BLOCK_RE = re.compile(r"---\s*SUMMARY\s*---\s*(.*?)\s*---\s*END\s*---", re.DOTALL | re.IGNORECASE)
+
+
+def _parse_handoff_tags(text):
+    """Return {TAG_NAME: payload_str_or_True} for every [[TAG: payload]] in text.
+    Includes HANDOFF so callers can check it. Insertion-ordered."""
+    tags = {}
+    for m in _HANDOFF_TAG_RE.finditer(text or ""):
+        name = m.group(1)
+        payload = (m.group(2) or "").strip()
+        tags[name] = payload if payload else True
+    return tags
+
+
+def _parse_summary_block(text):
+    """Pull the `---SUMMARY---\n key: value\n ---END---` block out.
+    Returns an order-preserving dict of fields, or None if no block was found."""
+    m = _SUMMARY_BLOCK_RE.search(text or "")
+    if not m:
+        return None
+    fields = {}
+    for line in m.group(1).splitlines():
+        line = line.strip()
+        if not line or ":" not in line:
+            continue
+        k, _, v = line.partition(":")
+        fields[k.strip()] = v.strip()
+    return fields or None
+
+
+def _strip_meta_tokens(text):
+    """Remove [[...]] tags and the SUMMARY block; tidy whitespace."""
+    if not text:
+        return text
+    cleaned = _SUMMARY_BLOCK_RE.sub("", text)
+    cleaned = _HANDOFF_TAG_RE.sub("", cleaned)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned).rstrip()
+    return cleaned
+
+
+def _summary_html(summary):
+    """Render a parsed ---SUMMARY--- dict as a tidy HTML table for the email."""
+    if not summary:
+        return ""
+    rows = "".join(
+        f"<tr><td style='padding:4px 12px 4px 0;color:#666;white-space:nowrap'>{k}</td>"
+        f"<td style='padding:4px 0'>{v}</td></tr>"
+        for k, v in summary.items()
+    )
+    return ("<h3 style='margin:0 0 6px 0'>Booking summary</h3>"
+            f"<table style='border-collapse:collapse'>{rows}</table>")
+
+
 def _reply_async(wa_id):
     try:
-        reply, wants_handoff = generate_reply(wa_id)
-        print(f"[whatsapp] _reply_async {wa_id}: handoff={wants_handoff} reply={(reply[:120] if reply else None)!r}")
+        # Human-feel timing (per Layla spec). Webhook already ack'd; this only
+        # affects how fast WE reply on the conversation thread.
+        prior_assistant_text = sum(
+            1 for h in _history(wa_id)
+            if h["direction"] == "out" and (h.get("msg_type") or "") == "text"
+        )
+        delay = random.uniform(5, 15) if prior_assistant_text == 0 else random.uniform(15, 45)
+        print(f"[whatsapp] _reply_async {wa_id}: sleeping {delay:.1f}s "
+              f"(prior_assistant_text={prior_assistant_text})")
+        time.sleep(delay)
+
+        reply, wants_handoff, tags, summary = generate_reply(wa_id)
+        print(f"[whatsapp] _reply_async {wa_id}: handoff={wants_handoff} "
+              f"tags={list(tags.keys())} reply={(reply[:120] if reply else None)!r}")
         if reply:
             sent = send_text(wa_id, reply)
             print(f"[whatsapp] _reply_async {wa_id}: send_text -> {'ok' if sent else 'FAILED/empty'}")
         elif wants_handoff:
             send_text(wa_id, "One sec — let me grab the right person for this.")
         else:
-            send_text(wa_id, "Thanks for the reply — I'll follow up with you here shortly.")
+            send_text(wa_id, "One sec, getting back to you.")
+
         if wants_handoff:
             set_contact_status(wa_id, "handed_off")
             contact = get_contact(wa_id) or {}
             label = contact.get("profile_name") or contact.get("lead_name") or ("+" + wa_id)
-            last_in = _last_inbound_body(wa_id)
-            summary = f'{label} — "{last_in[:140]}"' if last_in else label
-            _notify_team(
-                f"WhatsApp — HANDOFF needed: {label}",
-                f"<p>The agent flagged this conversation for a human. Open the inbox: "
+            business = (summary or {}).get("Business") or contact.get("lead_business") or label
+            # Subject line per the Layla spec: reason tag + business.
+            reason_tags = [t for t in tags.keys() if t != "HANDOFF"]
+            reason = reason_tags[0] if reason_tags else "HANDOFF"
+            booked_payload = tags.get("BOOKED")
+            booked_str = booked_payload if isinstance(booked_payload, str) else ""
+            # WhatsApp ping to the setter — short, scannable.
+            ping = f"[Layla → {reason}] {label}"
+            if booked_str:
+                ping += f" — BOOKED: {booked_str[:120]}"
+            else:
+                last_in = _last_inbound_body(wa_id)
+                if last_in:
+                    ping += f' — "{last_in[:120]}"'
+            # Email body: summary first if present, then any non-HANDOFF tags, then
+            # the inbox link and full transcript.
+            tag_lines_html = ""
+            if reason_tags:
+                tag_lines_html = "<ul>" + "".join(
+                    f"<li><b>{t}</b>{': ' + str(tags[t]) if isinstance(tags[t], str) else ''}</li>"
+                    for t in reason_tags
+                ) + "</ul>"
+            email_body = (
+                f"{_summary_html(summary)}"
+                f"{tag_lines_html}"
+                f"<p>Open the inbox: "
                 f"<a href='https://whatsapp.mk7media.com/admin/whatsapp?id={wa_id}'>whatsapp.mk7media.com</a> "
                 f"(or reply on WhatsApp: <a href='https://wa.me/{wa_id}'>wa.me/{wa_id}</a>).</p>"
-                f"<hr>{_conversation_html(wa_id)}",
+                f"<hr>{_conversation_html(wa_id)}"
             )
-            notify_handoff_whatsapp(wa_id, summary)
+            _notify_team(
+                f"New Lumen handoff — {reason} — {business}",
+                email_body,
+            )
+            notify_handoff_whatsapp(wa_id, ping)
     except Exception as e:
         print(f"[whatsapp] reply error for {wa_id}: {repr(e)}")
         try:
-            send_text(wa_id, "Thanks — I'll follow up with you here shortly.")
+            send_text(wa_id, "One sec, getting back to you.")
         except Exception:
             pass
 
 
 def generate_reply(wa_id):
     """Ask Claude for the next message in this conversation.
-    Returns (reply_text_or_None, wants_handoff_bool)."""
+    Returns (reply_text_or_None, wants_handoff_bool, tags_dict, summary_dict_or_None).
+    `reply` is already stripped of [[...]] tags and the ---SUMMARY--- block."""
     if not ANTHROPIC_API_KEY:
         print("[whatsapp] ANTHROPIC_API_KEY not set — cannot generate replies")
-        return None, False
+        return None, False, {}, None
     try:
         import anthropic
     except ImportError:
         print("[whatsapp] anthropic package not installed — cannot generate replies")
-        return None, False
+        return None, False, {}, None
 
     contact = get_contact(wa_id) or {}
     history = _history(wa_id)
     if not history:
-        return None, False
+        return None, False, {}, None
 
     # Build the message list from the stored conversation. inbound -> user, outbound -> assistant.
     messages = []
@@ -739,17 +948,16 @@ def generate_reply(wa_id):
         )
     except Exception as e:
         print(f"[whatsapp] anthropic call FAILED for {wa_id}: {repr(e)}")
-        return None, False
+        return None, False, {}, None
 
-    text = "".join(b.text for b in resp.content if getattr(b, "type", None) == "text").strip()
+    raw = "".join(b.text for b in resp.content if getattr(b, "type", None) == "text").strip()
     print(f"[whatsapp] generate_reply {wa_id}: model={WHATSAPP_AGENT_MODEL} msgs={len(messages)} "
-          f"stop={getattr(resp, 'stop_reason', '?')} raw_len={len(text)} raw={text[:200]!r}")
-    if not text:
-        return None, False
+          f"stop={getattr(resp, 'stop_reason', '?')} raw_len={len(raw)} raw={raw[:200]!r}")
+    if not raw:
+        return None, False, {}, None
 
-    wants_handoff = False
-    if HANDOFF_TOKEN in text:
-        wants_handoff = True
-        # Strip the token (and any now-empty trailing line) before sending.
-        text = text.replace(HANDOFF_TOKEN, "").rstrip()
-    return (text or None), wants_handoff
+    tags = _parse_handoff_tags(raw)
+    summary = _parse_summary_block(raw)
+    wants_handoff = "HANDOFF" in tags
+    clean = _strip_meta_tokens(raw)
+    return (clean or None), wants_handoff, tags, summary
