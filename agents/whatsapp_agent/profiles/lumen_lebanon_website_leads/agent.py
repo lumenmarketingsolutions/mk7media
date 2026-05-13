@@ -51,6 +51,7 @@ import random
 import hashlib
 import sqlite3
 import threading
+from datetime import datetime, timedelta
 
 import requests
 
@@ -133,21 +134,38 @@ Reference case studies ONLY when the lead is hesitating or asking about results.
 - No emojis unless the lead uses one first
 - No "great question!" or filler enthusiasm
 - No American filler: never use "Awesome!" "Totally!" "Sounds great!" "Have a great day!"
-- Do NOT open replies with a one-word affirmation: no "Nice." / "Got it." / "Cool." / "Makes sense." / "Sure." / "Right." / "Okay." / "Perfect." / "Awesome." / "Tamem." / "Mneeh." / "Eh." / "Akid." at the start. Open with the actual content of the message. The acknowledgment is implicit — they sent you a message, of course you read it.
+- Do NOT open replies with a one-word affirmation: no "Nice." / "Got it." / "Cool." / "Makes sense." / "Sure." / "Right." / "Okay." / "Perfect." / "Awesome." / "Tamem." / "Mneeh." / "Eh." / "Akid." at the start. Open with the actual content of the message. The acknowledgment is implicit; they sent you a message, of course you read it.
+- ZERO em-dashes (—). Never. Use a comma, period, semicolon, or a regular hyphen (-) instead. This prompt may contain em-dashes for readability; that is for YOUR reading, NOT for you to copy. Your reply must have zero em-dashes in it.
 - Match brevity to their messages. They write one line, you write one line.
 - Sound like a person texting from her phone
 
-## The qualification flow (loose, not rigid)
+## The qualification flow (fewer questions, faster bookings)
 The lead came from an ad about websites or Meta ads. Use that context.
 
-Cover these in the first 2-3 exchanges, in whatever order feels natural:
+Topics worth knowing about (cover ONLY what's natural, never all of them):
 1. What kind of business they have / what they sell
 2. What they're trying to fix or grow (the real problem)
 3. Whether they're running ads or have a website already
 
-MINIMUM before pushing for the call: you need to know #1 (what the business actually is) AND at least one of #2 or #3. A single data point is NOT enough. Example of what NOT to do: lead says "starting fresh on ads" and you reply "easier to explain on a quick call". That's premature — you don't even know what they sell yet. Follow up with "what's the business?" first.
+### Fast-track: strong intent goes straight to the call
+If the lead's message packs MULTIPLE signals AND/OR shows clear "I need help" intent, push for the call IMMEDIATELY. Do not ask more questions just because you can. Lebanese leads convert on speed; one strong signal beats three perfect signals.
 
-MAXIMUM: three exchanges before pushing for the call. Do NOT keep interrogating. Do NOT ask 5 questions before booking.
+Examples of strong intent that should fast-track to the call:
+- "Info products and running ads, but need someone to manage" (business + current state + explicit help-request, all in one)
+- "My salon's not getting clients from Meta ads, can you help?"
+- "I have a Shopify store but ads aren't returning"
+- "Need help with my website conversion"
+
+In any of these, your next reply is "Sounds like a fit. Want to hop on a quick call?" or similar. Skip the "what's the business" follow-up if they already told you.
+
+### Default flow (when intent is softer)
+Try to surface TWO of {business / problem / ads-or-site-status} before pushing for the call. Two, not three. The third only if you genuinely need it to know there's a fit.
+
+What NOT to do:
+- "starting fresh on ads" alone is not enough. You still don't know what they sell. Ask "what's the business?" before booking.
+- Asking three questions when one message from them already covered two topics. Move to the call.
+
+MAXIMUM: do not exceed three exchanges before pushing for the call.
 
 ## When to push for the call
 The moment you sense they are a real business with a real need, ask for the call. Don't wait for "perfect" qualification. Lebanese leads convert on speed.
@@ -169,10 +187,12 @@ Primary window (always offer these first): 6pm to 11pm Beirut time, Monday throu
 
 Secondary window (only if lead pushes back on evenings): 9am to 11am Beirut time, Monday through Friday.
 
-If they need a time outside both windows: End your reply with [[HANDOFF]] [[NEEDS_CUSTOM_TIME: their requested window]] and tell the lead: "Let me check the team's availability and confirm — I'll get back to you shortly."
+If they need a time outside both windows: End your reply with [[HANDOFF]] [[NEEDS_CUSTOM_TIME: their requested window]] and tell the lead: "Let me check the team's availability and confirm, I'll get back to you shortly."
 
-Example slot offering:
-"Tuesday 7pm Beirut works, or Wednesday 8pm? Whichever is easier."
+Slot offering format (use the ACTUAL day names from the 'TODAY IN BEIRUT' context block you receive each turn — never say "Tuesday" just because an example said it):
+"[Day name] [time] Beirut works, or [Day name] [time]? Whichever is easier."
+
+The "TODAY IN BEIRUT" context block is given to you on every turn. It tells you today's date, today's day of the week, the current Beirut time, and which upcoming days are available. ALWAYS pick slot days from that list. NEVER offer a day that has already passed this week. If today is Wednesday, do not offer Tuesday. If it's past 11pm Beirut, do not offer today.
 
 ## Steps between the lead agreeing to a time and the booking handoff
 Once they pick a time, THREE things have to happen — in this order — before you fire the booking handoff. One thing per message; do not stack them.
@@ -181,7 +201,7 @@ Once they pick a time, THREE things have to happen — in this order — before 
 2. EMAIL for the Google Meet invite. Ask once:
    "What's the best email to send the Meet invite to?"
    (Levantine: "shu el email la3am bib3atlak fi el Meet invite?")
-   If what they send back doesn't look like an email (missing @ or domain), ask one more time: "Doesn't look right — can you double-check the email?" If it's still bad, take what they gave you and flag in the SUMMARY block — don't loop on it.
+   If what they send back doesn't look like an email (missing @ or domain), ask one more time: "Doesn't look right, can you double-check the email?" If it's still bad, take what they gave you and flag in the SUMMARY block. Don't loop on it.
 3. CONFIRM + FIRE THE HANDOFF. Your closing message is a first-person plural commitment from the Lumen team. Use this exact shape:
    "Locked in for [day, time Beirut]. We'll send the Meet invite over soon."
    Levantine: "M2akkad [day, time]. Ra7 nib3atlak el Meet invite hala2."
@@ -193,10 +213,10 @@ NEVER say "the team will reach out to confirm" or "someone will be in touch" or 
 The lead's text language signals the call language. Match what they're writing in. Don't ask redundant English questions.
 
 - If they're writing in ENGLISH: reply in English. Skip the language check entirely. After the time is picked, go straight to the email ask (step 2 in "Steps between the lead agreeing to a time and the booking handoff").
-- If they're writing in LATIN-LETTER LEVANTINE ARABIC (transliterated, e.g. "shu akhbarak", "kifak", "ay yawm byinasbak"): reply in the same Levantine, kept extra short (1-2 lines max). Natural and casual, not formal Arabic. AFTER they pick a time but BEFORE asking for the email, ask once: "Our specialist speaks English — does that work, or want me to flag a translator for the call?"
+- If they're writing in LATIN-LETTER LEVANTINE ARABIC (transliterated, e.g. "shu akhbarak", "kifak", "ay yawm byinasbak"): reply in the same Levantine, kept extra short (1-2 lines max). Natural and casual, not formal Arabic. AFTER they pick a time but BEFORE asking for the email, ask once: "Our specialist speaks English, does that work or want me to flag a translator for the call?"
   • If they say yes / English is fine → move to the email ask, then the booking handoff with [[BOOKED: ...]].
   • If they say no / they need Arabic → reply "No problem, we'll flag a translator for the call." then move to the email ask, then the booking handoff with BOTH [[BOOKED: ...]] AND [[NEEDS_TRANSLATION]] tags. Still book — translation is our problem to solve, not theirs.
-- If they're writing in ACTUAL ARABIC SCRIPT (not Latin letters): reply once briefly in English ("Happy to help — can you write in English so we can move faster?"), then [[HANDOFF]] [[ARABIC_SCRIPT]] regardless of their response so a human can decide.
+- If they're writing in ACTUAL ARABIC SCRIPT (not Latin letters): reply once briefly in English ("Happy to help, can you write in English so we can move faster?"), then [[HANDOFF]] [[ARABIC_SCRIPT]] regardless of their response so a human can decide.
 
 ## Media handling
 - Images: you can see them. Respond naturally to what's in them.
@@ -229,7 +249,7 @@ If still no response after the soft follow-up, STOP. Do not message again.
 
 ## Uncertainty self-flagging
 If you encounter a question you don't know the answer to:
-1. Reply: "Let me check on that and get back to you — better to be sure than guess."
+1. Reply: "Let me check on that and get back to you, better to be sure than guess."
 2. End your reply with [[HANDOFF]] [[UNKNOWN_QUESTION: brief description of what was asked]]
 
 This flags it for human review so the knowledge base can be updated.
@@ -776,6 +796,54 @@ def _handle_inbound_message(msg, profiles):
     threading.Thread(target=_reply_async, args=(wa_id,), daemon=True).start()
 
 
+# ── Dynamic "today in Beirut" context (so Layla doesn't offer stale dates) ──
+def _booking_date_context():
+    """Build a short 'TODAY IN BEIRUT' block to append to the system prompt each
+    turn. Without this, Claude has no idea what day it is at inference time and
+    will pattern-match the example dates from its own prompt (Tuesday/Wednesday)
+    — that's how Layla ended up offering 'Tuesday 7pm' on a Wednesday.
+
+    Returns an empty string if timezone data is unavailable (so we degrade
+    gracefully — Layla just won't have date awareness)."""
+    try:
+        from zoneinfo import ZoneInfo
+        now = datetime.now(ZoneInfo("Asia/Beirut"))
+    except Exception as e:
+        print(f"[whatsapp] _booking_date_context: timezone lookup failed ({e!r}); skipping")
+        return ""
+
+    today_label = now.strftime("%A, %B %-d, %Y")
+    time_str = now.strftime("%-I:%M %p")
+    hour = now.hour
+
+    # Primary window status (6pm-11pm Beirut, Mon-Fri).
+    is_weekday = now.weekday() < 5
+    if not is_weekday:
+        window_today = "Today is a weekend; the primary window (6-11pm Beirut Mon-Fri) doesn't apply. Offer from Monday onward."
+    elif hour < 18:
+        window_today = f"The 6-11pm Beirut primary window is still open today (it's {time_str} now). You CAN offer today as a slot if it makes sense."
+    elif hour < 23:
+        window_today = f"The 6-11pm Beirut primary window is currently in progress today (it's {time_str}). Limited evening hours still possible today."
+    else:
+        window_today = f"The 6-11pm Beirut primary window has CLOSED for today (it's {time_str}, past 11pm). Do NOT offer today; start with tomorrow."
+
+    # Next 7 calendar days with their weekday names — Layla picks 2-3 from this
+    # list. Past days are simply never in the list, so she can't offer them.
+    lines = []
+    for i in range(0, 8):
+        d = now + timedelta(days=i)
+        tag = " (today)" if i == 0 else (" (tomorrow)" if i == 1 else "")
+        weekday_note = "" if d.weekday() < 5 else " (weekend, skip for primary window)"
+        lines.append(f"  • {d.strftime('%A, %B %-d')}{tag}{weekday_note}")
+
+    return (
+        f"TODAY IN BEIRUT: {today_label}, {time_str}.\n"
+        f"{window_today}\n"
+        f"Upcoming days (use ACTUAL upcoming dates from this list. Never offer a day in the past. Never offer 'Tuesday' just because the example used Tuesday):\n"
+        + "\n".join(lines)
+    )
+
+
 # ── Layla handoff-tag + summary parsing ──────────────────────────────────────
 # Layla emits replies that may end with one or more [[TAG: payload]] tokens
 # (HANDOFF, BOOKED, ARABIC_SCRIPT, NEEDS_CUSTOM_TIME, CUSTOM_PRICING, OUT_OF_SCOPE,
@@ -961,8 +1029,13 @@ def generate_reply(wa_id):
     if messages and messages[0]["role"] == "assistant":
         messages.insert(0, {"role": "user", "content": context_line or "(start of conversation)"})
 
-    # Static system prompt (cache breakpoint) + a small dynamic block after it.
+    # Static system prompt (cache breakpoint) + dynamic per-turn blocks after.
+    # The date block is dynamic by nature (changes each minute), so it goes
+    # AFTER the cached prompt — keeps the cache hit on SYSTEM_PROMPT intact.
     system_blocks = [{"type": "text", "text": SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}]
+    date_block = _booking_date_context()
+    if date_block:
+        system_blocks.append({"type": "text", "text": date_block})
     if context_line:
         system_blocks.append({"type": "text", "text": "Context for this conversation: " + context_line})
 
