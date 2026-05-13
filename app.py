@@ -1,6 +1,7 @@
 import os
 import json
 import hashlib
+import threading
 import time
 import uuid
 import sqlite3
@@ -80,6 +81,13 @@ META_DATASET_ID = os.environ.get("META_DATASET_ID", "2251653638703742")
 META_CAPI_ACCESS_TOKEN = os.environ.get("META_CAPI_ACCESS_TOKEN", "")
 META_TEST_EVENT_CODE = os.environ.get("META_TEST_EVENT_CODE", "")  # optional, for Events Manager Test Events tab
 
+# Meta Conversions API — Lumen Marketing dataset (used to fire a Lead event
+# whenever a brand-new cold WhatsApp conversation starts on +1 623 512 6504,
+# so the Lumen ad set driving /lumenlb can optimise on actual convo-starts).
+# Inert until LUMEN_META_CAPI_TOKEN is set on the Railway service.
+LUMEN_META_DATASET_ID = os.environ.get("LUMEN_META_DATASET_ID", "1119566303064711")
+LUMEN_META_CAPI_TOKEN = os.environ.get("LUMEN_META_CAPI_TOKEN", "")
+
 # Payhip purchase webhook — secret comes from the "Paid" webhook config in Payhip dashboard
 PAYHIP_WEBHOOK_SECRET = os.environ.get("PAYHIP_WEBHOOK_SECRET", "")
 
@@ -147,9 +155,15 @@ def _sanitize_custom_data(custom_data):
     return clean
 
 
-def _send_capi_event(event_name, event_id, user_data, custom_data=None, event_source_url=None):
-    """POST a server-side event to Meta Conversions API. Safe-fail: returns silently on any error."""
-    if not META_CAPI_ACCESS_TOKEN or not META_DATASET_ID:
+def _send_capi_event(event_name, event_id, user_data, custom_data=None, event_source_url=None,
+                     dataset_id=None, access_token=None):
+    """POST a server-side event to Meta Conversions API. Safe-fail: returns silently on any error.
+
+    `dataset_id` + `access_token` override the module-level MK7 dataset (used so the
+    WhatsApp webhook can fire Lead events into the Lumen dataset on cold-inbound convos)."""
+    dataset = dataset_id or META_DATASET_ID
+    token = access_token or META_CAPI_ACCESS_TOKEN
+    if not token or not dataset:
         return
     try:
         import requests as req
@@ -190,7 +204,7 @@ def _send_capi_event(event_name, event_id, user_data, custom_data=None, event_so
         if META_TEST_EVENT_CODE:
             payload["test_event_code"] = META_TEST_EVENT_CODE
 
-        url = f"https://graph.facebook.com/v19.0/{META_DATASET_ID}/events?access_token={META_CAPI_ACCESS_TOKEN}"
+        url = f"https://graph.facebook.com/v19.0/{dataset}/events?access_token={token}"
         r = req.post(url, json=payload, timeout=5)
         if r.status_code >= 400:
             print(f"[capi] {event_name} failed {r.status_code}: {r.text[:300]}")
@@ -804,6 +818,48 @@ def whatsapp_verify():
     return "Forbidden", 403
 
 
+def _cold_inbound_wa_ids(payload):
+    """Walk an inbound WhatsApp webhook payload and return the set of wa_ids whose
+    contact doesn't exist in our DB yet. These are the brand-new cold convos —
+    each one fires a Meta CAPI Lead into the Lumen dataset (post-handle_webhook)."""
+    cold = []
+    seen = set()
+    try:
+        for entry in payload.get("entry", []) or []:
+            for change in entry.get("changes", []) or []:
+                for msg in (change.get("value", {}) or {}).get("messages", []) or []:
+                    wid = msg.get("from")
+                    if not wid or wid in seen:
+                        continue
+                    seen.add(wid)
+                    if not wa.get_contact(wid):
+                        cold.append(wid)
+    except Exception as e:
+        print(f"[capi-lead] pre-pass error: {e}")
+    return cold
+
+
+def _fire_lumen_whatsapp_lead(wa_id):
+    """Fire a Meta CAPI Lead into the Lumen dataset for a cold WhatsApp convo-start.
+    Runs in a background thread so the webhook 200s fast. Safe-fail."""
+    try:
+        # wa_id is already E.164 digits (e.g. "16235126504"); _send_capi_event will hash it.
+        _send_capi_event(
+            event_name="Lead",
+            event_id=f"wa-lead-{wa_id}",
+            user_data={"phone": wa_id},
+            custom_data={
+                "content_name": "WhatsApp conversation started",
+                "lead_source": "whatsapp_inbound_cold",
+            },
+            event_source_url="https://lumenmarketing.co/lumenlb",
+            dataset_id=LUMEN_META_DATASET_ID,
+            access_token=LUMEN_META_CAPI_TOKEN,
+        )
+    except Exception as e:
+        print(f"[capi-lead] fire error for {wa_id}: {e}")
+
+
 @app.route("/webhooks/whatsapp", methods=["POST"])
 def whatsapp_receive():
     """Inbound WhatsApp events. Always 200s quickly so Meta doesn't retry-storm."""
@@ -811,10 +867,24 @@ def whatsapp_receive():
     if not wa.verify_signature(raw, request.headers.get("X-Hub-Signature-256", "")):
         return "Forbidden", 403
     payload = request.get_json(silent=True) or {}
+
+    # Snapshot cold-inbound wa_ids BEFORE handle_webhook creates their contact rows.
+    # Pre-registered leads (via register_lead / wa.me-link flow) already have a
+    # wa_contacts row with lead_source != 'inbound', so they're excluded here —
+    # only people who messaged us cold (e.g. tapped the WhatsApp button on
+    # /lumenlb without us knowing them first) end up in this list.
+    cold = _cold_inbound_wa_ids(payload) if LUMEN_META_CAPI_TOKEN else []
+
     try:
         wa.handle_webhook(payload)
     except Exception as e:
         print(f"[whatsapp] webhook handler error: {e}")
+
+    # Fire one CAPI Lead per cold convo-start, off the request thread so we still
+    # 200 to Meta within the retry window.
+    for wid in cold:
+        threading.Thread(target=_fire_lumen_whatsapp_lead, args=(wid,), daemon=True).start()
+
     return "EVENT_RECEIVED", 200
 
 
