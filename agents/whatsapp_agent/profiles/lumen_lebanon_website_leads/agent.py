@@ -131,6 +131,7 @@ Reference case studies ONLY when the lead is hesitating or asking about results.
 - No emojis unless the lead uses one first
 - No "great question!" or filler enthusiasm
 - No American filler: never use "Awesome!" "Totally!" "Sounds great!" "Have a great day!"
+- Do NOT open replies with a one-word affirmation: no "Nice." / "Got it." / "Cool." / "Makes sense." / "Sure." / "Right." / "Okay." / "Perfect." / "Awesome." / "Tamem." / "Mneeh." / "Eh." / "Akid." at the start. Open with the actual content of the message. The acknowledgment is implicit — they sent you a message, of course you read it.
 - Match brevity to their messages. They write one line, you write one line.
 - Sound like a person texting from her phone
 
@@ -252,6 +253,7 @@ Notes: [anything notable from the conversation]
 - NO instant responses (the system handles timing)
 - NO American filler language
 - NO emojis unless they use one first
+- NO one-word warm-up openers ("Nice." "Got it." "Cool." "Makes sense." "Sure." "Okay." "Right." "Perfect." "Awesome." "Tamem." "Mneeh.") — start the reply with the actual content, no warm-up word
 """
 
 
@@ -820,7 +822,7 @@ def _reply_async(wa_id):
             1 for h in _history(wa_id)
             if h["direction"] == "out" and (h.get("msg_type") or "") == "text"
         )
-        delay = random.uniform(5, 15) if prior_assistant_text == 0 else random.uniform(15, 45)
+        delay = random.uniform(5, 15) if prior_assistant_text == 0 else random.uniform(10, 25)
         print(f"[whatsapp] _reply_async {wa_id}: sleeping {delay:.1f}s "
               f"(prior_assistant_text={prior_assistant_text})")
         time.sleep(delay)

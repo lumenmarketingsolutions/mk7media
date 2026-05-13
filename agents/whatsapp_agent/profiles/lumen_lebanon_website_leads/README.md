@@ -37,8 +37,9 @@ retune Layla. Key behaviours baked in by the prompt + code together:
   Secondary: 9-11am Beirut (= 12-2am MST). Outside both → handoff with
   `[[NEEDS_CUSTOM_TIME: ...]]`.
 - **Reply timing** — random 5-15s for Layla's first reply in a conversation,
-  15-45s for subsequent replies, implemented in `_reply_async`. (Spec called
-  this "system-level, not in prompt.")
+  10-25s for subsequent replies, implemented in `_reply_async`. (Spec called
+  this "system-level, not in prompt." The 10-25s subsequent range is dialled
+  back from the original 15-45s — felt too slow in live testing.)
 - **Inbound filter** — reactions, system, ephemeral, unsupported are logged
   but not replied to (same as V1.00).
 - **Non-text media** — Layla has no multimodal hookup yet. Voice messages get
