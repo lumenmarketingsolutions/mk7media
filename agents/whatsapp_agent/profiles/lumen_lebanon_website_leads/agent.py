@@ -633,7 +633,7 @@ def notify_handoff_whatsapp(wa_id, summary):
             "to": WHATSAPP_HANDOFF_NUMBER,
             "type": "text",
             "text": {
-                "body": f"🔔 WhatsApp lead needs a human — {summary}\nInbox: https://mk7media.com/admin/whatsapp?id={wa_id}",
+                "body": f"🔔 WhatsApp lead needs a human — {summary}\nInbox: https://whatsapp.mk7media.com/admin/whatsapp?id={wa_id}",
                 "preview_url": False,
             },
         }

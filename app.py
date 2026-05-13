@@ -16,6 +16,19 @@ app = Flask(__name__)
 # Session secret — set FLASK_SECRET_KEY in Railway. Random fallback for local dev only.
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-" + uuid.uuid4().hex)
 
+# Session config — keep admin sessions usable across the mk7media subdomains
+# (mk7media.com + whatsapp.mk7media.com) and durable on mobile browsers.
+# On Railway we set the cookie domain to .mk7media.com so logging in on either
+# host gives you a session valid on both, and mark sessions permanent with a
+# 30-day lifetime so phone browsers can't aggressively expire them. Skipped
+# locally so dev on 127.0.0.1 still works.
+app.permanent_session_lifetime = timedelta(days=30)
+if os.environ.get("RAILWAY_PROJECT_ID") or os.environ.get("RAILWAY_ENVIRONMENT"):
+    app.config["SESSION_COOKIE_DOMAIN"] = ".mk7media.com"
+    app.config["SESSION_COOKIE_SECURE"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+
 # Admin login credentials. Override via Railway env vars. Two accounts are accepted
 # so both Marykate (analytics) and Kendall (WhatsApp portal) can log in.
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "mary@mk7media.com")
@@ -67,6 +80,10 @@ def admin_required(view):
     @wraps(view)
     def wrapper(*args, **kwargs):
         if not session.get("admin_logged_in"):
+            # Save where they were trying to go so login bounces them back to it
+            # (so a /admin/whatsapp?id=... deep-link from a WhatsApp ping survives).
+            if request.method == "GET":
+                session["next_url"] = request.full_path.rstrip("?")
             return redirect(url_for("admin_login"))
         return view(*args, **kwargs)
     return wrapper
@@ -713,7 +730,13 @@ def admin_login():
         if ok:
             session["admin_logged_in"] = True
             session["admin_email"] = email
-            # On the WhatsApp subdomain, land in the portal; otherwise the analytics dashboard.
+            session.permanent = True  # 30-day lifetime per app.permanent_session_lifetime
+            # If they were trying to reach a specific page (e.g. a WhatsApp ping's
+            # /admin/whatsapp?id=... deep-link), honour that.
+            next_url = session.pop("next_url", None)
+            if next_url and next_url.startswith("/") and not next_url.startswith("//"):
+                return redirect(next_url)
+            # Otherwise: WhatsApp subdomain -> portal; otherwise analytics dashboard.
             return redirect(url_for("admin_whatsapp" if _is_whatsapp_host() else "admin_dashboard"))
         error = "Wrong email or password."
     return render_template("admin_login.html", error=error)
