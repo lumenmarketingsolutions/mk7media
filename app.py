@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 
-from agents.whatsapp_agent import agent as wa  # see agents/whatsapp_agent/__init__.py for versioning
+from agents.whatsapp_agent import agent as wa  # which profile is live: see ACTIVE_PROFILE in agents/whatsapp_agent/__init__.py
 
 app = Flask(__name__)
 
