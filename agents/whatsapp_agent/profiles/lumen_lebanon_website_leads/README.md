@@ -56,6 +56,7 @@ should pick up. `_reply_async` parses these out of her raw reply (helpers:
 |---|---|
 | `[[HANDOFF]]` | Always present on any handoff. |
 | `[[BOOKED: day, time Beirut, business, brief]]` | Call agreed; details in the trailing `---SUMMARY---` block. |
+| `[[NEEDS_TRANSLATION]]` | Booked, but lead needs Arabic on the call. Always paired with `[[BOOKED: ...]]`. Bring a translator. |
 | `[[ARABIC_SCRIPT]]` | Lead wrote in non-Latin Arabic — human decides. |
 | `[[NEEDS_CUSTOM_TIME: window]]` | Time outside both booking windows. |
 | `[[CUSTOM_PRICING]]` | Pricing question outside the $750 / $600/mo starting ranges. |
@@ -63,7 +64,6 @@ should pick up. `_reply_async` parses these out of her raw reply (helpers:
 | `[[HOSTILE]]` | Lead hostile/threatening; Layla replies once and stops. |
 | `[[REQUESTED_HUMAN]]` | Lead explicitly asked for a person. |
 | `[[UNKNOWN_QUESTION: what]]` | Layla doesn't know — flag for KB update. |
-| `[[LANGUAGE_CHECK]]` | English-confirmation step went sideways pre-booking. |
 
 On a booking, Layla also emits a `---SUMMARY---\n key: value\n ---END---`
 block at the end. That gets stripped from the WhatsApp reply and rendered as a
