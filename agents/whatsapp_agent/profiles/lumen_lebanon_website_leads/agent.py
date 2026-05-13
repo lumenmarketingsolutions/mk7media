@@ -72,10 +72,12 @@ WHATSAPP_AGENT_MODEL = os.environ.get("WHATSAPP_AGENT_MODEL", "claude-opus-4-7")
 WHATSAPP_AUTO_REPLY = os.environ.get("WHATSAPP_AUTO_REPLY", "1") not in ("0", "false", "False", "")
 WHATSAPP_DB = os.environ.get("WHATSAPP_DB_PATH", "whatsapp.db")
 
-_default_notify = "marykatezarehghazarian@gmail.com,mary@mk7media.com,kendall@lumenmarketing.co"
-WHATSAPP_NOTIFY_EMAILS = [
-    e.strip() for e in os.environ.get("WHATSAPP_NOTIFY_EMAILS", _default_notify).split(",") if e.strip()
-]
+# Layla notifications go to KENDALL ONLY while we test. Marykate doesn't know
+# about the Lumen Lebanon agent yet — Kendall will brief her once it's ready.
+# We intentionally ignore the WHATSAPP_NOTIFY_EMAILS env var here so a stale
+# Railway value can't accidentally CC her. Reverting = put the env-var read
+# back, or change the literal list. (MK7 V1.00 profile is unaffected.)
+WHATSAPP_NOTIFY_EMAILS = ["kendall@lumenmarketing.co"]
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 
 # Default outreach template — "lumen_inbound_followup" (English / `en`), one named
