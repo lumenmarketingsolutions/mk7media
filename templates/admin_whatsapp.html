@@ -188,6 +188,11 @@
                   <button type="submit" class="ghost">Take over (pause agent)</button>
                 {% endif %}
               </form>
+              <form method="post" action="/admin/whatsapp/reset" class="inline-form"
+                    onsubmit="return confirm('Wipe this entire conversation from our DB? Deletes the contact and all messages so they look new to the agent on next inbound. For testing only — does NOT clear the thread on the lead\'s phone.');">
+                <input type="hidden" name="wa_id" value="{{ detail.wa_id }}">
+                <button type="submit" class="ghost" style="color:#c33;">Wipe (testing)</button>
+              </form>
             </div>
           </div>
           <div class="thread">

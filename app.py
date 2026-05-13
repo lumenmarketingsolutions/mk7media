@@ -1026,6 +1026,27 @@ def admin_whatsapp_handoff():
     return redirect(url_for("admin_whatsapp", id=wa_id))
 
 
+@app.route("/admin/whatsapp/reset", methods=["POST"])
+@admin_required
+def admin_whatsapp_reset():
+    """Delete a contact and all their stored messages. For profile-testing:
+    lets you re-run a cold-lead flow from your own phone after we've swapped
+    agent profiles. Does NOT touch anything on Meta's side — the lead's
+    phone still shows the full thread; they just look 'new' to our DB."""
+    wa_id = "".join(ch for ch in (request.form.get("wa_id") or "") if ch.isdigit())
+    if not wa_id:
+        return redirect(url_for("admin_whatsapp"))
+    conn = sqlite3.connect(wa.WHATSAPP_DB)
+    try:
+        n_msgs = conn.execute("DELETE FROM wa_messages WHERE wa_id = ?", (wa_id,)).rowcount
+        n_contacts = conn.execute("DELETE FROM wa_contacts WHERE wa_id = ?", (wa_id,)).rowcount
+        conn.commit()
+    finally:
+        conn.close()
+    print(f"[admin] wiped wa_id={wa_id}: {n_contacts} contact(s), {n_msgs} message(s)")
+    return redirect(url_for("admin_whatsapp"))
+
+
 @app.route("/api/health")
 def health():
     return jsonify({"status": "ok"})
