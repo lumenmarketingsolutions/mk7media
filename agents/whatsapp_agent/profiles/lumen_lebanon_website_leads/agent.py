@@ -199,8 +199,19 @@ Secondary window (only if lead pushes back on evenings): 9am to 11am Beirut time
 
 If they need a time outside both windows: End your reply with [[HANDOFF]] [[NEEDS_CUSTOM_TIME: their requested window]] and tell the lead: "Let me check the team's availability and confirm, I'll get back to you shortly."
 
-Slot offering format (use the ACTUAL day names from the 'TODAY IN BEIRUT' context block you receive each turn — never say "Tuesday" just because an example said it). ALWAYS say "Beirut time", not just "Beirut", every time you give a time slot. This is for diaspora leads who may not be in Lebanon:
-"[Day name] [time] Beirut time works, or [Day name] [time] Beirut time? Whichever is easier."
+Slot offering rules — read the 'TODAY IN BEIRUT' context block first, then apply these:
+
+(a) NAMING. If the slot you're offering is on the day labelled TODAY, SAY "today". If it's on the day labelled TOMORROW, SAY "tomorrow". Use the day name (Friday, Saturday, Monday, etc.) ONLY for days further out. Example: if today is Thursday, never say "Thursday 8pm" — say "today at 8pm". If tomorrow is Friday, never say "Friday 7pm" — say "tomorrow at 7pm". This is the #1 way Layla sounds like a bot if she gets it wrong.
+
+(b) TIMEZONE. ALWAYS say "Beirut time" when giving a time slot, not just "Beirut". Diaspora leads may not be physically in Lebanon. So: "today at 8pm Beirut time", "tomorrow at 7pm Beirut time", "Monday at 9am Beirut time".
+
+(c) PREFER SOONER. Lead with whichever slot is closest in time. If the 'TODAY IN BEIRUT' context says morning OR evening windows are still open today, offer one of today's slots first. Don't push someone to next week if a slot today or tomorrow is still possible. Lebanese leads convert on speed — a slot tonight beats a slot Monday.
+
+Slot offering format examples (build yours by combining (a) + (b) + (c)):
+- Morning, today still open: "today at 9am Beirut time works, or today at 8pm? Whichever is easier."
+- Late afternoon: "tonight at 8pm Beirut time, or tomorrow at 7pm? Whichever works."
+- Past 11pm Beirut: "tomorrow at 9am Beirut time, or tomorrow at 7pm? Pick what's easier."
+- Mid-week Wednesday morning offering Wed evening + Thu: "today at 9pm Beirut time, or tomorrow at 7pm? Whichever's easier."
 
 The "TODAY IN BEIRUT" context block is given to you on every turn. It tells you today's date, today's day of the week, the current Beirut time, and which upcoming days are available. ALWAYS pick slot days from that list. NEVER offer a day that has already passed this week. If today is Wednesday, do not offer Tuesday. If it's past 11pm Beirut, do not offer today.
 
@@ -830,27 +841,49 @@ def _booking_date_context():
     time_str = now.strftime("%-I:%M %p")
     hour = now.hour
 
-    # Primary window status (6pm-11pm Beirut, ANY day — weekends are valid).
-    if hour < 18:
-        window_today = f"The 6-11pm Beirut primary window is still open today (it's {time_str} now). You CAN offer today as a slot if it makes sense."
-    elif hour < 23:
-        window_today = f"The 6-11pm Beirut primary window is currently in progress today (it's {time_str}). Limited evening hours still possible today."
+    # What windows are still open TODAY. Both 9-11am secondary and 6-11pm primary
+    # are valid offering windows — prefer whichever is sooner. Weekends count.
+    open_today = []
+    if hour < 11:
+        if hour < 9:
+            open_today.append("9-11am Beirut today (secondary morning window, still upcoming)")
+        else:
+            open_today.append(f"9-11am Beirut today (in progress, it's {time_str} now)")
+    if hour < 23:
+        if hour < 18:
+            open_today.append("6-11pm Beirut today (primary evening window, still upcoming)")
+        else:
+            open_today.append(f"6-11pm Beirut today (in progress, it's {time_str} now)")
+    if open_today:
+        window_today = (
+            "Today's available booking windows: " + " AND ".join(open_today) + ". "
+            "Prefer offering the SOONEST viable slot. If a slot today is still hours away, lead with it."
+        )
     else:
-        window_today = f"The 6-11pm Beirut primary window has CLOSED for today (it's {time_str}, past 11pm). Do NOT offer today; start with tomorrow."
+        window_today = (
+            f"All of today's windows are closed (it's {time_str} in Beirut). "
+            "Start with tomorrow."
+        )
 
-    # Next 7 calendar days with their weekday names — Layla picks 2-3 from this
-    # list. Past days are simply never in the list, so she can't offer them.
-    # Weekends are valid offering days (Kendall's availability covers them).
+    # Next 7 calendar days, with the today/tomorrow days emphasised so Layla
+    # naturally says "today" / "tomorrow" in her reply instead of the day name.
     lines = []
     for i in range(0, 8):
         d = now + timedelta(days=i)
-        tag = " (today)" if i == 0 else (" (tomorrow)" if i == 1 else "")
-        lines.append(f"  • {d.strftime('%A, %B %-d')}{tag}")
+        if i == 0:
+            label = f"TODAY ({d.strftime('%A, %B %-d')})"
+        elif i == 1:
+            label = f"TOMORROW ({d.strftime('%A, %B %-d')})"
+        else:
+            label = d.strftime("%A, %B %-d")
+        lines.append(f"  • {label}")
 
     return (
         f"TODAY IN BEIRUT: {today_label}, {time_str}.\n"
         f"{window_today}\n"
-        f"Upcoming days (use ACTUAL upcoming dates from this list. Never offer a day in the past. Never offer 'Tuesday' just because the example used Tuesday):\n"
+        f"Available days. When offering a slot from this list, say 'today' for the TODAY-labelled day, "
+        f"'tomorrow' for the TOMORROW-labelled day, and use the day name only for days further out. "
+        f"NEVER say 'Thursday' if today is Thursday; that's redundant and reads like a bot.\n"
         + "\n".join(lines)
     )
 
