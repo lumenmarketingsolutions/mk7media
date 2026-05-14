@@ -897,6 +897,33 @@ def _fire_lumen_whatsapp_lead(wa_id):
         print(f"[capi-lead] fire error for {wa_id}: {e}")
 
 
+def _notify_lumen_cold_start(wa_id):
+    """On a brand-new cold WhatsApp convo, ping Kendall (email + WhatsApp text)
+    so he knows it's happening before Layla even replies. Fires off the request
+    thread and is safe-fail: any exception just prints, never blocks the webhook."""
+    try:
+        contact = wa.get_contact(wa_id) or {}
+        label = contact.get("profile_name") or contact.get("lead_name") or ("+" + wa_id)
+        snippet = (wa._last_inbound_body(wa_id) or "").strip()[:160]
+        # Email notification.
+        subject = f"New Lumen WhatsApp convo — {label}"
+        html = (
+            f"<p><b>{label}</b> just started a new WhatsApp conversation on +1 623 512 6504.</p>"
+            f"<p><b>Their first message:</b> &ldquo;{snippet}&rdquo;</p>"
+            f"<p>Layla is replying now. Open the thread: "
+            f"<a href='https://whatsapp.mk7media.com/admin/whatsapp?id={wa_id}'>whatsapp.mk7media.com</a> "
+            f"(or reply on WhatsApp: <a href='https://wa.me/{wa_id}'>wa.me/{wa_id}</a>).</p>"
+        )
+        wa._notify_team(subject, html)
+        # WhatsApp ping to the setter (Kendall's other phone), uses the same
+        # plumbing as the handoff ping — short, scannable.
+        ping = f"[Layla] new convo — {label}: \"{snippet[:120]}\""
+        wa.notify_handoff_whatsapp(wa_id, ping)
+        print(f"[lumen-cold-notify] notified for {wa_id} ({label})")
+    except Exception as e:
+        print(f"[lumen-cold-notify] error for {wa_id}: {e}")
+
+
 @app.route("/webhooks/whatsapp", methods=["POST"])
 def whatsapp_receive():
     """Inbound WhatsApp events. Always 200s quickly so Meta doesn't retry-storm."""
@@ -910,17 +937,21 @@ def whatsapp_receive():
     # wa_contacts row with lead_source != 'inbound', so they're excluded here —
     # only people who messaged us cold (e.g. tapped the WhatsApp button on
     # /lumenlb without us knowing them first) end up in this list.
-    cold = _cold_inbound_wa_ids(payload) if LUMEN_META_CAPI_TOKEN else []
+    cold = _cold_inbound_wa_ids(payload)
 
     try:
         wa.handle_webhook(payload)
     except Exception as e:
         print(f"[whatsapp] webhook handler error: {e}")
 
-    # Fire one CAPI Lead per cold convo-start, off the request thread so we still
-    # 200 to Meta within the retry window.
+    # On every cold convo-start: (1) fire a CAPI Lead into the Lumen dataset
+    # (only if token is set), (2) notify Kendall via email + WhatsApp ping that
+    # the convo is happening so he knows BEFORE the booking handoff. Both fire
+    # off the request thread so we still 200 to Meta within the retry window.
     for wid in cold:
-        threading.Thread(target=_fire_lumen_whatsapp_lead, args=(wid,), daemon=True).start()
+        if LUMEN_META_CAPI_TOKEN:
+            threading.Thread(target=_fire_lumen_whatsapp_lead, args=(wid,), daemon=True).start()
+        threading.Thread(target=_notify_lumen_cold_start, args=(wid,), daemon=True).start()
 
     return "EVENT_RECEIVED", 200
 
