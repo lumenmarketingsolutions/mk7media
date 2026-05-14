@@ -104,6 +104,10 @@ META_TEST_EVENT_CODE = os.environ.get("META_TEST_EVENT_CODE", "")  # optional, f
 # Inert until LUMEN_META_CAPI_TOKEN is set on the Railway service.
 LUMEN_META_DATASET_ID = os.environ.get("LUMEN_META_DATASET_ID", "1119566303064711")
 LUMEN_META_CAPI_TOKEN = os.environ.get("LUMEN_META_CAPI_TOKEN", "")
+# Test event code is PER-DATASET in Events Manager, so the Lumen dataset needs
+# its own. Pull this code from Events Manager → Lumen dataset → Test Events tab.
+# Leave empty for production firing into the dataset's Overview.
+LUMEN_META_TEST_EVENT_CODE = os.environ.get("LUMEN_META_TEST_EVENT_CODE", "")
 
 # Payhip purchase webhook — secret comes from the "Paid" webhook config in Payhip dashboard
 PAYHIP_WEBHOOK_SECRET = os.environ.get("PAYHIP_WEBHOOK_SECRET", "")
@@ -173,11 +177,15 @@ def _sanitize_custom_data(custom_data):
 
 
 def _send_capi_event(event_name, event_id, user_data, custom_data=None, event_source_url=None,
-                     dataset_id=None, access_token=None):
+                     dataset_id=None, access_token=None, test_event_code=None):
     """POST a server-side event to Meta Conversions API. Safe-fail: returns silently on any error.
 
     `dataset_id` + `access_token` override the module-level MK7 dataset (used so the
-    WhatsApp webhook can fire Lead events into the Lumen dataset on cold-inbound convos)."""
+    WhatsApp webhook can fire Lead events into the Lumen dataset on cold-inbound convos).
+    `test_event_code` overrides the module-level META_TEST_EVENT_CODE — Test Events
+    codes are per-dataset in Meta Events Manager, so cross-dataset firing needs the
+    matching code or no code at all (NOT the MK7 dataset's code on a Lumen event).
+    Pass an explicit value (including "") to opt out of the module-level fallback."""
     dataset = dataset_id or META_DATASET_ID
     token = access_token or META_CAPI_ACCESS_TOKEN
     if not token or not dataset:
@@ -218,8 +226,11 @@ def _send_capi_event(event_name, event_id, user_data, custom_data=None, event_so
             event["custom_data"] = cleaned
 
         payload = {"data": [event]}
-        if META_TEST_EVENT_CODE:
-            payload["test_event_code"] = META_TEST_EVENT_CODE
+        # If the caller passed test_event_code explicitly (incl. empty string) honour
+        # that. Otherwise fall back to the module-level MK7 code.
+        tec = test_event_code if test_event_code is not None else META_TEST_EVENT_CODE
+        if tec:
+            payload["test_event_code"] = tec
 
         url = f"https://graph.facebook.com/v19.0/{dataset}/events?access_token={token}"
         r = req.post(url, json=payload, timeout=5)
@@ -878,6 +889,9 @@ def _fire_lumen_whatsapp_lead(wa_id):
             event_source_url="https://lumenmarketing.co/lumenlb",
             dataset_id=LUMEN_META_DATASET_ID,
             access_token=LUMEN_META_CAPI_TOKEN,
+            # Use the LUMEN dataset's own test-event code (empty in prod). Never the
+            # MK7/DPSmgmt code — Meta would reject it for this dataset.
+            test_event_code=LUMEN_META_TEST_EVENT_CODE,
         )
     except Exception as e:
         print(f"[capi-lead] fire error for {wa_id}: {e}")
