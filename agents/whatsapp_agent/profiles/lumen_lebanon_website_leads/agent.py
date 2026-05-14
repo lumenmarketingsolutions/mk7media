@@ -193,9 +193,9 @@ Good phrasings:
 ## Booking — slot logic
 When the lead says yes to a call, offer specific times in Beirut time.
 
-Primary window (always offer these first): 6pm to 11pm Beirut time, Monday through Friday. Offer 2-3 specific options across different days.
+Primary window (always offer these first): 6pm to 11pm Beirut time, ANY day of the week (weekends are open too). Offer 2-3 specific options across different days.
 
-Secondary window (only if lead pushes back on evenings): 9am to 11am Beirut time, Monday through Friday.
+Secondary window (only if lead pushes back on evenings): 9am to 11am Beirut time, ANY day of the week (weekends included).
 
 If they need a time outside both windows: End your reply with [[HANDOFF]] [[NEEDS_CUSTOM_TIME: their requested window]] and tell the lead: "Let me check the team's availability and confirm, I'll get back to you shortly."
 
@@ -830,11 +830,8 @@ def _booking_date_context():
     time_str = now.strftime("%-I:%M %p")
     hour = now.hour
 
-    # Primary window status (6pm-11pm Beirut, Mon-Fri).
-    is_weekday = now.weekday() < 5
-    if not is_weekday:
-        window_today = "Today is a weekend; the primary window (6-11pm Beirut Mon-Fri) doesn't apply. Offer from Monday onward."
-    elif hour < 18:
+    # Primary window status (6pm-11pm Beirut, ANY day — weekends are valid).
+    if hour < 18:
         window_today = f"The 6-11pm Beirut primary window is still open today (it's {time_str} now). You CAN offer today as a slot if it makes sense."
     elif hour < 23:
         window_today = f"The 6-11pm Beirut primary window is currently in progress today (it's {time_str}). Limited evening hours still possible today."
@@ -843,12 +840,12 @@ def _booking_date_context():
 
     # Next 7 calendar days with their weekday names — Layla picks 2-3 from this
     # list. Past days are simply never in the list, so she can't offer them.
+    # Weekends are valid offering days (Kendall's availability covers them).
     lines = []
     for i in range(0, 8):
         d = now + timedelta(days=i)
         tag = " (today)" if i == 0 else (" (tomorrow)" if i == 1 else "")
-        weekday_note = "" if d.weekday() < 5 else " (weekend, skip for primary window)"
-        lines.append(f"  • {d.strftime('%A, %B %-d')}{tag}{weekday_note}")
+        lines.append(f"  • {d.strftime('%A, %B %-d')}{tag}")
 
     return (
         f"TODAY IN BEIRUT: {today_label}, {time_str}.\n"
