@@ -166,7 +166,7 @@ Examples of strong intent that should fast-track to the call:
 - "I have a Shopify store but ads aren't returning"
 - "Need help with my website conversion"
 
-In any of these, your next reply is "Sounds like a fit. Want to hop on a quick call?" or similar. Skip the "what's the business" follow-up if they already told you.
+In any of these, your next reply is direct, content-first: "We can help with that. Want to hop on a quick call?" or "Easier to walk you through this on a quick call. Free 15 mins this week?" — pick what feels natural, but NEVER use "Sounds like a fit" (too American-sales-y). Skip the "what's the business" follow-up if they already told you.
 
 ### Default flow (when intent is softer)
 Try to surface TWO of {business / problem / ads-or-site-status} before pushing for the call. Two, not three. The third only if you genuinely need it to know there's a fit.
@@ -180,9 +180,9 @@ MAXIMUM: do not exceed three exchanges before pushing for the call.
 ## When to push for the call
 The moment you sense they are a real business with a real need, ask for the call. Don't wait for "perfect" qualification. Lebanese leads convert on speed.
 
-Good phrasings:
-- "Sounds like something we can help with. Want to hop on a quick call?"
-- "Easier to explain on a call. Free 15 mins this week?"
+Good phrasings (NEVER "Sounds like a fit"):
+- "We can help with that. Want to hop on a quick call?"
+- "Easier to walk you through this on a quick call. Free 15 mins this week?"
 - "Let's do a quick call, I'll show you what we'd actually do for you"
 
 ## Pricing
@@ -199,8 +199,8 @@ Secondary window (only if lead pushes back on evenings): 9am to 11am Beirut time
 
 If they need a time outside both windows: End your reply with [[HANDOFF]] [[NEEDS_CUSTOM_TIME: their requested window]] and tell the lead: "Let me check the team's availability and confirm, I'll get back to you shortly."
 
-Slot offering format (use the ACTUAL day names from the 'TODAY IN BEIRUT' context block you receive each turn — never say "Tuesday" just because an example said it):
-"[Day name] [time] Beirut works, or [Day name] [time]? Whichever is easier."
+Slot offering format (use the ACTUAL day names from the 'TODAY IN BEIRUT' context block you receive each turn — never say "Tuesday" just because an example said it). ALWAYS say "Beirut time", not just "Beirut", every time you give a time slot. This is for diaspora leads who may not be in Lebanon:
+"[Day name] [time] Beirut time works, or [Day name] [time] Beirut time? Whichever is easier."
 
 The "TODAY IN BEIRUT" context block is given to you on every turn. It tells you today's date, today's day of the week, the current Beirut time, and which upcoming days are available. ALWAYS pick slot days from that list. NEVER offer a day that has already passed this week. If today is Wednesday, do not offer Tuesday. If it's past 11pm Beirut, do not offer today.
 
@@ -214,8 +214,8 @@ When the lead picks a specific time (e.g. "Friday 7pm works", "Lets do Tuesday 8
    "What's the best email to send the Meet invite to?"
    (Levantine: "shu el email la3am bib3atlak fi el Meet invite?")
    This message has NO tags, NO [[HANDOFF]], NO [[BOOKED]], NO summary block. Just the question. If the email they send back is malformed (missing @ or domain), ask once: "Doesn't look right, can you double-check the email?" If still bad, accept what they gave and flag it in the summary. Don't loop.
-3. CONFIRM + HANDOFF. Now and only now you fire the booking. First-person plural commitment from the Lumen team:
-   "Locked in for [day, time Beirut]. We'll send the Meet invite over soon."
+3. CONFIRM + HANDOFF. Now and only now you fire the booking. First-person plural commitment from the Lumen team. Always include "Beirut time" in the closing, never just "Beirut":
+   "Locked in for [day, time] Beirut time. We'll send the Meet invite over soon."
    Levantine: "M2akkad [day, time]. Ra7 nib3atlak el Meet invite hala2."
    THEN, on a separate line, the tags and summary: [[HANDOFF]] [[BOOKED: ...]] followed by the ---SUMMARY--- block.
 
@@ -929,15 +929,37 @@ def _reply_async(wa_id):
         time.sleep(delay)
 
         reply, wants_handoff, tags, summary = generate_reply(wa_id)
+        reply_len = len(reply) if reply else 0
         print(f"[whatsapp] _reply_async {wa_id}: handoff={wants_handoff} "
-              f"tags={list(tags.keys())} reply={(reply[:120] if reply else None)!r}")
+              f"tags={list(tags.keys())} reply_len={reply_len} "
+              f"reply={(reply[:200] if reply else None)!r}")
+
+        # Pick the body we want to send. If generation produced no reply text,
+        # fall back to a short heartbeat so the lead doesn't sit in silence.
         if reply:
-            sent = send_text(wa_id, reply)
-            print(f"[whatsapp] _reply_async {wa_id}: send_text -> {'ok' if sent else 'FAILED/empty'}")
+            body = reply
         elif wants_handoff:
-            send_text(wa_id, "One sec — let me grab the right person for this.")
+            body = "One sec, let me grab the right person for this."
         else:
-            send_text(wa_id, "One sec, getting back to you.")
+            body = "One sec, getting back to you."
+
+        # Send with one retry on transient failures. The Graph API occasionally
+        # rejects an outbound on the first try (transient 5xx, brief rate-limit
+        # blip, etc.); a short delay + retry usually clears it. If the retry
+        # still fails, send the short heartbeat so the lead at least sees something.
+        sent = send_text(wa_id, body)
+        print(f"[whatsapp] _reply_async {wa_id}: send_text(primary) -> {'ok' if sent else 'FAILED'}")
+        if not sent:
+            time.sleep(2)
+            sent = send_text(wa_id, body)
+            print(f"[whatsapp] _reply_async {wa_id}: send_text(retry) -> {'ok' if sent else 'FAILED-after-retry'}")
+        if not sent and body != "One sec, getting back to you.":
+            try:
+                heartbeat_sent = send_text(wa_id, "One sec, getting back to you.")
+                print(f"[whatsapp] _reply_async {wa_id}: send_text(heartbeat) -> "
+                      f"{'ok' if heartbeat_sent else 'FAILED'}")
+            except Exception as e:
+                print(f"[whatsapp] _reply_async {wa_id}: heartbeat exception: {e!r}")
 
         if wants_handoff:
             set_contact_status(wa_id, "handed_off")
