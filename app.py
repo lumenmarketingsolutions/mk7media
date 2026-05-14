@@ -915,10 +915,11 @@ def _notify_lumen_cold_start(wa_id):
             f"(or reply on WhatsApp: <a href='https://wa.me/{wa_id}'>wa.me/{wa_id}</a>).</p>"
         )
         wa._notify_team(subject, html)
-        # WhatsApp ping to the setter (Kendall's other phone), uses the same
-        # plumbing as the handoff ping — short, scannable.
-        ping = f"[Layla] new convo — {label}: \"{snippet[:120]}\""
-        wa.notify_handoff_whatsapp(wa_id, ping)
+        # WhatsApp ping to Kendall's other phone — uses kind='cold_start' so the
+        # prefix reads as an FYI ('Layla is on it') instead of the alarming
+        # 'lead needs a human' wording reserved for actual handoffs.
+        ping = f"{label}: \"{snippet[:120]}\""
+        wa.notify_handoff_whatsapp(wa_id, ping, kind="cold_start")
         print(f"[lumen-cold-notify] notified for {wa_id} ({label})")
     except Exception as e:
         print(f"[lumen-cold-notify] error for {wa_id}: {e}")

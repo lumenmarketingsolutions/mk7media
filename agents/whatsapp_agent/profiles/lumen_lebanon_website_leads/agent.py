@@ -664,17 +664,28 @@ def _last_inbound_body(wa_id):
     return (row["body"] if row else "") or ""
 
 
-def notify_handoff_whatsapp(wa_id, summary):
-    """Ping the setter's WhatsApp number that a conversation needs a human.
+def notify_handoff_whatsapp(wa_id, summary, kind="handoff"):
+    """Ping the setter's WhatsApp number about a conversation event.
+
+    `kind` selects the prefix (whether this is "agent needs you" vs. "FYI, a convo
+    just started, the agent is handling it"). The default is "handoff" for backward
+    compat with all existing callers.
 
     Uses the WHATSAPP_HANDOFF_TEMPLATE template if one is configured (delivers any
     time). Otherwise sends a plain text message, which only lands if the setter has
-    messaged the MK7 number in the last 24h. No-op if WHATSAPP_HANDOFF_NUMBER is
-    unset. System alert — not recorded in wa_messages. The email notice goes out
+    messaged the WhatsApp number in the last 24h. No-op if WHATSAPP_HANDOFF_NUMBER
+    is unset. System alert — not recorded in wa_messages. The email notice goes out
     separately regardless of whether this succeeds."""
     if not WHATSAPP_HANDOFF_NUMBER:
         return
     summary = (summary or "").strip()[:480] or "A WhatsApp lead needs you."
+    # Prefix is what tells you at a glance whether you need to act. The cold-start
+    # case is an FYI — Layla's still on it; no human action required unless the
+    # convo goes sideways and a later [[HANDOFF]] fires.
+    if kind == "cold_start":
+        prefix = "💬 New Lumen WhatsApp convo started (Layla is on it)"
+    else:
+        prefix = "🔔 WhatsApp lead needs a human"
     if WHATSAPP_HANDOFF_TEMPLATE:
         payload = {
             "messaging_product": "whatsapp",
@@ -683,7 +694,7 @@ def notify_handoff_whatsapp(wa_id, summary):
             "template": {
                 "name": WHATSAPP_HANDOFF_TEMPLATE,
                 "language": {"code": WHATSAPP_HANDOFF_TEMPLATE_LANG},
-                "components": [{"type": "body", "parameters": [{"type": "text", "text": summary}]}],
+                "components": [{"type": "body", "parameters": [{"type": "text", "text": f"{prefix} — {summary}"}]}],
             },
         }
     else:
@@ -692,12 +703,12 @@ def notify_handoff_whatsapp(wa_id, summary):
             "to": WHATSAPP_HANDOFF_NUMBER,
             "type": "text",
             "text": {
-                "body": f"🔔 WhatsApp lead needs a human — {summary}\nInbox: https://whatsapp.mk7media.com/admin/whatsapp?id={wa_id}",
+                "body": f"{prefix} — {summary}\nInbox: https://whatsapp.mk7media.com/admin/whatsapp?id={wa_id}",
                 "preview_url": False,
             },
         }
     if _graph_post(payload) is None:
-        print(f"[whatsapp] handoff WhatsApp alert to {WHATSAPP_HANDOFF_NUMBER} did not send (no template + no open window, or send error)")
+        print(f"[whatsapp] WhatsApp alert to {WHATSAPP_HANDOFF_NUMBER} (kind={kind}) did not send (no template + no open window, or send error)")
 
 
 # ── Inbound handling ─────────────────────────────────────────────────────────
