@@ -714,52 +714,63 @@
     }
     .lead-submit:hover { opacity: 0.92; transform: translateY(-1px); }
     .lead-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-    .lead-qualifier {
+    /* Multi-step lead flow */
+    .step-indicator {
       display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 2px;
-    }
-    .qualifier-label {
-      font-size: 13px;
-      font-weight: 600;
-      color: rgba(255,255,255,0.78);
-      letter-spacing: 0.2px;
-      padding-left: 2px;
-    }
-    .qualifier-options {
-      display: flex;
-      flex-wrap: wrap;
+      justify-content: center;
       gap: 8px;
+      margin-bottom: 24px;
     }
-    .qualifier-opt {
-      flex: 1 1 0;
-      min-width: 84px;
-      padding: 13px 14px;
+    .step-dot {
+      width: 32px;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.1);
+      transition: background 0.3s;
+    }
+    .step-dot.active { background: var(--blue); }
+    .lead-step {
+      display: none;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .lead-step.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .qualifier-options.big {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .qualifier-big {
+      width: 100%;
+      padding: 18px 22px;
       background: rgba(255,255,255,0.04);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      color: rgba(255,255,255,0.82);
+      border-radius: 12px;
+      color: rgba(255,255,255,0.88);
       font-family: 'Inter', sans-serif;
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 500;
       cursor: pointer;
-      transition: background 0.15s, border-color 0.15s, color 0.15s;
-      text-align: center;
-      line-height: 1.2;
+      text-align: left;
+      transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.18s;
+      line-height: 1.3;
     }
-    .qualifier-opt:hover {
-      background: rgba(255,255,255,0.07);
-      border-color: rgba(255,255,255,0.22);
-      color: #fff;
-    }
-    .qualifier-opt.selected {
-      background: rgba(77,124,245,0.14);
+    .qualifier-big:hover {
+      background: rgba(77,124,245,0.08);
       border-color: var(--blue);
       color: #fff;
+      transform: translateY(-1px);
     }
+    .qualifier-big:active { transform: translateY(0); }
     @media (max-width: 480px) {
-      .qualifier-opt { font-size: 13px; padding: 12px 10px; min-width: 0; }
+      .qualifier-big { font-size: 15px; padding: 16px 18px; }
+      .step-dot { width: 28px; }
     }
     .lead-form-success {
       display: none;
@@ -1105,41 +1116,55 @@
   </div>
 </section>
 
-<!-- ── Inline Lead Form (under hero) ── -->
+<!-- ── Inline Lead Form (under hero) — 3-step flow: Q1 → Q2 → contact ── -->
 <!-- id="inquiry" lives here so every #inquiry CTA on the page scrolls back to this form -->
 <section class="lead-form-section" id="inquiry">
   <div class="lead-form-inner">
     <div class="lead-form-card">
-      <h2 class="lead-form-title"><span class="grad-text">Let's talk.</span></h2>
-      <p class="lead-form-sub">Drop your info and we will reach out within 24 hours.</p>
 
-      <form class="lead-form" id="leadForm" onsubmit="submitLead(event)" novalidate>
-        <input class="lead-input" type="text" id="lf_name" placeholder="Your full name" required autocomplete="name">
-        <div data-phone-input>
-          <input class="lead-input" type="tel" id="lf_whatsapp" placeholder="WhatsApp number" required autocomplete="tel">
+      <!-- Progress dots -->
+      <div class="step-indicator" id="stepIndicator" aria-hidden="true">
+        <span class="step-dot active"></span>
+        <span class="step-dot"></span>
+        <span class="step-dot"></span>
+      </div>
+
+      <!-- Step 1: Meta ads question -->
+      <div class="lead-step active" id="step1" data-step="1">
+        <h2 class="lead-form-title"><span class="grad-text">Quick question.</span></h2>
+        <p class="lead-form-sub">Are you currently running Meta ads?</p>
+        <div class="qualifier-options big" role="radiogroup" aria-label="Are you running Meta ads">
+          <button type="button" class="qualifier-opt qualifier-big" data-step="1" data-value="running">Running them</button>
+          <button type="button" class="qualifier-opt qualifier-big" data-step="1" data-value="not_yet">Not yet</button>
+          <button type="button" class="qualifier-opt qualifier-big" data-step="1" data-value="wanting">Wanting to start</button>
         </div>
-        <input class="lead-input" type="url" id="lf_website" placeholder="Your website (optional)" autocomplete="url" inputmode="url">
+      </div>
 
-        <div class="lead-qualifier" id="lf_meta_ads_group">
-          <span class="qualifier-label">Are you running Meta ads?</span>
-          <div class="qualifier-options" role="radiogroup" aria-label="Are you running Meta ads">
-            <button type="button" class="qualifier-opt" data-name="meta_ads_status" data-value="running">Running them</button>
-            <button type="button" class="qualifier-opt" data-name="meta_ads_status" data-value="not_yet">Not yet</button>
-            <button type="button" class="qualifier-opt" data-name="meta_ads_status" data-value="wanting">Wanting to start</button>
+      <!-- Step 2: Agency question -->
+      <div class="lead-step" id="step2" data-step="2">
+        <h2 class="lead-form-title"><span class="grad-text">One more.</span></h2>
+        <p class="lead-form-sub">Have you worked with an agency before?</p>
+        <div class="qualifier-options big" role="radiogroup" aria-label="Worked with an agency before">
+          <button type="button" class="qualifier-opt qualifier-big" data-step="2" data-value="yes">Yes</button>
+          <button type="button" class="qualifier-opt qualifier-big" data-step="2" data-value="no">No</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Contact info -->
+      <div class="lead-step" id="step3" data-step="3">
+        <h2 class="lead-form-title"><span class="grad-text">Last step.</span></h2>
+        <p class="lead-form-sub">How do we reach you? We will message you within 24 hours.</p>
+        <form class="lead-form" id="leadForm" onsubmit="submitLead(event)" novalidate>
+          <input class="lead-input" type="text" id="lf_name" placeholder="Your full name" required autocomplete="name">
+          <div data-phone-input>
+            <input class="lead-input" type="tel" id="lf_whatsapp" placeholder="WhatsApp number" required autocomplete="tel">
           </div>
-        </div>
+          <input class="lead-input" type="url" id="lf_website" placeholder="Your website (optional)" autocomplete="url" inputmode="url">
+          <button class="lead-submit" type="submit" id="lf_submit" data-track-source="inline_form_submit">Send</button>
+        </form>
+      </div>
 
-        <div class="lead-qualifier" id="lf_agency_group">
-          <span class="qualifier-label">Worked with an agency before?</span>
-          <div class="qualifier-options" role="radiogroup" aria-label="Worked with an agency before">
-            <button type="button" class="qualifier-opt" data-name="worked_with_agency" data-value="yes">Yes</button>
-            <button type="button" class="qualifier-opt" data-name="worked_with_agency" data-value="no">No</button>
-          </div>
-        </div>
-
-        <button class="lead-submit" type="submit" id="lf_submit" data-track-source="inline_form_submit">Send</button>
-      </form>
-
+      <!-- Success state -->
       <div class="lead-form-success" id="leadSuccess">
         <div class="check-circle">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
@@ -1629,21 +1654,35 @@ function closeQuiz() { /* noop — form is inline */ }
   io.observe(form);
 })();
 
-// Single-choice qualifier pills inside the lead form
-document.querySelectorAll('.lead-qualifier .qualifier-options').forEach(group => {
-  group.addEventListener('click', (e) => {
-    const btn = e.target.closest('.qualifier-opt');
-    if (!btn) return;
-    group.querySelectorAll('.qualifier-opt').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-    group.dataset.value = btn.dataset.value;
+// Multi-step lead flow: tap a qualifier button to advance to the next step.
+// The two qualifier answers are held in this object until final submit.
+const _leadFlow = { meta_ads_status: '', worked_with_agency: '' };
+
+function _gotoStep(targetStep) {
+  document.querySelectorAll('.lead-step').forEach(el => {
+    el.classList.toggle('active', el.dataset.step === String(targetStep));
+  });
+  document.querySelectorAll('.step-dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i < targetStep);
+  });
+  if (targetStep === 3) {
+    setTimeout(() => { try { document.getElementById('lf_name').focus(); } catch (e) {} }, 280);
+  }
+}
+
+document.querySelectorAll('.lead-step .qualifier-big').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const step = parseInt(btn.dataset.step, 10);
+    const value = btn.dataset.value;
+    if (step === 1) {
+      _leadFlow.meta_ads_status = value;
+      _gotoStep(2);
+    } else if (step === 2) {
+      _leadFlow.worked_with_agency = value;
+      _gotoStep(3);
+    }
   });
 });
-
-function _qualifierValue(groupId) {
-  const opts = document.querySelector('#' + groupId + ' .qualifier-options');
-  return (opts && opts.dataset.value) || '';
-}
 
 async function submitLead(e) {
   e.preventDefault();
@@ -1673,8 +1712,8 @@ async function submitLead(e) {
     name: name,
     whatsapp: fullWhatsapp,
     website: webEl.value.trim(),
-    meta_ads_status: _qualifierValue('lf_meta_ads_group'),
-    worked_with_agency: _qualifierValue('lf_agency_group'),
+    meta_ads_status: _leadFlow.meta_ads_status,
+    worked_with_agency: _leadFlow.worked_with_agency,
     event_id: eventId,
     fbp: cookie('_fbp'),
     fbc: cookie('_fbc'),
@@ -1699,7 +1738,10 @@ async function submitLead(e) {
     });
   } catch (err) { /* lead is already captured client-side via Pixel; CAPI retries are not needed here */ }
 
-  document.getElementById('leadForm').style.display = 'none';
+  // Hide step 3 + progress dots, show success
+  document.getElementById('step3').classList.remove('active');
+  const indicator = document.getElementById('stepIndicator');
+  if (indicator) indicator.style.display = 'none';
   document.getElementById('leadSuccess').classList.add('show');
 }
 </script>
