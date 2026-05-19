@@ -273,13 +273,23 @@ def marlatabet_reel():
 def _whatsapp_digits(value):
     return "".join(c for c in (value or "") if c.isdigit())
 
-def _build_inquiry_email(name, whatsapp, website):
+_META_ADS_LABELS = {
+    "running": "Running them",
+    "not_yet": "Not yet",
+    "wanting": "Wanting to start",
+}
+_AGENCY_LABELS = {
+    "yes": "Yes",
+    "no": "No",
+}
+
+def _build_inquiry_email(name, whatsapp, website, meta_ads_status="", worked_with_agency=""):
     dash = "\u2014"
     wa_button = ""
     wa_digits = _whatsapp_digits(whatsapp)
     if wa_digits:
         first_name = (name or "there").split(" ", 1)[0]
-        prefill = f"Hi {first_name}, this is Marykate from MK7 Media. Saw your inquiry \u2014 happy to dig in. When works for a quick chat?"
+        prefill = f"Hey {first_name}, MaryKate from MK7. Quick one: are you running ads now or starting fresh?"
         from urllib.parse import quote
         wa_url = f"https://wa.me/{wa_digits}?text={quote(prefill)}"
         wa_button = (
@@ -291,13 +301,18 @@ def _build_inquiry_email(name, whatsapp, website):
             '</div>'
         )
 
+    meta_label = _META_ADS_LABELS.get(meta_ads_status, "") or dash
+    agency_label = _AGENCY_LABELS.get(worked_with_agency, "") or dash
+
     return (
         '<div style="font-family: sans-serif; max-width: 560px; margin: 0 auto; padding: 32px;">'
         '<h2 style="margin: 0 0 24px; color: #111;">New Inquiry from MK7 Media</h2>'
         '<table style="width: 100%; border-collapse: collapse;">'
-        f'<tr><td style="padding: 8px 0; color: #888; width: 140px;">Name</td><td style="padding: 8px 0; color: #111; font-weight: 600;">{name}</td></tr>'
+        f'<tr><td style="padding: 8px 0; color: #888; width: 180px;">Name</td><td style="padding: 8px 0; color: #111; font-weight: 600;">{name}</td></tr>'
         f'<tr><td style="padding: 8px 0; color: #888;">WhatsApp</td><td style="padding: 8px 0; color: #111; font-weight: 600;">{whatsapp or dash}</td></tr>'
         f'<tr><td style="padding: 8px 0; color: #888;">Website</td><td style="padding: 8px 0; color: #111;">{website or dash}</td></tr>'
+        f'<tr><td style="padding: 8px 0; color: #888;">Running Meta ads?</td><td style="padding: 8px 0; color: #111; font-weight: 600;">{meta_label}</td></tr>'
+        f'<tr><td style="padding: 8px 0; color: #888;">Worked with agency?</td><td style="padding: 8px 0; color: #111; font-weight: 600;">{agency_label}</td></tr>'
         '</table>'
         f'{wa_button}'
         '</div>'
@@ -314,6 +329,7 @@ def inquiry():
     service_type = data.get("service_type", "").strip()
     budget = data.get("budget", "").strip()
     worked_with_agency = data.get("worked_with_agency", "").strip()
+    meta_ads_status = data.get("meta_ads_status", "").strip()
     goals = data.get("goals", "").strip()
 
     # Min 10 digits guarantees an international number with a country code.
@@ -337,7 +353,7 @@ def inquiry():
                 "from": "MK7 Media <notifications@lumenmarketing.co>",
                 "to": NOTIFY_RECIPIENTS,
                 "subject": f"{subject_prefix}: {name}" + (f" — {service_type}" if service_type else ""),
-                "html": _build_inquiry_email(name, whatsapp, website)
+                "html": _build_inquiry_email(name, whatsapp, website, meta_ads_status=meta_ads_status, worked_with_agency=worked_with_agency)
             })
         except Exception as e:
             print(f"[email] Failed to send notification: {e}")
@@ -369,6 +385,8 @@ def inquiry():
             "lead_source": "homepage_quiz",
             "service_type": service_type,
             "budget": budget,
+            "meta_ads_status": meta_ads_status,
+            "worked_with_agency": worked_with_agency,
             "content_name": "MK7 Media inquiry",
         },
         event_source_url=data.get("page_url") or "https://mk7media.com/",
