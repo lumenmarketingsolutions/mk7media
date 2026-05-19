@@ -1658,6 +1658,67 @@ function closeQuiz() { /* noop — form is inline */ }
 // The two qualifier answers are held in this object until final submit.
 const _leadFlow = { meta_ads_status: '', worked_with_agency: '' };
 
+// Fire a funnel event to both browser Pixel and server CAPI with a shared
+// event_id so Meta Events Manager dedupes them as one. Used for ViewContent
+// (form section visible) and InitiateCheckout (first qualifier tap). The
+// Lead event on submit has its own flow further down.
+function _fireFunnelEvent(eventName, contentName) {
+  const eventId = (window.crypto && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : ('ev_' + Date.now() + '_' + Math.random().toString(36).slice(2));
+  if (window.fbq) {
+    try {
+      fbq('track', eventName, {
+        content_name: contentName,
+        lead_source: 'homepage_inquiry'
+      }, { eventID: eventId });
+    } catch (e) { /* pixel may be blocked; CAPI still fires */ }
+  }
+  const _readCookie = (n) => {
+    const m = document.cookie.match(new RegExp('(?:^|; )' + n + '=([^;]+)'));
+    return m ? decodeURIComponent(m[1]) : '';
+  };
+  try {
+    fetch('/api/event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event_name: eventName,
+        event_id: eventId,
+        content_name: contentName,
+        fbp: _readCookie('_fbp'),
+        fbc: _readCookie('_fbc'),
+        page_url: window.location.href
+      }),
+      keepalive: true
+    }).catch(() => {});
+  } catch (e) { /* swallow */ }
+}
+
+// Fire ViewContent once, when the inquiry form enters the viewport. Uses
+// IntersectionObserver so it only fires when the user actually sees it,
+// not on every page load. Disconnects after one fire to keep the dataset
+// clean (no repeated ViewContent spam if the user scrolls back and forth).
+let _formViewedFired = false;
+(function watchFormView() {
+  const target = document.getElementById('inquiry');
+  if (!target || _formViewedFired || !('IntersectionObserver' in window)) {
+    return;
+  }
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !_formViewedFired) {
+        _formViewedFired = true;
+        _fireFunnelEvent('ViewContent', 'Inquiry form viewed');
+        obs.disconnect();
+      }
+    });
+  }, { threshold: 0.35 });
+  obs.observe(target);
+})();
+
+let _formStartedFired = false;
+
 function _gotoStep(targetStep) {
   document.querySelectorAll('.lead-step').forEach(el => {
     el.classList.toggle('active', el.dataset.step === String(targetStep));
@@ -1676,6 +1737,13 @@ document.querySelectorAll('.lead-step .qualifier-big').forEach(btn => {
     const value = btn.dataset.value;
     if (step === 1) {
       _leadFlow.meta_ads_status = value;
+      // First qualifier tap = the user actually engaged with the funnel.
+      // Fire InitiateCheckout once so Meta's algorithm gets a mid-funnel
+      // optimization signal even when the user never reaches submit.
+      if (!_formStartedFired) {
+        _formStartedFired = true;
+        _fireFunnelEvent('InitiateCheckout', 'Inquiry started');
+      }
       _gotoStep(2);
     } else if (step === 2) {
       _leadFlow.worked_with_agency = value;

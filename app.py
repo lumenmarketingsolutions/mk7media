@@ -394,6 +394,41 @@ def inquiry():
 
     return jsonify({"ok": True})
 
+
+# Lightweight CAPI passthrough for funnel-stage events fired before the form
+# submit (ViewContent on form-in-viewport, InitiateCheckout on first
+# qualifier tap). Each event is deduped with the browser Pixel via the
+# shared event_id sent from the client. Kept narrow on purpose — only the
+# specific events we want feeding the algorithm are allowed.
+_ALLOWED_FUNNEL_EVENTS = {"ViewContent", "InitiateCheckout"}
+
+@app.route("/api/event", methods=["POST"])
+def fire_funnel_event():
+    data = request.get_json(silent=True) or {}
+    event_name = (data.get("event_name") or "").strip()
+    if event_name not in _ALLOWED_FUNNEL_EVENTS:
+        return jsonify({"error": "unsupported event"}), 400
+
+    event_id = (data.get("event_id") or str(uuid.uuid4())).strip()
+    ctx = _client_ctx()
+    _send_capi_event(
+        event_name=event_name,
+        event_id=event_id,
+        user_data={
+            "client_ip": ctx["client_ip"],
+            "client_ua": ctx["client_ua"],
+            "fbp": (data.get("fbp") or "").strip() or None,
+            "fbc": (data.get("fbc") or "").strip() or None,
+        },
+        custom_data={
+            "content_name": (data.get("content_name") or "").strip() or "MK7 Media inquiry form",
+            "lead_source": (data.get("lead_source") or "homepage_inquiry").strip(),
+        },
+        event_source_url=data.get("page_url") or "https://mk7media.com/",
+    )
+    return jsonify({"ok": True})
+
+
 @app.route("/playbooks")
 def playbooks_catalog():
     return render_template("playbooks_catalog.html")
