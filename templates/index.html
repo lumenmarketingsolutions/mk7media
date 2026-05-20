@@ -1051,48 +1051,9 @@
         Scale Your Business →
       </a>
     </div>
-  </div>
-</section>
 
-<!-- ── Inline Lead Form (under hero) — single step, frictionless ── -->
-<!-- id="inquiry" lives here so every #inquiry CTA on the page scrolls back to this form -->
-<style>
-  .form-trust {
-    max-width: 520px;
-    margin: 0 auto 22px;
-    text-align: center;
-  }
-  .form-trust .ft-label {
-    font-size: 10px; font-weight: 600; letter-spacing: 2.5px;
-    text-transform: uppercase; color: rgba(255,255,255,0.35); margin: 0 0 16px;
-  }
-  .form-trust .ft-row {
-    display: flex; flex-wrap: nowrap; align-items: center; justify-content: center; gap: 18px 36px;
-  }
-  .form-trust .ft-item { display: flex; align-items: center; gap: 12px; }
-  .form-trust .ft-name { font-size: 13px; font-weight: 700; color: #fff; line-height: 1.2; }
-  .form-trust .ft-sub { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
-  .form-trust .ft-divider { width: 1px; height: 32px; background: rgba(255,255,255,0.08); flex-shrink: 0; }
-  /* Separator so the badges read as their own band above the form */
-  .form-trust { padding-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.07); }
-  @media (max-width: 600px) {
-    /* Keep Meta + Shopify side by side on mobile: shrink + stack logo over label */
-    .form-trust { margin-bottom: 26px; }
-    .form-trust .ft-row { gap: 14px; flex-wrap: nowrap; }
-    .form-trust .ft-item { flex-direction: column; gap: 6px; text-align: center; flex: 1 1 0; min-width: 0; }
-    .form-trust .ft-item > div { text-align: center !important; }
-    .form-trust .ft-name { font-size: 11px; }
-    .form-trust .ft-sub { font-size: 9px; line-height: 1.3; }
-    .form-trust img { height: 18px !important; }
-    .form-trust svg { height: 22px !important; }
-    .form-trust .ft-divider { display: none; }
-  }
-</style>
-<section class="lead-form-section" id="inquiry">
-  <div class="lead-form-inner">
-
-    <!-- Trust badges directly above the form for social proof at the point of action -->
-    <div class="form-trust fade-in">
+    <!-- Trust badges directly below the hero CTA for social proof at the primary action -->
+    <div class="form-trust">
       <p class="ft-label">Trusted Partners &amp; Certifications</p>
       <div class="ft-row">
         <div class="ft-item">
@@ -1112,7 +1073,43 @@
         </div>
       </div>
     </div>
+  </div>
+</section>
 
+<!-- ── Inline Lead Form (under hero) — single step, frictionless ── -->
+<!-- id="inquiry" lives here so every #inquiry CTA on the page scrolls back to this form -->
+<style>
+  .form-trust {
+    max-width: 520px;
+    margin: 40px auto 0;
+    text-align: center;
+  }
+  .form-trust .ft-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 2.5px;
+    text-transform: uppercase; color: rgba(255,255,255,0.35); margin: 0 0 16px;
+  }
+  .form-trust .ft-row {
+    display: flex; flex-wrap: nowrap; align-items: center; justify-content: center; gap: 18px 36px;
+  }
+  .form-trust .ft-item { display: flex; align-items: center; gap: 12px; }
+  .form-trust .ft-name { font-size: 13px; font-weight: 700; color: #fff; line-height: 1.2; }
+  .form-trust .ft-sub { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+  .form-trust .ft-divider { width: 1px; height: 32px; background: rgba(255,255,255,0.08); flex-shrink: 0; }
+  @media (max-width: 600px) {
+    /* Keep Meta + Shopify side by side on mobile: shrink + stack logo over label */
+    .form-trust { margin-top: 32px; }
+    .form-trust .ft-row { gap: 14px; flex-wrap: nowrap; }
+    .form-trust .ft-item { flex-direction: column; gap: 6px; text-align: center; flex: 1 1 0; min-width: 0; }
+    .form-trust .ft-item > div { text-align: center !important; }
+    .form-trust .ft-name { font-size: 11px; }
+    .form-trust .ft-sub { font-size: 9px; line-height: 1.3; }
+    .form-trust img { height: 18px !important; }
+    .form-trust svg { height: 22px !important; }
+    .form-trust .ft-divider { display: none; }
+  }
+</style>
+<section class="lead-form-section" id="inquiry">
+  <div class="lead-form-inner">
     <div class="lead-form-card">
       <h2 class="lead-form-title"><span class="grad-text">Let's talk.</span></h2>
       <p class="lead-form-sub">Drop your info and we will reach out within 24 hours.</p>
