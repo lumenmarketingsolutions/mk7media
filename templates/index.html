@@ -714,64 +714,6 @@
     }
     .lead-submit:hover { opacity: 0.92; transform: translateY(-1px); }
     .lead-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-    /* Multi-step lead flow */
-    .step-indicator {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 24px;
-    }
-    .step-dot {
-      width: 32px;
-      height: 4px;
-      border-radius: 2px;
-      background: rgba(255,255,255,0.1);
-      transition: background 0.3s;
-    }
-    .step-dot.active { background: var(--blue); }
-    .lead-step {
-      display: none;
-      opacity: 0;
-      transform: translateY(8px);
-      transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-    .lead-step.active {
-      display: block;
-      opacity: 1;
-      transform: translateY(0);
-    }
-    .qualifier-options.big {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-      margin-top: 20px;
-    }
-    .qualifier-big {
-      width: 100%;
-      padding: 18px 22px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      color: rgba(255,255,255,0.88);
-      font-family: 'Inter', sans-serif;
-      font-size: 16px;
-      font-weight: 500;
-      cursor: pointer;
-      text-align: left;
-      transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.18s;
-      line-height: 1.3;
-    }
-    .qualifier-big:hover {
-      background: rgba(77,124,245,0.08);
-      border-color: var(--blue);
-      color: #fff;
-      transform: translateY(-1px);
-    }
-    .qualifier-big:active { transform: translateY(0); }
-    @media (max-width: 480px) {
-      .qualifier-big { font-size: 15px; padding: 16px 18px; }
-      .step-dot { width: 28px; }
-    }
     .lead-form-success {
       display: none;
       text-align: center;
@@ -1108,7 +1050,7 @@
       <a href="#inquiry" class="btn-primary" data-track="InitiateCheckout" data-track-source="hero_contact_cta">
         Contact Us
       </a>
-      <a href="https://wa.me/96179018107?text=Hi%2C%20can%20you%20help%20me%20grow%20my%20business%20with%20ads%20and%20content%3F" target="_blank" class="btn-secondary btn-whatsapp" data-track="Lead" data-track-source="whatsapp_hero">
+      <a href="https://wa.me/96179018107?text=Hi%2C%20can%20you%20help%20me%20grow%20my%20business%20with%20ads%20and%20content%3F" target="_blank" class="btn-secondary btn-whatsapp" data-track-buy="whatsapp_hero">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="white" style="flex-shrink:0;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
         Message on WhatsApp
       </a>
@@ -1116,53 +1058,22 @@
   </div>
 </section>
 
-<!-- ── Inline Lead Form (under hero) — 3-step flow: Q1 → Q2 → contact ── -->
+<!-- ── Inline Lead Form (under hero) — single step, frictionless ── -->
 <!-- id="inquiry" lives here so every #inquiry CTA on the page scrolls back to this form -->
 <section class="lead-form-section" id="inquiry">
   <div class="lead-form-inner">
     <div class="lead-form-card">
+      <h2 class="lead-form-title"><span class="grad-text">Let's talk.</span></h2>
+      <p class="lead-form-sub">Drop your info and we will reach out within 24 hours.</p>
 
-      <!-- Progress dots -->
-      <div class="step-indicator" id="stepIndicator" aria-hidden="true">
-        <span class="step-dot active"></span>
-        <span class="step-dot"></span>
-        <span class="step-dot"></span>
-      </div>
-
-      <!-- Step 1: Meta ads question -->
-      <div class="lead-step active" id="step1" data-step="1">
-        <h2 class="lead-form-title"><span class="grad-text">Quick question.</span></h2>
-        <p class="lead-form-sub">Are you currently running Meta ads?</p>
-        <div class="qualifier-options big" role="radiogroup" aria-label="Are you running Meta ads">
-          <button type="button" class="qualifier-opt qualifier-big" data-step="1" data-value="running">Running them</button>
-          <button type="button" class="qualifier-opt qualifier-big" data-step="1" data-value="not_yet">Not yet</button>
-          <button type="button" class="qualifier-opt qualifier-big" data-step="1" data-value="wanting">Wanting to start</button>
+      <form class="lead-form" id="leadForm" onsubmit="submitLead(event)" novalidate>
+        <input class="lead-input" type="text" id="lf_name" placeholder="Your full name" required autocomplete="name">
+        <div data-phone-input>
+          <input class="lead-input" type="tel" id="lf_whatsapp" placeholder="WhatsApp number" required autocomplete="tel">
         </div>
-      </div>
-
-      <!-- Step 2: Agency question -->
-      <div class="lead-step" id="step2" data-step="2">
-        <h2 class="lead-form-title"><span class="grad-text">One more.</span></h2>
-        <p class="lead-form-sub">Have you worked with an agency before?</p>
-        <div class="qualifier-options big" role="radiogroup" aria-label="Worked with an agency before">
-          <button type="button" class="qualifier-opt qualifier-big" data-step="2" data-value="yes">Yes</button>
-          <button type="button" class="qualifier-opt qualifier-big" data-step="2" data-value="no">No</button>
-        </div>
-      </div>
-
-      <!-- Step 3: Contact info -->
-      <div class="lead-step" id="step3" data-step="3">
-        <h2 class="lead-form-title"><span class="grad-text">Last step.</span></h2>
-        <p class="lead-form-sub">How do we reach you? We will message you within 24 hours.</p>
-        <form class="lead-form" id="leadForm" onsubmit="submitLead(event)" novalidate>
-          <input class="lead-input" type="text" id="lf_name" placeholder="Your full name" required autocomplete="name">
-          <div data-phone-input>
-            <input class="lead-input" type="tel" id="lf_whatsapp" placeholder="WhatsApp number" required autocomplete="tel">
-          </div>
-          <input class="lead-input" type="url" id="lf_website" placeholder="Your website (optional)" autocomplete="url" inputmode="url">
-          <button class="lead-submit" type="submit" id="lf_submit" data-track-source="inline_form_submit">Send</button>
-        </form>
-      </div>
+        <input class="lead-input" type="url" id="lf_website" placeholder="Your website (optional)" autocomplete="url" inputmode="url">
+        <button class="lead-submit" type="submit" id="lf_submit" data-track-source="inline_form_submit">Send</button>
+      </form>
 
       <!-- Success state -->
       <div class="lead-form-success" id="leadSuccess">
@@ -1654,14 +1565,12 @@ function closeQuiz() { /* noop — form is inline */ }
   io.observe(form);
 })();
 
-// Multi-step lead flow: tap a qualifier button to advance to the next step.
-// The two qualifier answers are held in this object until final submit.
-const _leadFlow = { meta_ads_status: '', worked_with_agency: '' };
-
 // Fire a funnel event to both browser Pixel and server CAPI with a shared
 // event_id so Meta Events Manager dedupes them as one. Used for ViewContent
-// (form section visible) and InitiateCheckout (first qualifier tap). The
-// Lead event on submit has its own flow further down.
+// (form section visible) and InitiateCheckout (first form field focus). The
+// Lead event on submit has its own flow further down. NOTE: Lead fires ONLY
+// on form submit — the WhatsApp buttons intentionally fire no event so the
+// Lead optimization signal stays clean (form-fills only).
 function _fireFunnelEvent(eventName, contentName) {
   const eventId = (window.crypto && crypto.randomUUID)
     ? crypto.randomUUID()
@@ -1717,39 +1626,18 @@ let _formViewedFired = false;
   obs.observe(target);
 })();
 
+// Fire InitiateCheckout once when the user first interacts with the form
+// (focuses any field). Mid-funnel signal for the algorithm; does not count
+// as a Lead.
 let _formStartedFired = false;
-
-function _gotoStep(targetStep) {
-  document.querySelectorAll('.lead-step').forEach(el => {
-    el.classList.toggle('active', el.dataset.step === String(targetStep));
-  });
-  document.querySelectorAll('.step-dot').forEach((dot, i) => {
-    dot.classList.toggle('active', i < targetStep);
-  });
-  if (targetStep === 3) {
-    setTimeout(() => { try { document.getElementById('lf_name').focus(); } catch (e) {} }, 280);
-  }
-}
-
-document.querySelectorAll('.lead-step .qualifier-big').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const step = parseInt(btn.dataset.step, 10);
-    const value = btn.dataset.value;
-    if (step === 1) {
-      _leadFlow.meta_ads_status = value;
-      // First qualifier tap = the user actually engaged with the funnel.
-      // Fire InitiateCheckout once so Meta's algorithm gets a mid-funnel
-      // optimization signal even when the user never reaches submit.
-      if (!_formStartedFired) {
-        _formStartedFired = true;
-        _fireFunnelEvent('InitiateCheckout', 'Inquiry started');
-      }
-      _gotoStep(2);
-    } else if (step === 2) {
-      _leadFlow.worked_with_agency = value;
-      _gotoStep(3);
-    }
-  });
+['lf_name', 'lf_whatsapp', 'lf_website'].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('focus', () => {
+    if (_formStartedFired) return;
+    _formStartedFired = true;
+    _fireFunnelEvent('InitiateCheckout', 'Inquiry started');
+  }, { once: true });
 });
 
 async function submitLead(e) {
@@ -1780,8 +1668,6 @@ async function submitLead(e) {
     name: name,
     whatsapp: fullWhatsapp,
     website: webEl.value.trim(),
-    meta_ads_status: _leadFlow.meta_ads_status,
-    worked_with_agency: _leadFlow.worked_with_agency,
     event_id: eventId,
     fbp: cookie('_fbp'),
     fbc: cookie('_fbc'),
@@ -1806,15 +1692,12 @@ async function submitLead(e) {
     });
   } catch (err) { /* lead is already captured client-side via Pixel; CAPI retries are not needed here */ }
 
-  // Hide step 3 + progress dots, show success
-  document.getElementById('step3').classList.remove('active');
-  const indicator = document.getElementById('stepIndicator');
-  if (indicator) indicator.style.display = 'none';
+  document.getElementById('leadForm').style.display = 'none';
   document.getElementById('leadSuccess').classList.add('show');
 }
 </script>
 
-<a href="https://wa.me/96179018107?text=Hi%2C%20can%20you%20help%20me%20grow%20my%20business%20with%20ads%20and%20content%3F" target="_blank" data-track="Lead" data-track-source="whatsapp_floating" style="position:fixed;bottom:24px;right:24px;width:56px;height:56px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:99;box-shadow:0 4px 20px rgba(37,211,102,0.3);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+<a href="https://wa.me/96179018107?text=Hi%2C%20can%20you%20help%20me%20grow%20my%20business%20with%20ads%20and%20content%3F" target="_blank" data-track-buy="whatsapp_floating" style="position:fixed;bottom:24px;right:24px;width:56px;height:56px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:99;box-shadow:0 4px 20px rgba(37,211,102,0.3);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
   <svg viewBox="0 0 24 24" width="28" height="28" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
 </a>
 </body>
