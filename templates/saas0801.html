@@ -118,9 +118,18 @@
     body { background: #fbfaf6; }
     .doc { margin: 0 auto; max-width: 100%; padding: 0; }
     .print-btn { display: none; }
-    .kicker { break-after: avoid; page-break-after: avoid; }
-    .section-line { break-after: avoid; page-break-after: avoid; }
-    .grid2, .grid3, .steps3 { break-inside: avoid; page-break-inside: avoid; }
+    .kicker { break-after: avoid; page-break-after: avoid; break-inside: avoid; page-break-inside: avoid; margin: 16pt 0 5pt; }
+    .section-line { break-after: avoid; page-break-after: avoid; margin-bottom: 10pt; }
+    .card { padding: 13pt 15pt; }
+    .grid2, .grid3, .steps3 { gap: 10pt; }
+    .badges { margin-bottom: 22pt; }
+    .top-bar { margin-bottom: 20pt; }
+    .receipt { margin: 16pt 0 4pt; padding: 14pt 16pt; }
+    .receipt .row { padding: 3.5pt 0; }
+    .receipt h3 { margin-bottom: 8pt; }
+    .receipt .compare { margin-top: 7pt; }
+    .step { padding: 10pt 12pt; }
+    .footer { margin-top: 10pt; break-before: avoid; page-break-before: avoid; }
     a { color: inherit; text-decoration: none; }
   }
 </style>
