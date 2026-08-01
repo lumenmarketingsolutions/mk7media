@@ -1,0 +1,9 @@
+.claude/
+.DS_Store
+.git/
+MK7_PACKAGES.html
+MK7_PACKAGES.md
+*.db
+.env
+SESSION_HANDOFF.md
+mk7media.code-workspace
