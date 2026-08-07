@@ -969,7 +969,11 @@ def _notify_lumen_cold_start(wa_id):
 def whatsapp_receive():
     """Inbound WhatsApp events. Always 200s quickly so Meta doesn't retry-storm."""
     raw = request.get_data()
-    if not wa.verify_signature(raw, request.headers.get("X-Hub-Signature-256", "")):
+    _sig = request.headers.get("X-Hub-Signature-256", "")
+    # Two apps deliver to this route: MK7 messaging (MK7/Lumen number) and
+    # Lumen Master Connect (FGC coexistence number) — each signs with its own
+    # app secret, so accept a payload that verifies against either.
+    if not (wa.verify_signature(raw, _sig) or fgc_wa.verify_signature(raw, _sig)):
         return "Forbidden", 403
     payload = request.get_json(silent=True) or {}
 

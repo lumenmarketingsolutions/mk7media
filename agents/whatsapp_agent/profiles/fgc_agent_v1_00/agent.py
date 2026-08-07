@@ -290,12 +290,16 @@ def verify_webhook(args):
 
 
 def verify_signature(raw_body, signature_header):
-    if not WHATSAPP_APP_SECRET:
-        print("[fgc-wa] WARNING: WHATSAPP_APP_SECRET not set — skipping signature check")
-        return True
+    """Validate against the FGC app's secret (Lumen Master Connect — the app the
+    FGC number's events are signed by). Used as the SECOND check in app.py's
+    webhook route (after the MK7 app secret), so unlike the MK7 profile this one
+    returns False when unconfigured — a missing secret must not accept traffic."""
+    secret = os.environ.get("FGC_WHATSAPP_APP_SECRET", "")
+    if not secret:
+        return False
     if not signature_header or not signature_header.startswith("sha256="):
         return False
-    expected = hmac.new(WHATSAPP_APP_SECRET.encode("utf-8"), raw_body or b"", hashlib.sha256).hexdigest()
+    expected = hmac.new(secret.encode("utf-8"), raw_body or b"", hashlib.sha256).hexdigest()
     return hmac.compare_digest(expected, signature_header.split("=", 1)[1])
 
 
