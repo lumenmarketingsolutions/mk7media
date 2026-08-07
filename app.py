@@ -10,6 +10,7 @@ from functools import wraps
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 
 from agents.whatsapp_agent import agent as wa  # which profile is live: see ACTIVE_PROFILE in agents/whatsapp_agent/__init__.py
+from agents.whatsapp_agent.profiles.fgc_agent_v1_00 import agent as fgc_wa  # FGC number (coexistence); dormant until FGC_WHATSAPP_PHONE_NUMBER_ID is set
 
 app = Flask(__name__)
 
@@ -972,15 +973,36 @@ def whatsapp_receive():
         return "Forbidden", 403
     payload = request.get_json(silent=True) or {}
 
+    # Multi-number routing: both WABAs (MK7/Lumen number + the FGC coexistence
+    # number) subscribe to this same app, so every event lands here. Split the
+    # payload by value.metadata.phone_number_id — FGC changes go ONLY to the FGC
+    # agent, everything else goes ONLY to the active profile. Without the split
+    # the active profile would answer FGC customers from the wrong number.
+    fgc_entries, main_entries = [], []
+    for entry in payload.get("entry", []) or []:
+        fgc_ch = [c for c in entry.get("changes", []) or [] if fgc_wa.is_fgc_event(c.get("value", {}) or {})]
+        main_ch = [c for c in entry.get("changes", []) or [] if not fgc_wa.is_fgc_event(c.get("value", {}) or {})]
+        if fgc_ch:
+            fgc_entries.append({**entry, "changes": fgc_ch})
+        if main_ch:
+            main_entries.append({**entry, "changes": main_ch})
+    main_payload = {**payload, "entry": main_entries}
+
+    if fgc_entries:
+        try:
+            fgc_wa.handle_webhook({**payload, "entry": fgc_entries})
+        except Exception as e:
+            print(f"[fgc-wa] webhook handler error: {e}")
+
     # Snapshot cold-inbound wa_ids BEFORE handle_webhook creates their contact rows.
     # Pre-registered leads (via register_lead / wa.me-link flow) already have a
     # wa_contacts row with lead_source != 'inbound', so they're excluded here —
     # only people who messaged us cold (e.g. tapped the WhatsApp button on
     # /lumenlb without us knowing them first) end up in this list.
-    cold = _cold_inbound_wa_ids(payload)
+    cold = _cold_inbound_wa_ids(main_payload)
 
     try:
-        wa.handle_webhook(payload)
+        wa.handle_webhook(main_payload)
     except Exception as e:
         print(f"[whatsapp] webhook handler error: {e}")
 
