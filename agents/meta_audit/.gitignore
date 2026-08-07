@@ -1,0 +1,5 @@
+# Never commit the client token or pulled account data
+.env
+out/
+*.json
+*.csv

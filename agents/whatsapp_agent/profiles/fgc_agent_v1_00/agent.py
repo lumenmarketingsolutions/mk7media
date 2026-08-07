@@ -53,15 +53,19 @@ WHATSAPP_ACCESS_TOKEN = os.environ.get("WHATSAPP_ACCESS_TOKEN", "")
 WHATSAPP_APP_SECRET = os.environ.get("WHATSAPP_APP_SECRET", "")
 WHATSAPP_VERIFY_TOKEN = os.environ.get("WHATSAPP_VERIFY_TOKEN", "mk7-whatsapp-verify")
 
-# Set after coexistence onboarding. Empty = this profile is dormant.
-FGC_PHONE_NUMBER_ID = os.environ.get("FGC_WHATSAPP_PHONE_NUMBER_ID", "")
+# The FGC number's phone-number ID (default = the live value, so routing works
+# without any Railway config; env override kept for emergencies/re-onboarding).
+FGC_PHONE_NUMBER_ID = os.environ.get("FGC_WHATSAPP_PHONE_NUMBER_ID", "1164242853447974")
 FGC_WABA_ID = os.environ.get("FGC_WHATSAPP_WABA_ID", "884373514193136")
 FGC_BUSINESS_NUMBER = "".join(ch for ch in os.environ.get("FGC_WHATSAPP_BUSINESS_NUMBER", "96181873275") if ch.isdigit())
 
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 AGENT_MODEL = os.environ.get("WHATSAPP_AGENT_MODEL", "claude-opus-4-7")
 
-AUTO_REPLY = os.environ.get("FGC_AUTO_REPLY", "1") not in ("0", "false", "False", "")
+# SHADOW MODE BY DEFAULT: the agent logs + emails every conversation but stays
+# silent until FGC_AUTO_REPLY=1 is explicitly set on Railway (Kendall flips it
+# after reviewing shadow output + confirming the whitening-strips pricing).
+AUTO_REPLY = os.environ.get("FGC_AUTO_REPLY", "0") not in ("0", "false", "False", "")
 DB_PATH = os.environ.get("FGC_DB_PATH", "fgc_whatsapp.db")
 
 _default_notify = "marykatezarehghazarian@gmail.com,kendall@lumenmarketing.co"
