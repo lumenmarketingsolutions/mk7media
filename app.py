@@ -1018,6 +1018,62 @@ def whatsapp_receive():
     return "EVENT_RECEIVED", 200
 
 
+@app.route("/fgc-coexistence")
+@admin_required
+def fgc_coexistence_launcher():
+    """One-time launcher for the FGC WhatsApp coexistence embedded-signup flow.
+    Served from mk7media.com so the FB JS SDK gets the HTTPS origin it demands.
+    Admin-gated; harmless to leave in place after onboarding (reusable for
+    future client coexistence setups — swap CONFIG_ID)."""
+    return """<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>FGC WhatsApp Coexistence</title>
+<style>
+  body { font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif; max-width: 720px;
+         margin: 60px auto; padding: 0 24px; color: #1a1a1a; line-height: 1.6; }
+  h1 { font-size: 22px; }
+  button { background: #1877f2; color: #fff; border: none; border-radius: 8px;
+           font-size: 16px; font-weight: 600; padding: 14px 28px; cursor: pointer; }
+  #log { margin-top: 24px; background: #f5f5f5; border-radius: 8px; padding: 16px;
+         font-family: Menlo, monospace; font-size: 12px; white-space: pre-wrap; }
+  .warn { background: #fff6e0; border-left: 4px solid #e0a800; padding: 10px 14px;
+          border-radius: 0 8px 8px 0; font-size: 14px; margin: 16px 0; }
+</style></head><body>
+<h1>Feels Good Club — connect the WhatsApp app number to Cloud API</h1>
+<div class="warn">In the Meta window: choose the <strong>Lumen Marketing</strong> business →
+pick <strong>connect your existing WhatsApp Business app</strong> (do NOT create a new number) →
+enter <strong>+961 81 873 275</strong> → QR appears → MK scans it in her WhatsApp Business app
+and approves chat-history sharing.</div>
+<button onclick="launch()">Launch Meta signup flow</button>
+<div id="log">Ready. Copy everything that appears here to Jarvis when done.</div>
+<script>
+  const APP_ID = "2107067100091646";
+  const CONFIG_ID = "3590341451114523";
+  function log(m){ document.getElementById("log").textContent += "\\n" + m; console.log("[fgc]", m); }
+  window.fbAsyncInit = function () {
+    FB.init({ appId: APP_ID, autoLogAppEvents: true, xfbml: true, version: "v25.0" });
+    log("SDK loaded. App " + APP_ID + ", config " + CONFIG_ID + ".");
+  };
+  window.addEventListener("message", (event) => {
+    if (!String(event.origin).endsWith("facebook.com")) return;
+    try {
+      const d = JSON.parse(event.data);
+      if (d.type === "WA_EMBEDDED_SIGNUP") log("EVENT: " + JSON.stringify(d, null, 2));
+    } catch (e) {}
+  });
+  function launch() {
+    if (typeof FB === "undefined") { log("SDK not loaded yet — wait 2s, click again."); return; }
+    FB.login((r) => { log("Login response: " + JSON.stringify(r, null, 2)); }, {
+      config_id: CONFIG_ID,
+      response_type: "code",
+      override_default_response_type: true,
+      extras: { setup: {}, featureType: "whatsapp_business_app_onboarding", sessionInfoVersion: "3" },
+    });
+  }
+</script>
+<script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
+</body></html>"""
+
+
 @app.route("/admin/whatsapp")
 @admin_required
 def admin_whatsapp():
