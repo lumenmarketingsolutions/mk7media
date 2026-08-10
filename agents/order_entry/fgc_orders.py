@@ -48,6 +48,30 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 PARSE_MODEL = os.environ.get("FGC_ORDER_PARSE_MODEL", "claude-sonnet-5")
 
 _token_cache = {"token": None, "expires": 0}
+_last_errors = []  # ring buffer of recent failures for the /fgc-orders/health endpoint
+
+
+def _record_error(where, err):
+    _last_errors.append({"at": time.strftime("%Y-%m-%d %H:%M:%S"), "where": where, "error": str(err)[:300]})
+    del _last_errors[:-10]
+    print(f"[fgc-orders] {where}: {err}")
+
+
+def health():
+    """Status dict for the admin debug endpoint — no secrets, live checks."""
+    out = {
+        "senders_whitelisted": sorted(FGC_ORDER_SENDERS),
+        "shopify_creds_present": bool(SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET),
+        "anthropic_key_present": bool(ANTHROPIC_API_KEY),
+        "recent_errors": list(_last_errors),
+    }
+    try:
+        _shopify_token()
+        shop = _shopify("GET", "/shop.json?fields=name")
+        out["shopify_connection"] = "OK - " + str((shop.get("shop") or {}).get("name", shop))
+    except Exception as e:
+        out["shopify_connection"] = "FAILED - " + str(e)[:200]
+    return out
 
 
 def is_order_sender(wa_id):
@@ -163,7 +187,18 @@ def handle_order_message(wa_id, text, send_text):
             if not (SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET):
                 send_text(wa_id, "Order bot isn't configured yet (missing store credentials). Tell Kendall.")
                 return
-            parsed = _parse_orders(text)
+            try:
+                _shopify_token()
+            except Exception as e:
+                _record_error("shopify_token", e)
+                send_text(wa_id, "Order bot can't reach the store (credentials rejected). Tell Kendall to check the Shopify vars.")
+                return
+            try:
+                parsed = _parse_orders(text)
+            except Exception as e:
+                _record_error("parse", e)
+                send_text(wa_id, "Order bot couldn't process that message right now (parser error). Try again in a minute.")
+                return
             orders = parsed.get("orders") or []
             if not orders:
                 send_text(wa_id, "I couldn't read an order in that. Format: number / price / city (name and \"2 pcs\" optional).")
@@ -180,7 +215,7 @@ def handle_order_message(wa_id, text, send_text):
                 reply = f"Entered {len(lines)}/{len(orders)} orders:\n" + reply
             send_text(wa_id, reply[:3900])
         except Exception as e:
-            print(f"[fgc-orders] error for {wa_id}: {repr(e)}")
+            _record_error("entry", e)
             try:
                 send_text(wa_id, "Something broke entering that order — Kendall's been notified, try once more or send it to him.")
             except Exception:

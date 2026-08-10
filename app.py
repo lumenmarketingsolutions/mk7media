@@ -1044,6 +1044,13 @@ def whatsapp_receive():
     return "EVENT_RECEIVED", 200
 
 
+@app.route("/fgc-orders/health")
+@admin_required
+def fgc_orders_health():
+    """Debug status for the WhatsApp order-entry bot (no secrets)."""
+    return jsonify(fgc_orders.health())
+
+
 @app.route("/fgc-coexistence")
 @admin_required
 def fgc_coexistence_launcher():
