@@ -11,6 +11,7 @@ from flask import Flask, render_template, request, jsonify, session, redirect, u
 
 from agents.whatsapp_agent import agent as wa  # which profile is live: see ACTIVE_PROFILE in agents/whatsapp_agent/__init__.py
 from agents.whatsapp_agent.profiles.fgc_agent_v1_00 import agent as fgc_wa  # FGC number (coexistence); dormant until FGC_WHATSAPP_PHONE_NUMBER_ID is set
+from agents.order_entry import fgc_orders  # Mary's WhatsApp -> Shopify order bot; dormant until FGC_ORDER_SENDERS is set
 
 app = Flask(__name__)
 
@@ -990,6 +991,27 @@ def whatsapp_receive():
             fgc_entries.append({**entry, "changes": fgc_ch})
         if main_ch:
             main_entries.append({**entry, "changes": main_ch})
+    # Order-entry bot: messages from whitelisted senders (Mary/Kendall) are
+    # orders for the FGC store, not leads — route them to the order bot and
+    # strip them out so the sales agent never replies to an order line.
+    for entry in main_entries:
+        for change in entry.get("changes", []) or []:
+            value = change.get("value", {}) or {}
+            msgs = value.get("messages") or []
+            keep = []
+            for msg in msgs:
+                sender = msg.get("from", "")
+                text = (msg.get("text") or {}).get("body")
+                if fgc_orders.is_order_sender(sender) and text:
+                    print(f"[fgc-orders] order message from {sender}: {text[:80]!r}")
+                    fgc_orders.handle_order_message(sender, text, wa.send_text)
+                elif fgc_orders.is_order_sender(sender):
+                    keep.append(msg)  # non-text from Mary (voice etc) -> normal agent logs it
+                else:
+                    keep.append(msg)
+            if len(keep) != len(msgs):
+                value["messages"] = keep
+
     main_payload = {**payload, "entry": main_entries}
 
     if fgc_entries:
