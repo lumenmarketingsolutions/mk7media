@@ -134,6 +134,34 @@ def _parse_orders(text):
     return json.loads(raw)
 
 
+import re
+
+_LINE_RE = re.compile(
+    r"^\s*(?P<name>[A-Za-z][A-Za-z .']{1,30})?\s*(?P<phone>\+?\d[\d ]{5,14})\s*/\s*\$?\s*(?P<price>\d{1,3})\s*\$?\s*(?:/\s*(?P<rest>.+))?$"
+)
+
+
+def _regex_parse(text):
+    """Deterministic fallback for the standard 'number / price / city' format —
+    works without the Claude API (used when the API call fails, e.g. no credits)."""
+    orders, leftovers = [], []
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        m = _LINE_RE.match(line)
+        if not m:
+            leftovers.append(line)
+            continue
+        rest = (m.group("rest") or "").strip()
+        qty = 2 if re.search(r"2\s*(pcs|pieces|pc)", rest, re.I) else 1
+        city = re.sub(r"/?\s*2\s*(pcs|pieces|pc)\s*/?", "", rest, flags=re.I).strip(" /") or "Lebanon"
+        orders.append({"phone": m.group("phone").replace(" ", ""), "price": int(m.group("price")),
+                       "quantity": qty, "city": city, "name": (m.group("name") or "").strip(),
+                       "address": "", "product": "cap"})
+    return {"orders": orders, "not_orders": "\n".join(leftovers)}
+
+
 def _norm_phone(raw):
     digits = "".join(ch for ch in str(raw) if ch.isdigit())
     if str(raw).strip().startswith("+") and not digits.startswith("961"):
@@ -197,8 +225,10 @@ def handle_order_message(wa_id, text, send_text):
                 parsed = _parse_orders(text)
             except Exception as e:
                 _record_error("parse", e)
-                send_text(wa_id, "Order bot couldn't process that message right now (parser error). Try again in a minute.")
-                return
+                parsed = _regex_parse(text)  # AI parser down (e.g. no API credits) -> deterministic fallback
+                if not parsed.get("orders"):
+                    send_text(wa_id, "Order bot couldn't read that. Use: number / price / city (one order per line).")
+                    return
             orders = parsed.get("orders") or []
             if not orders:
                 send_text(wa_id, "I couldn't read an order in that. Format: number / price / city (name and \"2 pcs\" optional).")
