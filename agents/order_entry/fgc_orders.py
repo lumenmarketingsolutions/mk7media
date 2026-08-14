@@ -35,7 +35,7 @@ CAP_PRICE = 19.99
 VARIANTS = {  # product keyword -> (variant_id, unit_price)
     "cap": (46831330427079, 19.99),
     "patches": (46831330721991, 12.99),
-    "strips": (46831330885831, 24.99),
+    "strips": (46831330885831, 12.00),
 }
 
 FGC_ORDER_SENDERS = {
