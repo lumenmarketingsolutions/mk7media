@@ -10,7 +10,7 @@
 
   "adset": {
     "name": "LB | Broad 18-65 | IG only | WhatsApp",
-    "daily_budget": 3,
+    "daily_budget": 5,
     "destination_type": "WHATSAPP",
     "optimization_goal": "CONVERSATIONS",
     "billing_event": "IMPRESSIONS",
@@ -40,7 +40,8 @@
     "page": "1049776708212835 = Lumen Marketing Co. Its connected IG account is @nllavai (17841448000782948), which becomes the ad identity automatically.",
     "number": "96179018107 = +961 79 018 107, WABA 'Mk7' (4354377681484926), phone id 1099363753253929. CONNECTED, but ON_PREMISE — Meta is retiring that platform, so plan a Cloud API migration.",
     "objective": "Your live Velouria ad set uses OUTCOME_ENGAGEMENT. OUTCOME_LEADS is set here as requested; both are valid with CONVERSATIONS + WHATSAPP.",
-    "budget": "3 = $3.00/day, matching the proven ad set. Change before launching.",
-    "creative": "Not created by this script. The prefilled message and image/video are set on the ad creative — see README."
+    "budget": "5 = $5.00/day.",
+    "creative": "Not created by this script. The prefilled message and image/video are set on the ad creative — see README.",
+    "uploaded_video": "video_id 2113148959237806 (720x1280, 48.5s) is uploaded and ready on the account. Source was 720p; Meta's Reels/Stories spec is 1080x1920, so re-export if a sharper master exists."
   }
 }
