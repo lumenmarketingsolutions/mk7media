@@ -24,7 +24,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 from urllib.request import urlopen, Request
 from urllib.error import HTTPError
 
@@ -123,7 +123,7 @@ def post(version, token, path, params):
     body = {k: v for k, v in params.items() if v is not None}
     body["access_token"] = token
     data = urlencode({
-        k: json.dumps(v) if isinstance(v, (dict, list)) else v for k, v in body.items()
+        k: json.dumps(v) if isinstance(v, (dict, list, bool)) else v for k, v in body.items()
     }).encode()
     url = f"https://graph.facebook.com/{version}/{path}"
     try:
@@ -280,6 +280,59 @@ def check_whatsapp(ver, token, acct, promoted):
     print(f"  ? WhatsApp number {want} is not on business {biz}. Check it before going live.")
 
 
+def video_thumbnail(ver, token, video_id):
+    """Video creatives need a still. Meta auto-generates a set on upload — take its preferred one."""
+    thumbs = get(ver, token, f"{video_id}/thumbnails",
+                 {"fields": "id,uri,is_preferred", "limit": 50}).get("data", [])
+    if not thumbs:
+        return None
+    return next((t for t in thumbs if t.get("is_preferred")), thumbs[0]).get("uri")
+
+
+def create_ad(ver, token, acct, adset_id, ad, promoted, status):
+    """Build the creative and the ad. Returns (creative_id, ad_id)."""
+    story = {"page_id": promoted["page_id"]}
+    if ad.get("instagram_user_id"):
+        story["instagram_user_id"] = ad["instagram_user_id"]
+
+    # The prefilled WhatsApp text rides on the CTA link as ?text=. A bare
+    # api.whatsapp.com/send opens an empty thread — which is what the account's
+    # existing click-to-WhatsApp ads do today.
+    link = "https://api.whatsapp.com/send"
+    if ad.get("whatsapp_prefill"):
+        link += "?text=" + quote(ad["whatsapp_prefill"])
+    cta = {"type": ad.get("call_to_action_type", "WHATSAPP_MESSAGE"),
+           "value": {"app_destination": "WHATSAPP", "link": link}}
+
+    data = {"message": ad.get("message"), "title": ad.get("title"), "call_to_action": cta}
+    if ad.get("video_id"):
+        data["video_id"] = ad["video_id"]
+        thumb = ad.get("image_url") or video_thumbnail(ver, token, ad["video_id"])
+        if not thumb:
+            raise SystemExit("Video has no thumbnail yet — wait for processing, or set ad.image_url.")
+        data["image_url"] = thumb
+        story["video_data"] = data
+    else:
+        data["link"] = link
+        data["image_hash"] = ad.get("image_hash")
+        story["link_data"] = data
+
+    creative_id = post(ver, token, f"{acct}/adcreatives", {
+        "name": ad.get("name", "creative"),
+        "object_story_spec": story,
+    })["id"]
+    print(f"Creative created : {creative_id}")
+
+    ad_id = post(ver, token, f"{acct}/ads", {
+        "name": ad.get("name", "ad"),
+        "adset_id": adset_id,
+        "creative": {"creative_id": creative_id},
+        "status": status,
+    })["id"]
+    print(f"Ad created       : {ad_id}")
+    return creative_id, ad_id
+
+
 def plan(cfg, currency, status):
     camp, adset = cfg["campaign"], cfg["adset"]
     t = adset.get("targeting", {})
@@ -321,6 +374,24 @@ def plan(cfg, currency, status):
         print(f"           starts {adset['start_time']}")
     if adset.get("end_time"):
         print(f"           ends   {adset['end_time']}")
+
+    ad = cfg.get("ad")
+    if not ad:
+        print("Ad       : none — creates the ad set only, add creative in Ads Manager")
+    else:
+        print(f"Ad       : {ad.get('name')}")
+        if ad.get("video_id"):
+            print(f"           video {ad['video_id']}")
+        if ad.get("instagram_user_id"):
+            print(f"           IG identity {ad['instagram_user_id']}")
+        if ad.get("title"):
+            print(f"           headline \"{ad['title']}\"")
+        if ad.get("message"):
+            msg = " ".join(ad["message"].split())
+            print(f"           text     \"{msg[:64]}{'...' if len(msg) > 64 else ''}\"")
+        pre = ad.get("whatsapp_prefill")
+        print(f"           prefill  \"{pre}\"" if pre else
+              "           prefill  (none — opens an empty thread)")
     print("-" * 61)
 
 
@@ -353,10 +424,15 @@ def main():
 
     camp, adset = cfg["campaign"], cfg["adset"]
 
+    has_cbo = bool(camp.get("daily_budget") or camp.get("lifetime_budget"))
     campaign_id = post(ver, token, f"{acct}/campaigns", {
         "name": camp["name"],
         "objective": camp["objective"],
         "status": status,
+        # Required by Meta on non-CBO campaigns: opts ad sets into lending 20% of their
+        # budget to each other. Off by default — with one ad set it does nothing anyway.
+        "is_adset_budget_sharing_enabled": None if has_cbo else
+                                           bool(camp.get("adset_budget_sharing", False)),
         "special_ad_categories": camp.get("special_ad_categories", []),
         "buying_type": camp.get("buying_type", "AUCTION"),
         "daily_budget": to_minor(camp.get("daily_budget"), currency),
@@ -392,7 +468,11 @@ def main():
         raise
 
     print(f"Ad set created  : {adset_id}")
-    print(f"\nBoth are {status}. Next: add creative and an ad to ad set {adset_id} in Ads Manager:")
+
+    if cfg.get("ad"):
+        create_ad(ver, token, acct, adset_id, cfg["ad"], adset.get("promoted_object") or {}, status)
+
+    print(f"\nEverything is {status}. Review before setting it live:")
     print(f"  https://adsmanager.facebook.com/adsmanager/manage/ads?act={acct.replace('act_', '')}"
           f"&selected_adset_ids={adset_id}")
 

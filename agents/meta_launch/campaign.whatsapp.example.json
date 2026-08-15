@@ -36,6 +36,16 @@
     }
   },
 
+  "ad": {
+    "name": "Lumen | Free Audit | LB | IG | 9x16",
+    "video_id": "2113148959237806",
+    "instagram_user_id": "17841448000782948",
+    "title": "Free ad audit",
+    "message": "Getting likes but no customers? We run Instagram ads for businesses across Lebanon that put real buyers into your WhatsApp — not just followers. Message us for a free audit and we'll show you where your sales are leaking.",
+    "whatsapp_prefill": "I want the free ad audit for my business.",
+    "call_to_action_type": "WHATSAPP_MESSAGE"
+  },
+
   "_notes": {
     "page": "1049776708212835 = Lumen Marketing Co. Its connected IG account is @nllavai (17841448000782948), which becomes the ad identity automatically.",
     "number": "96179018107 = +961 79 018 107, WABA 'Mk7' (4354377681484926), phone id 1099363753253929. CONNECTED, but ON_PREMISE — Meta is retiring that platform, so plan a Cloud API migration.",
