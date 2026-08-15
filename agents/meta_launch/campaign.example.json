@@ -1,0 +1,63 @@
+{
+  "_comment": "Copy to campaign.json and edit. Budgets are in your account's currency (50 = $50), not cents — launch.py converts. Set budget on EITHER campaign (CBO) or adset, never both.",
+
+  "campaign": {
+    "name": "MK7 — Q3 Traffic — Prospecting",
+    "objective": "OUTCOME_TRAFFIC",
+    "special_ad_categories": [],
+    "buying_type": "AUCTION"
+  },
+
+  "adset": {
+    "name": "US 25-54 — Broad — Feeds",
+    "daily_budget": 50,
+    "optimization_goal": "LANDING_PAGE_VIEWS",
+    "billing_event": "IMPRESSIONS",
+    "bid_strategy": "LOWEST_COST_WITHOUT_CAP",
+    "start_time": null,
+    "end_time": null,
+
+    "targeting": {
+      "geo_locations": {
+        "countries": ["US"]
+      },
+      "age_min": 25,
+      "age_max": 54,
+      "targeting_automation": { "advantage_audience": 1 },
+      "publisher_platforms": ["facebook", "instagram"],
+      "facebook_positions": ["feed"],
+      "instagram_positions": ["stream"]
+    }
+  },
+
+  "_examples": {
+    "objectives": [
+      "OUTCOME_AWARENESS", "OUTCOME_TRAFFIC", "OUTCOME_ENGAGEMENT",
+      "OUTCOME_LEADS", "OUTCOME_APP_PROMOTION", "OUTCOME_SALES"
+    ],
+    "special_ad_categories": [
+      "Use [] for most ads. Required by law for: CREDIT, EMPLOYMENT, HOUSING,",
+      "SOCIAL_ISSUES, ELECTIONS, POLITICS. Declaring one restricts targeting",
+      "(no age/gender/detailed targeting, and geo limited to a 15-mile radius)."
+    ],
+    "lead_gen_adset": {
+      "optimization_goal": "LEAD_GENERATION",
+      "promoted_object": { "page_id": "YOUR_PAGE_ID" }
+    },
+    "conversions_adset": {
+      "optimization_goal": "OFFSITE_CONVERSIONS",
+      "promoted_object": { "pixel_id": "YOUR_PIXEL_ID", "custom_event_type": "PURCHASE" }
+    },
+    "lifetime_budget_adset": {
+      "lifetime_budget": 1500,
+      "start_time": "2026-09-01T00:00:00-0500",
+      "end_time": "2026-09-30T23:59:59-0500"
+    },
+    "narrower_targeting": {
+      "geo_locations": { "cities": [{ "key": "2418779", "radius": 25, "distance_unit": "mile" }] },
+      "genders": [1],
+      "flexible_spec": [{ "interests": [{ "id": "6003107902433", "name": "Small business" }] }],
+      "excluded_custom_audiences": [{ "id": "YOUR_AUDIENCE_ID" }]
+    }
+  }
+}

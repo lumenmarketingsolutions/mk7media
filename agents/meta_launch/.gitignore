@@ -1,0 +1,4 @@
+# Never commit the token or a real campaign config
+.env
+campaign.json
+out/
