@@ -1,0 +1,46 @@
+{
+  "_comment": "Click-to-WhatsApp, Instagram-only, Lebanon. Modelled on the proven live ad set 'WhatsApp | LB | IG only' (120246941498190591). The destination number lives in promoted_object — it is NOT inherited from the Page, so any connected number on the business works with any Page you own.",
+
+  "campaign": {
+    "name": "Lumen | WhatsApp Leads | LB | IG only",
+    "objective": "OUTCOME_LEADS",
+    "special_ad_categories": [],
+    "buying_type": "AUCTION"
+  },
+
+  "adset": {
+    "name": "LB | Broad 18-65 | IG only | WhatsApp",
+    "daily_budget": 3,
+    "destination_type": "WHATSAPP",
+    "optimization_goal": "CONVERSATIONS",
+    "billing_event": "IMPRESSIONS",
+    "bid_strategy": "LOWEST_COST_WITHOUT_CAP",
+
+    "promoted_object": {
+      "page_id": "1049776708212835",
+      "whatsapp_phone_number": "96179018107",
+      "whats_app_business_phone_number_id": "1099363753253929",
+      "smart_pse_enabled": false
+    },
+
+    "targeting": {
+      "geo_locations": {
+        "countries": ["LB"],
+        "location_types": ["home", "recent"]
+      },
+      "age_min": 18,
+      "age_max": 65,
+      "targeting_automation": { "advantage_audience": 1 },
+      "publisher_platforms": ["instagram"],
+      "instagram_positions": ["stream", "story", "explore", "reels"]
+    }
+  },
+
+  "_notes": {
+    "page": "1049776708212835 = Lumen Marketing Co. Its connected IG account is @nllavai (17841448000782948), which becomes the ad identity automatically.",
+    "number": "96179018107 = +961 79 018 107, WABA 'Mk7' (4354377681484926), phone id 1099363753253929. CONNECTED, but ON_PREMISE — Meta is retiring that platform, so plan a Cloud API migration.",
+    "objective": "Your live Velouria ad set uses OUTCOME_ENGAGEMENT. OUTCOME_LEADS is set here as requested; both are valid with CONVERSATIONS + WHATSAPP.",
+    "budget": "3 = $3.00/day, matching the proven ad set. Change before launching.",
+    "creative": "Not created by this script. The prefilled message and image/video are set on the ad creative — see README."
+  }
+}

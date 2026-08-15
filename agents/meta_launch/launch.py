@@ -52,6 +52,14 @@ ZERO_DECIMAL = {
 NEEDS_PIXEL = {"OFFSITE_CONVERSIONS", "VALUE"}
 NEEDS_PAGE = {"LEAD_GENERATION", "PAGE_LIKES", "EVENT_RESPONSES", "CONVERSATIONS"}
 
+# Where the click lands. Click-to-WhatsApp ad sets set this to WHATSAPP and carry the
+# destination number in promoted_object — the number is NOT inherited from the Page.
+DESTINATION_TYPES = {
+    "WEBSITE", "APP", "MESSENGER", "WHATSAPP", "INSTAGRAM_DIRECT", "PHONE_CALL",
+    "ON_AD", "ON_POST", "ON_EVENT", "ON_VIDEO", "ON_PAGE",
+    "MESSAGING_INSTAGRAM_DIRECT_WHATSAPP", "UNDEFINED",
+}
+
 
 def load_env():
     """Same contract as meta_audit/pull.py — .env file, overridden by the real environment."""
@@ -197,6 +205,19 @@ def validate(cfg):
     if goal in NEEDS_PAGE and not promoted.get("page_id"):
         problems.append(f"optimization_goal {goal} requires promoted_object.page_id.")
 
+    dest = adset.get("destination_type")
+    if dest and dest not in DESTINATION_TYPES:
+        problems.append(f"adset.destination_type must be one of: {', '.join(sorted(DESTINATION_TYPES))}")
+    if dest == "WHATSAPP":
+        if not promoted.get("page_id"):
+            problems.append("destination_type WHATSAPP requires promoted_object.page_id.")
+        num = str(promoted.get("whatsapp_phone_number", ""))
+        if not num:
+            problems.append("destination_type WHATSAPP requires promoted_object.whatsapp_phone_number.")
+        elif not num.isdigit():
+            problems.append("promoted_object.whatsapp_phone_number must be digits only — country code, "
+                            "no '+', spaces or dashes (e.g. 96179018107).")
+
     if problems:
         sys.exit("Config problems:\n" + "\n".join(f"  - {p}" for p in problems))
 
@@ -220,6 +241,43 @@ def preflight(ver, token, acct):
     if not acc.get("funding_source"):
         print("  ! No funding source on the account. Add a payment method before activating.")
     return currency
+
+
+def check_whatsapp(ver, token, acct, promoted):
+    """Report the destination number's registration state before we spend anything.
+
+    Caveat worth knowing: `status` describes the Cloud/On-Premise API client connection,
+    NOT whether a person receives messages on that handset. An ON_PREMISE number can sit
+    at DISCONNECTED and still take click-to-WhatsApp conversations perfectly well, because
+    the chat opens in the WhatsApp Business app rather than through the API. So this warns,
+    it does not block — confirm against real messaging results before believing it broken.
+    """
+    want = str(promoted.get("whatsapp_phone_number", ""))
+    biz = (get(ver, token, acct, {"fields": "business"}).get("business") or {}).get("id")
+    if not biz:
+        print(f"  ? No parent business on {acct} — can't verify WhatsApp number {want}.")
+        return
+    wabas = get(ver, token, f"{biz}/owned_whatsapp_business_accounts", {
+        "fields": "id,name,phone_numbers{display_phone_number,verified_name,status,"
+                  "quality_rating,platform_type}",
+        "limit": 100,
+    }).get("data", [])
+    for w in wabas:
+        for p in (w.get("phone_numbers") or {}).get("data", []):
+            if "".join(c for c in p.get("display_phone_number", "") if c.isdigit()) == want:
+                ok = p.get("status") == "CONNECTED"
+                print(f"  {'ok' if ok else '??'} WhatsApp {p['display_phone_number']} "
+                      f"\"{p.get('verified_name')}\" status={p.get('status')} "
+                      f"quality={p.get('quality_rating')} platform={p.get('platform_type')} "
+                      f"(WABA {w.get('name')})")
+                if not ok and p.get("platform_type") == "ON_PREMISE":
+                    print("     ON_PREMISE numbers often report DISCONNECTED while still taking "
+                          "conversations.\n     Check recent messaging results rather than trusting "
+                          "this field.")
+                elif not ok:
+                    print("     Not connected. Verify it can receive messages before going live.")
+                return
+    print(f"  ? WhatsApp number {want} is not on business {biz}. Check it before going live.")
 
 
 def plan(cfg, currency, status):
@@ -247,6 +305,14 @@ def plan(cfg, currency, status):
         print(f"           lifetime budget {money(adset['lifetime_budget'], currency)}")
     print(f"           optimize for {adset.get('optimization_goal', '-')}, "
           f"billed on {adset.get('billing_event', 'IMPRESSIONS')}")
+    if adset.get("destination_type"):
+        promoted = adset.get("promoted_object") or {}
+        dest = adset["destination_type"]
+        if promoted.get("whatsapp_phone_number"):
+            dest += f" -> +{promoted['whatsapp_phone_number']}"
+        print(f"           destination {dest}")
+        if promoted.get("page_id"):
+            print(f"           page {promoted['page_id']}")
     print(f"           bid strategy {adset.get('bid_strategy', 'LOWEST_COST_WITHOUT_CAP')}")
     print(f"           geo {where} | age {t.get('age_min', 18)}-{t.get('age_max', 65)}")
     if t.get("publisher_platforms"):
@@ -272,6 +338,8 @@ def main():
 
     status = "ACTIVE" if args.activate else "PAUSED"
     currency = preflight(ver, token, acct)
+    if cfg["adset"].get("destination_type") == "WHATSAPP":
+        check_whatsapp(ver, token, acct, cfg["adset"].get("promoted_object") or {})
     plan(cfg, currency, status)
 
     if not args.go:
@@ -306,6 +374,7 @@ def main():
             "billing_event": adset.get("billing_event", "IMPRESSIONS"),
             "optimization_goal": adset.get("optimization_goal"),
             "bid_strategy": adset.get("bid_strategy", "LOWEST_COST_WITHOUT_CAP"),
+            "destination_type": adset.get("destination_type"),
             "bid_amount": to_minor(adset.get("bid_amount"), currency),
             "daily_budget": to_minor(adset.get("daily_budget"), currency),
             "lifetime_budget": to_minor(adset.get("lifetime_budget"), currency),

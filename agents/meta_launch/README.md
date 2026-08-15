@@ -45,6 +45,32 @@ the matching category — this is a legal requirement, not a Meta preference, an
 restricts the targeting Meta will accept (no age or gender targeting, limited geo radius).
 Getting it wrong is grounds for account restriction, so it is worth a second look.
 
+## Click-to-WhatsApp
+
+See `campaign.whatsapp.example.json` for a working CTWA config. The parts that matter:
+
+```json
+"destination_type": "WHATSAPP",
+"optimization_goal": "CONVERSATIONS",
+"promoted_object": {
+  "page_id": "...",
+  "whatsapp_phone_number": "96179018107",
+  "whats_app_business_phone_number_id": "...",
+  "smart_pse_enabled": false
+}
+```
+
+The destination number lives in `promoted_object` and is **not** inherited from the Page, so
+any connected number on the business pairs with any Page you own. `whatsapp_phone_number` is
+digits only — country code, no `+`, spaces or dashes.
+
+Preflight reports the number's registration state, but treat it as informational. `status`
+describes the Cloud/On-Premise **API client** connection, not whether a person receives
+messages on that handset. An `ON_PREMISE` number routinely reads `DISCONNECTED` while still
+taking conversations, because the chat opens in the WhatsApp Business app rather than through
+the API. The trustworthy signal is `onsite_conversion.messaging_conversation_started_7d` in
+the ad set's insights — if conversations are landing, the number works regardless of `status`.
+
 ## Scope
 
 Creates the campaign shell and the ad set (targeting, budget, schedule, optimization). It does
