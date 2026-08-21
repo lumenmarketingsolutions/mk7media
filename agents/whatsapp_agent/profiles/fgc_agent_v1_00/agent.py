@@ -180,6 +180,11 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_wa_messages_waid ON wa_messages(wa_id, created_at);
         CREATE UNIQUE INDEX IF NOT EXISTS idx_wa_messages_wamid
             ON wa_messages(wamid) WHERE wamid IS NOT NULL;
+        CREATE TABLE IF NOT EXISTS wa_history_raw (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            payload     TEXT NOT NULL,
+            received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
         """
     )
     conn.commit()
@@ -383,6 +388,67 @@ def _last_inbound_body(wa_id):
 
 
 # ── Inbound handling ─────────────────────────────────────────────────────────
+def _handle_history_sync(value):
+    """COEXISTENCE history sync: after MK scans the onboarding QR with
+    chat-history sharing enabled, Meta pushes her past conversations (up to
+    ~6 months) in chunked `history` webhook payloads. Pure receive-side:
+    nothing is sent, nothing on the phone is touched. We raw-dump every
+    payload (lossless, the push only happens once) and best-effort parse
+    messages into wa_messages with their ORIGINAL timestamps. Historical
+    messages NEVER trigger agent replies."""
+    conn = _conn()
+    conn.execute("INSERT INTO wa_history_raw (payload) VALUES (?)",
+                 (json.dumps(value, ensure_ascii=False),))
+    conn.commit()
+    conn.close()
+
+    n_msgs = 0
+    for chunk in value.get("history") or []:
+        phase = (chunk.get("metadata") or {}).get("phase")
+        for thread in chunk.get("threads") or []:
+            wa_id = "".join(ch for ch in str(thread.get("id") or "") if ch.isdigit())
+            if not wa_id or wa_id == FGC_BUSINESS_NUMBER:
+                continue
+            _upsert_contact(wa_id)
+            for m in thread.get("messages") or []:
+                sender = "".join(ch for ch in str(m.get("from") or "") if ch.isdigit())
+                direction = "out_app" if sender == FGC_BUSINESS_NUMBER else "in"
+                body = _extract_text(m)
+                if body is None:
+                    body = f"[{m.get('type') or 'unknown'} message]"
+                ts = m.get("timestamp")
+                conn = _conn()
+                cur = conn.execute(
+                    "INSERT OR IGNORE INTO wa_messages "
+                    "(wa_id, direction, msg_type, body, wamid, status, created_at) "
+                    "VALUES (?, ?, ?, ?, ?, 'history', "
+                    "COALESCE(datetime(?, 'unixepoch'), CURRENT_TIMESTAMP))",
+                    (wa_id, direction, m.get("type") or "text", body, m.get("id"),
+                     ts if ts and str(ts).isdigit() else None),
+                )
+                n_msgs += cur.rowcount
+                conn.commit()
+                conn.close()
+        print(f"[fgc-wa] history sync: phase {phase}, {n_msgs} messages stored so far")
+    print(f"[fgc-wa] history sync payload processed: {n_msgs} new messages")
+
+
+def _handle_state_sync(value):
+    """COEXISTENCE contact sync (smb_app_state_sync): MK's saved contact
+    names from her phone. Read-only upsert of names into wa_contacts."""
+    n = 0
+    for item in value.get("state_sync") or []:
+        if (item.get("type") or "") != "contact":
+            continue
+        contact = item.get("contact") or {}
+        wa_id = "".join(ch for ch in str(contact.get("phone_number") or "") if ch.isdigit())
+        name = contact.get("full_name") or contact.get("first_name")
+        if wa_id and name:
+            _upsert_contact(wa_id, profile_name=name)
+            n += 1
+    print(f"[fgc-wa] state sync: {n} contact names updated")
+
+
 def is_fgc_event(value):
     """True when this webhook change belongs to the FGC number. Dormant (always
     False) until FGC_WHATSAPP_PHONE_NUMBER_ID is configured."""
@@ -398,6 +464,15 @@ def handle_webhook(payload):
         for change in entry.get("changes", []) or []:
             value = change.get("value", {}) or {}
             if not is_fgc_event(value):
+                continue
+
+            # COEXISTENCE onboarding syncs (one-time pushes after QR scan).
+            # Handled fully here; historical messages never reach the reply path.
+            if value.get("history"):
+                _handle_history_sync(value)
+                continue
+            if value.get("state_sync"):
+                _handle_state_sync(value)
                 continue
 
             # Delivery/read receipts for our outbound messages.
