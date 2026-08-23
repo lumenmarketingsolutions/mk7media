@@ -1044,6 +1044,63 @@ def whatsapp_receive():
     return "EVENT_RECEIVED", 200
 
 
+@app.route("/fgc-wa/debug")
+@admin_required
+def fgc_wa_debug():
+    """FGC WhatsApp agent: DB state + coexistence history-sync status."""
+    import sqlite3 as _sq
+    out = {"db_path": fgc_wa.DB_PATH,
+           "config": {"phone_number_id": fgc_wa.FGC_PHONE_NUMBER_ID,
+                      "auto_reply": fgc_wa.AUTO_REPLY,
+                      "reply_delay": fgc_wa.REPLY_DELAY,
+                      "snooze_hours": fgc_wa.HUMAN_SNOOZE_HOURS}}
+    try:
+        conn = _sq.connect(fgc_wa.DB_PATH); conn.row_factory = _sq.Row
+        tables = [r[0] for r in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'")]
+        out["tables"] = tables
+        def count(t):
+            try: return conn.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
+            except Exception: return None
+        out["counts"] = {t: count(t) for t in tables}
+        if "wa_messages" in tables:
+            out["by_source"] = {r["source"]: r["n"] for r in conn.execute(
+                "SELECT COALESCE(source,'live') AS source, COUNT(*) AS n "
+                "FROM wa_messages GROUP BY 1")}
+            out["recent"] = [dict(r) for r in conn.execute(
+                "SELECT * FROM wa_messages ORDER BY id DESC LIMIT 40")]
+        if "wa_contacts" in tables:
+            out["contacts"] = [dict(r) for r in conn.execute(
+                "SELECT * FROM wa_contacts ORDER BY wa_id")]
+        conn.close()
+    except Exception as e:
+        out["error"] = str(e)
+    return jsonify(out)
+
+
+@app.route("/fgc-wa/export")
+@admin_required
+def fgc_wa_export():
+    """Conversation transcripts, oldest-first per contact — training corpus."""
+    import sqlite3 as _sq
+    from collections import defaultdict
+    convos = defaultdict(list)
+    try:
+        conn = _sq.connect(fgc_wa.DB_PATH); conn.row_factory = _sq.Row
+        for r in conn.execute(
+                "SELECT wa_id, direction, body, created_at, source "
+                "FROM wa_messages ORDER BY created_at ASC, id ASC"):
+            if not (r["body"] or "").strip():
+                continue
+            convos[r["wa_id"]].append({"dir": r["direction"], "text": r["body"],
+                                       "at": r["created_at"], "src": r["source"]})
+        conn.close()
+    except Exception as e:
+        return jsonify({"error": str(e)})
+    return jsonify({"conversations": convos, "n_contacts": len(convos),
+                    "n_messages": sum(len(v) for v in convos.values())})
+
+
 @app.route("/fgc-orders/health")
 @admin_required
 def fgc_orders_health():
