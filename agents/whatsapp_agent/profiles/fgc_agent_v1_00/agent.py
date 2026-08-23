@@ -76,6 +76,9 @@ RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 MONITOR_ON = os.environ.get("FGC_MONITOR", "1") not in ("0", "false", "False", "")
 MONITOR_EMAILS = [e.strip() for e in os.environ.get(
     "FGC_MONITOR_EMAILS", "kendall@lumenmarketing.co").split(",") if e.strip()]
+# Same monitoring, pushed to WhatsApp. Sent FROM the Lumen Cloud API number.
+MONITOR_WA = [n.strip() for n in os.environ.get(
+    "FGC_MONITOR_WA", "12085910132").split(",") if n.strip()]
 
 # Humanized reply delay (seconds): "min-max".
 try:
@@ -623,6 +626,32 @@ def _admin_monitor(wa_id, customer_msg, agent_reply, handoff=False, note=""):
                   "html": html},
             timeout=10,
         )
+
+        # WhatsApp mirror of the same event
+        if MONITOR_WA and WHATSAPP_ACCESS_TOKEN:
+            loc_txt = ""
+            if contact.get("last_lat") is not None:
+                loc_txt = (f"\nLocation: https://maps.google.com/?q="
+                           f"{contact['last_lat']},{contact['last_lng']}")
+            wa_body = (f"{state}\n"
+                       f"{name} · {product} · turn {turns}\n\n"
+                       f"Them: {(customer_msg or '-')[:220]}\n"
+                       f"Agent: {(agent_reply or '(silent)')[:220]}"
+                       f"{loc_txt}"
+                       + (f"\nNote: {note}" if note else "")
+                       + f"\n\nhttps://wa.me/{wa_id}")
+            for to in MONITOR_WA:
+                try:
+                    requests.post(
+                        f"{GRAPH_BASE}/{LUMEN_NOTIFY_PHONE_ID}/messages",
+                        headers={"Authorization": f"Bearer {WHATSAPP_ACCESS_TOKEN}",
+                                 "Content-Type": "application/json"},
+                        json={"messaging_product": "whatsapp", "to": to,
+                              "type": "text", "text": {"body": wa_body[:3900]}},
+                        timeout=10,
+                    )
+                except Exception as e:
+                    print(f"[fgc-wa] monitor WA to {to} failed: {e}")
     except Exception as e:
         print(f"[fgc-wa] monitor email failed: {e}")
 
