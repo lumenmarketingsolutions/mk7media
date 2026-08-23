@@ -1064,8 +1064,8 @@ def fgc_wa_debug():
             except Exception: return None
         out["counts"] = {t: count(t) for t in tables}
         if "wa_messages" in tables:
-            out["by_source"] = {r["source"]: r["n"] for r in conn.execute(
-                "SELECT COALESCE(source,'live') AS source, COUNT(*) AS n "
+            out["by_status"] = {r["status"]: r["n"] for r in conn.execute(
+                "SELECT COALESCE(status,'live') AS status, COUNT(*) AS n "
                 "FROM wa_messages GROUP BY 1")}
             out["recent"] = [dict(r) for r in conn.execute(
                 "SELECT * FROM wa_messages ORDER BY id DESC LIMIT 40")]
@@ -1088,12 +1088,12 @@ def fgc_wa_export():
     try:
         conn = _sq.connect(fgc_wa.DB_PATH); conn.row_factory = _sq.Row
         for r in conn.execute(
-                "SELECT wa_id, direction, body, created_at, source "
+                "SELECT wa_id, direction, body, created_at, status "
                 "FROM wa_messages ORDER BY created_at ASC, id ASC"):
             if not (r["body"] or "").strip():
                 continue
             convos[r["wa_id"]].append({"dir": r["direction"], "text": r["body"],
-                                       "at": r["created_at"], "src": r["source"]})
+                                       "at": r["created_at"], "src": r["status"]})
         conn.close()
     except Exception as e:
         return jsonify({"error": str(e)})
