@@ -79,7 +79,7 @@ MONITOR_EMAILS = [e.strip() for e in os.environ.get(
 
 # Humanized reply delay (seconds): "min-max".
 try:
-    _lo, _hi = os.environ.get("FGC_REPLY_DELAY", "20-60").split("-")
+    _lo, _hi = os.environ.get("FGC_REPLY_DELAY", "0-0").split("-")
     REPLY_DELAY = (max(0, int(_lo)), max(int(_lo), int(_hi)))
 except Exception:
     REPLY_DELAY = (20, 60)
@@ -95,6 +95,11 @@ HANDOFF_MEDIA_TYPES = {"audio", "voice", "video", "image", "document"}
 # replying to a months-old thread get no reply — we never saw that history, so
 # any answer would be guesswork. MK handles those in her app as she always has.
 AD_PREFILL_MARKERS = ("more info on this", "مزيد من المعلومات", "المعلومات حول هذا")
+# The WhatsApp Business app fires an automated greeting ("Hello this item is for
+# $12 / Would you like to order?"). It arrives as an app echo, identical in shape
+# to MK typing by hand. If we snooze on it, the agent silences itself on EVERY
+# new lead. These markers identify the canned greeting so we ignore it.
+GREETING_MARKERS = ("would you like to order", "this item is for")
 # Where handoff pings go: the FGC number itself, so the alert lands in the
 # WhatsApp Business app MK already works in. Sent FROM the Lumen Cloud API number.
 LUMEN_NOTIFY_PHONE_ID = os.environ.get("LUMEN_NOTIFY_PHONE_ID", "1082296231636502")
@@ -747,8 +752,12 @@ def handle_webhook(payload):
                 _record_message(to_id, "out_app", echo.get("type") or "text",
                                 body if body is not None else f"[{echo.get('type')} message]",
                                 wamid=echo.get("id"))
-                snooze_contact(to_id)
-                print(f"[fgc-wa] app echo -> {to_id}: MK replied from phone, snoozing agent {HUMAN_SNOOZE_HOURS}h")
+                low = (body or "").lower()
+                if low and any(g in low for g in GREETING_MARKERS):
+                    print(f"[fgc-wa] app echo -> {to_id}: automated greeting, NOT a human takeover")
+                else:
+                    snooze_contact(to_id)
+                    print(f"[fgc-wa] app echo -> {to_id}: MK replied from phone, snoozing agent {HUMAN_SNOOZE_HOURS}h")
 
             profiles = {}
             for c in value.get("contacts", []) or []:
@@ -878,7 +887,8 @@ def _reply_async(wa_id, trigger_wamid=None):
         # Humanized pacing: wait, then re-check that MK hasn't jumped in and the
         # customer hasn't sent something newer (people often send 3 messages in
         # a row — reply once to the latest, not three times).
-        time.sleep(random.uniform(*REPLY_DELAY))
+        if REPLY_DELAY[1] > 0:
+            time.sleep(random.uniform(*REPLY_DELAY))
         contact = get_contact(wa_id) or {}
         if _is_snoozed(contact) or contact.get("status") in ("handed_off", "opted_out"):
             print(f"[fgc-wa] _reply_async {wa_id}: human took over during delay, standing down")
