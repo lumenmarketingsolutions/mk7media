@@ -1044,6 +1044,25 @@ def whatsapp_receive():
     return "EVENT_RECEIVED", 200
 
 
+@app.route("/fgc-wa/unsnooze", methods=["GET", "POST"])
+@admin_required
+def fgc_wa_unsnooze():
+    """Clear agent snoozes. The app's automated greeting used to be mistaken for
+    MK taking over, which snoozed every new lead for 4h. Use after that fix, or
+    any time you want the agent back on all threads."""
+    import sqlite3 as _sq
+    conn = _sq.connect(fgc_wa.DB_PATH)
+    n = conn.execute("UPDATE wa_contacts SET human_snooze_until = NULL "
+                     "WHERE human_snooze_until IS NOT NULL").rowcount
+    m = 0
+    if request.args.get("release_handoffs") == "1":
+        m = conn.execute("UPDATE wa_contacts SET status = 'active' "
+                         "WHERE status = 'handed_off'").rowcount
+    conn.commit()
+    conn.close()
+    return jsonify({"snoozes_cleared": n, "handoffs_released": m})
+
+
 @app.route("/fgc-wa/debug")
 @admin_required
 def fgc_wa_debug():
