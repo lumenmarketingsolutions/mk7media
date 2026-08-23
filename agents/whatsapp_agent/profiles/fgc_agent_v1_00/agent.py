@@ -86,10 +86,11 @@ MAX_OUTBOUND_CHARS = 4000
 HANDOFF_TOKEN = "[[HANDOFF]]"
 # Media the agent cannot interpret -> straight to MK, no reply attempted.
 HANDOFF_MEDIA_TYPES = {"audio", "voice", "video", "image", "document"}
-# Where handoff pings go. WhatsApp ping is sent FROM the Lumen Cloud API number.
+# Where handoff pings go: the FGC number itself, so the alert lands in the
+# WhatsApp Business app MK already works in. Sent FROM the Lumen Cloud API number.
 LUMEN_NOTIFY_PHONE_ID = os.environ.get("LUMEN_NOTIFY_PHONE_ID", "1082296231636502")
 HANDOFF_WA_NUMBERS = [n.strip() for n in os.environ.get(
-    "FGC_HANDOFF_WA", "96179018107,12085910132").split(",") if n.strip()]
+    "FGC_HANDOFF_WA", "96181873275").split(",") if n.strip()]
 OPT_OUT_WORDS = {"stop", "unsubscribe", "opt out", "optout", "remove me", "stop messaging"}
 
 # ── The agent's persona / brain ──────────────────────────────────────────────
