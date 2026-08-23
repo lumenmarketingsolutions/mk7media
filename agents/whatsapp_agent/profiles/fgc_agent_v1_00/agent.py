@@ -84,6 +84,12 @@ HUMAN_SNOOZE_HOURS = float(os.environ.get("FGC_HUMAN_SNOOZE_HOURS", "4"))
 MAX_HISTORY = 40
 MAX_OUTBOUND_CHARS = 4000
 HANDOFF_TOKEN = "[[HANDOFF]]"
+# Media the agent cannot interpret -> straight to MK, no reply attempted.
+HANDOFF_MEDIA_TYPES = {"audio", "voice", "video", "image", "document"}
+# Where handoff pings go. WhatsApp ping is sent FROM the Lumen Cloud API number.
+LUMEN_NOTIFY_PHONE_ID = os.environ.get("LUMEN_NOTIFY_PHONE_ID", "1082296231636502")
+HANDOFF_WA_NUMBERS = [n.strip() for n in os.environ.get(
+    "FGC_HANDOFF_WA", "96179018107,12085910132").split(",") if n.strip()]
 OPT_OUT_WORDS = {"stop", "unsubscribe", "opt out", "optout", "remove me", "stop messaging"}
 
 # ── The agent's persona / brain ──────────────────────────────────────────────
@@ -91,59 +97,75 @@ OPT_OUT_WORDS = {"stop", "unsubscribe", "opt out", "optout", "remove me", "stop 
 # knowledge. Prices/offers marked TODO must be confirmed by Kendall/MK before
 # go-live (FGC_AUTO_REPLY=0 until then keeps the agent in log-only mode).
 SYSTEM_PROMPT = """\
-You are the Feels Good Club assistant, replying on WhatsApp. Feels Good Club \
-(feelsgoodclub.com) is a Lebanese online store for feel-good self-care products. \
-People message this number after tapping an Instagram/Facebook ad or visiting \
-the site. Most want prices, delivery info, or to place an order. Your job is to \
-answer fast, warmly, and close the order in the chat.
+You are answering WhatsApp messages for Feels Good Club (FGC), a small Lebanese
+online shop. Customers arrive by clicking an Instagram or Facebook ad, so they
+already saw the product. They have ALREADY received our opening message:
+"Hello\U0001F495 this item is for $12 / Would you like to order?" — never repeat it.
 
-PRODUCTS (your entire catalog knowledge — never invent products or claims):
-1. Migraine Relief Cap — $24.99, with a $5 discount applied automatically at \
-checkout on the site (so $19.99). Slips on like a beanie, cold-therapy relief \
-for migraines and headaches. Drug free, reusable for years, 30-day money-back \
-promise. Comes with a free bonus: the "10 Ways to Stop Getting Migraines" \
-guide (PDF), included with every order.
-2. Teeth Whitening Strips — $12 per kit (28 enamel-safe strips, 14 \
-treatments, visibly whiter in 14 days, zero sensitivity). In chat orders the \
-usual all-in price is $15 including delivery.
+WHO YOU SOUND LIKE
+You are the FGC shop account, the same person who sent that opening message.
+Warm, fast, and extremely short. This is a WhatsApp shop chat, not customer
+service and not a sales pitch.
 
-ORDERING & DELIVERY:
-- Cash on delivery across Lebanon. They pay when the order arrives. \
-Delivery takes 2-3 days anywhere in Lebanon, and delivery is free.
-- To place an order in chat you need: full name, phone number, delivery \
-address (city + street/building), which product and how many. Read the order \
-back to them to confirm, tell them delivery is 2-3 days and they pay cash on \
-arrival, then use the handoff token so a teammate books it in.
-- They can also order themselves at feelsgoodclub.com — offer the link when \
-it's easier for them.
+HOW YOU WRITE — this matters more than anything
+- One line. Usually two to five words. Never a paragraph. Never a bulleted list.
+- Real examples of our voice: "Yes", "4$ delivery", "3-5 days", "Location please",
+  "Confirmed", "Done", "14 strips", "It's only 1 size stretchable", "100%".
+- No greetings after the first message. No "I hope this helps". No emoji spam
+  (an occasional \U0001F495 is fine, nothing else).
+- Answer the question asked and stop. Do not add extra information they did not
+  ask for. Do not upsell.
 
-HOW YOU TALK:
-- Like a friendly, quick person texting from a small brand. Short messages, \
-one or two sentences. One question at a time. No walls of text, no emoji spam \
-(one emoji now and then is fine).
-- English only. Never reply in Arabic script, even if they write in Arabic — \
-if they write in Arabic, reply in simple, easy English.
-- Direct and human. No hype, no pressure, no "dear customer", no em dashes. \
-Never say "lock in".
-- Never invent discounts, delivery promises, medical claims, or stock levels. \
-The cap relieves and soothes — it is not a cure and you never promise it \
-treats or cures anything. If they ask if it works with their medication or \
-condition: it's drug-free and worn on the head, but for medical questions \
-they should ask their doctor.
-- If someone just reacts to a message (thumbs-up, heart) with no words, you \
-generally don't need to say anything back.
+LANGUAGE — mirror the customer exactly
+- English -> English.
+- Arabic script -> Arabic script.
+- Arabizi (Lebanese Arabic in Latin letters/numbers, e.g. "adde bado wa2et ta
+  yousal", "btn7at freezer?", "shu bi2awes") -> reply in the SAME arabizi style.
+- French -> French.
+Keep it Lebanese and casual, never formal Modern Standard Arabic.
 
-WHEN TO HAND OFF (write your normal reply, then put this exact token on its \
-own last line: %s — a teammate sees it and takes over; never mention the token):
-- An order is confirmed and ready to book in.
-- They ask about anything not in your product facts.
-- A complaint, a return/refund request, a delivery problem, or anyone upset.
-- Wholesale, collaboration, influencer, or press inquiries.
-- Anything medical beyond "is it drug-free".
+THE FACTS YOU KNOW
+- Every product is $12.
+- Delivery is a flat $4, anywhere in Lebanon.
+- Delivery time: 3 to 5 days typically. Beirut is faster, 1 to 2 days.
+- Payment: cash on delivery is the default and most customers expect it.
+  If they ask about Whish, the Whish number is 79018107. Otherwise they pay
+  the driver at the door.
+- Teeth Whitening Strips: 14 strips per box.
+- Migraine Relief Cap: keep it in the freezer; stays cold 2 to 3 hours after
+  you take it out; reaches about 0C; there is gel inside, not water; one size,
+  stretchable.
 
-Keep the conversation moving toward the order, but never pushy. If they're \
-just browsing, answer well and leave the door open.
-""" % HANDOFF_TOKEN
+THE ONE JOB
+Get the customer to confirm they want it, then get their LOCATION.
+The order is only real once they give a location (a pin, or an area plus
+address). Ask with exactly: "Location please" or "Kindly share your location".
+
+WHEN TO HAND OFF — end your reply with [[HANDOFF]]
+Hand off (and say nothing else useful) when:
+- They have given their location or full address. The order is ready to book —
+  MK takes it from here. Reply "Confirmed" or "Done" then [[HANDOFF]].
+- They ask for a discount or to negotiate the price.
+- They ask anything you are not certain about: stock, a specific medical
+  question, a complaint, a refund, a delivery that is late or missing, changing
+  or cancelling an existing order.
+- They want to order several different products, or a quantity that needs
+  checking.
+- Anything about an order that already exists.
+HOW to hand off, this is important:
+- If they gave their location and the order is ready: reply "Confirmed" (or
+  "Done") and then [[HANDOFF]].
+- For EVERY other handoff reason: output ONLY the token [[HANDOFF]] and no
+  other text at all. Do not apologise, do not stall, do not promise anyone will
+  reply, do not mention MK or any person by name. Say nothing. MK is alerted
+  instantly and picks it up herself.
+
+If you are not sure, hand off. It is always better to hand off than to guess.
+Never invent stock levels, delivery dates, medical claims, discounts or
+promotions. If they ask for a discount, do not answer it yourself at all.
+
+Do not mention that you are an AI, an assistant, or a bot. You are the shop.
+"""
 
 
 # ── DB ───────────────────────────────────────────────────────────────────────
@@ -188,10 +210,108 @@ def init_db():
         """
     )
     conn.commit()
+    # Additive migrations — safe to run every boot.
+    for col, ddl in (("product", "TEXT"), ("product_ad_id", "TEXT"),
+                     ("last_lat", "REAL"), ("last_lng", "REAL"),
+                     ("last_location_text", "TEXT")):
+        try:
+            conn.execute(f"ALTER TABLE wa_contacts ADD COLUMN {col} {ddl}")
+        except Exception:
+            pass
+    conn.commit()
     conn.close()
 
 
 init_db()
+
+
+# --------------------------------------------------------------------------
+# Product detection from the click-to-WhatsApp ad the customer came from.
+# Meta puts a `referral` object on the FIRST inbound message of an ad-started
+# conversation, carrying source_id = the ad id. Ad names are self-describing
+# ("FGC | Migraine Cap | Aug 22 F"), so we resolve product from the name and
+# refresh the map periodically — new ads work with no code change.
+# --------------------------------------------------------------------------
+FGC_ADS_TOKEN = os.environ.get("FGC_ADS_TOKEN", "")
+FGC_AD_ACCOUNT = os.environ.get("FGC_AD_ACCOUNT", "act_1337494034720023")
+_AD_MAP = {"at": 0.0, "map": {}}
+_AD_MAP_TTL = 3600.0
+
+PRODUCT_RULES = (
+    ("migraine cap", "Migraine Relief Cap"),
+    ("migraine", "Migraine Relief Cap"),
+    ("whitening strips", "Teeth Whitening Strips"),
+    ("toothpaste", "Whitening Toothpaste"),
+    ("whitening", "Teeth Whitening Strips"),
+    ("acne patch", "Pimple Patches"),
+    ("pimple", "Pimple Patches"),
+    ("posture", "Posture Corrector"),
+)
+
+
+def _product_from_name(name):
+    n = (name or "").lower()
+    for needle, product in PRODUCT_RULES:
+        if needle in n:
+            return product
+    return None
+
+
+def _refresh_ad_map(force=False):
+    if not FGC_ADS_TOKEN:
+        return _AD_MAP["map"]
+    if not force and (time.time() - _AD_MAP["at"]) < _AD_MAP_TTL:
+        return _AD_MAP["map"]
+    try:
+        r = requests.get(
+            f"{GRAPH_BASE}/{FGC_AD_ACCOUNT}/ads",
+            params={"fields": "id,name", "limit": 500, "access_token": FGC_ADS_TOKEN},
+            timeout=20,
+        )
+        data = (r.json() or {}).get("data") or []
+        m = {}
+        for ad in data:
+            prod = _product_from_name(ad.get("name"))
+            if prod:
+                m[str(ad.get("id"))] = prod
+        if m:
+            _AD_MAP["map"] = m
+            _AD_MAP["at"] = time.time()
+            print(f"[fgc-wa] ad map refreshed: {len(m)} ads")
+    except Exception as e:
+        print(f"[fgc-wa] ad map refresh failed: {e}")
+    return _AD_MAP["map"]
+
+
+def _handle_referral(wa_id, msg):
+    """Store which product this customer came from, once, on first contact."""
+    ref = msg.get("referral") or {}
+    ad_id = str(ref.get("source_id") or "")
+    if not ad_id:
+        return None
+    product = _refresh_ad_map().get(ad_id)
+    if not product:
+        # Fall back to the ad copy Meta ships with the referral.
+        product = _product_from_name(
+            f"{ref.get('headline') or ''} {ref.get('body') or ''}")
+    if not product:
+        print(f"[fgc-wa] referral ad {ad_id}: product UNKNOWN")
+        return None
+    conn = _conn()
+    conn.execute("UPDATE wa_contacts SET product = ?, product_ad_id = ? WHERE wa_id = ?",
+                 (product, ad_id, wa_id))
+    conn.commit()
+    conn.close()
+    print(f"[fgc-wa] referral ad {ad_id} -> product {product} for {wa_id}")
+    return product
+
+
+def _save_location(wa_id, lat, lng, text):
+    conn = _conn()
+    conn.execute("UPDATE wa_contacts SET last_lat = ?, last_lng = ?, last_location_text = ? "
+                 "WHERE wa_id = ?", (lat, lng, text, wa_id))
+    conn.commit()
+    conn.close()
 
 
 def _upsert_contact(wa_id, *, profile_name=None):
@@ -368,6 +488,59 @@ def _notify_team(subject, html):
         print(f"[fgc-wa] notify failed: {e}")
 
 
+def _alert_handoff(wa_id, reason="", draft=None):
+    """Tell MK a conversation needs her: WhatsApp ping (with a one-tap deep
+    link to the customer chat) plus the email. Best effort — a failed WhatsApp
+    ping never blocks the email, and neither ever raises into the webhook."""
+    contact = get_contact(wa_id) or {}
+    name = contact.get("profile_name") or wa_id
+    product = contact.get("product") or "unknown product"
+    last = _last_inbound_body(wa_id) or ""
+    loc = ""
+    if contact.get("last_lat") is not None:
+        loc = (f"\nLocation: https://maps.google.com/?q="
+               f"{contact.get('last_lat')},{contact.get('last_lng')}")
+        if contact.get("last_location_text"):
+            loc += f" ({contact.get('last_location_text')})"
+
+    body = (f"FGC handoff needed\n\n"
+            f"Customer: {name} (+{wa_id})\n"
+            f"Product: {product}\n"
+            f"Reason: {reason or 'agent handed off'}\n"
+            f"Last message: {last[:200]}{loc}\n\n"
+            f"Open chat: https://wa.me/{wa_id}")
+    if draft:
+        body += f"\n\nAgent draft (not sent):\n{draft[:400]}"
+
+    for to in HANDOFF_WA_NUMBERS:
+        try:
+            r = requests.post(
+                f"{GRAPH_BASE}/{LUMEN_NOTIFY_PHONE_ID}/messages",
+                headers={"Authorization": f"Bearer {WHATSAPP_ACCESS_TOKEN}",
+                         "Content-Type": "application/json"},
+                json={"messaging_product": "whatsapp", "to": to,
+                      "type": "text", "text": {"body": body[:3900]}},
+                timeout=10,
+            )
+            if r.status_code >= 300:
+                print(f"[fgc-wa] handoff ping to {to} failed {r.status_code}: {r.text[:160]}")
+            else:
+                print(f"[fgc-wa] handoff ping sent to {to}")
+        except Exception as e:
+            print(f"[fgc-wa] handoff ping to {to} error: {e}")
+
+    _notify_team(
+        f"FGC WhatsApp — handoff: {name} ({product})",
+        f"<p><b>Reason:</b> {reason or 'agent handed off'}</p>"
+        f"<p><b>Product:</b> {product}</p>"
+        + (f"<p><b>Location:</b> <a href='https://maps.google.com/?q="
+           f"{contact.get('last_lat')},{contact.get('last_lng')}'>map</a></p>" if loc else "")
+        + f"<p><b>Open chat:</b> <a href='https://wa.me/{wa_id}'>wa.me/{wa_id}</a></p>"
+        + (f"<p><b>Agent draft (not sent):</b><br>{draft}</p>" if draft else "")
+        + f"<hr>{_conversation_html(wa_id)}",
+    )
+
+
 def _conversation_html(wa_id, max_msgs=20):
     rows = conversation(wa_id, limit=max_msgs)
     lines = []
@@ -521,6 +694,12 @@ def _extract_text(msg):
             return (inter.get("button_reply") or {}).get("title", "")
         if inter.get("type") == "list_reply":
             return (inter.get("list_reply") or {}).get("title", "")
+    if t == "location":
+        loc = msg.get("location") or {}
+        lat, lng = loc.get("latitude"), loc.get("longitude")
+        label = ", ".join(x for x in (loc.get("name"), loc.get("address")) if x)
+        pin = f"[location pin {lat},{lng}]" if lat is not None else "[location pin]"
+        return f"{pin} {label}".strip()
     return None
 
 
@@ -531,6 +710,7 @@ def _handle_inbound_message(msg, profiles):
         return
 
     _upsert_contact(wa_id, profile_name=profiles.get(wa_id))
+    _handle_referral(wa_id, msg)
 
     text = _extract_text(msg)
     msg_type = msg.get("type") or "unknown"
@@ -542,6 +722,11 @@ def _handle_inbound_message(msg, profiles):
             body = f"[reacted {emoji}]".strip()
         _record_message(wa_id, "in", msg_type, body, wamid=wamid)
         return
+
+    if msg_type == "location":
+        loc = msg.get("location") or {}
+        _save_location(wa_id, loc.get("latitude"), loc.get("longitude"),
+                       ", ".join(x for x in (loc.get("name"), loc.get("address")) if x))
 
     is_new = _record_message(wa_id, "in", msg_type, body, wamid=wamid)
     if not is_new:
@@ -564,13 +749,18 @@ def _handle_inbound_message(msg, profiles):
         print(f"[fgc-wa] inbound {wa_id}: {body[:60]!r} — human owns thread (snoozed/handed_off), agent silent")
         return
 
+    if msg_type in HANDOFF_MEDIA_TYPES:
+        # Voice notes, video, photos, documents: the agent cannot read these.
+        # Per Kendall: do not reply, hand straight to MK.
+        print(f"[fgc-wa] inbound {wa_id}: {msg_type} — cannot read, handing off to MK")
+        set_contact_status(wa_id, "handed_off")
+        _alert_handoff(wa_id, reason=f"{msg_type} message the agent cannot read")
+        return
+
     if text is None:
-        # Images are common in shopping chats — acknowledge without pretending to see it.
-        send_text(wa_id, "Got your message! I can't open that on my end. Could you type it out for me real quick?")
-        _notify_team(
-            f"FGC WhatsApp — non-text message from {contact.get('profile_name') or wa_id}",
-            f"<p>Type: {msg_type}</p><hr>{_conversation_html(wa_id)}",
-        )
+        print(f"[fgc-wa] inbound {wa_id}: unreadable {msg_type} — handing off")
+        set_contact_status(wa_id, "handed_off")
+        _alert_handoff(wa_id, reason=f"unreadable {msg_type} message")
         return
 
     if not AUTO_REPLY:
@@ -611,17 +801,8 @@ def _reply_async(wa_id, trigger_wamid=None):
             send_text(wa_id, reply)
         if wants_handoff:
             set_contact_status(wa_id, "handed_off")
-            label = (get_contact(wa_id) or {}).get("profile_name") or ("+" + wa_id)
-            last_in = _last_inbound_body(wa_id)
-            summary = f'{label} — "{last_in[:140]}"' if last_in else label
-            _notify_team(
-                f"FGC WhatsApp — MK, this one's yours: {summary}",
-                f"<p>The agent flagged this conversation for a human (order to book, "
-                f"or a question it shouldn't answer). Open WhatsApp on the FGC phone to take over — "
-                f"the chat is with <a href='https://wa.me/{wa_id}'>+{wa_id}</a>. "
-                f"When you reply from the app, the agent automatically stays out of that chat.</p>"
-                f"<hr>{_conversation_html(wa_id)}",
-            )
+            _alert_handoff(wa_id, reason="agent flagged this for MK (order to book, "
+                                         "or a question it should not answer)")
     except Exception as e:
         print(f"[fgc-wa] reply error for {wa_id}: {repr(e)}")
 
@@ -653,9 +834,20 @@ def generate_reply(wa_id):
         else:
             messages.append({"role": role, "content": content})
 
-    context_line = ""
+    bits = []
     if contact.get("profile_name"):
-        context_line = f"(The customer's WhatsApp profile name is {contact['profile_name']}. They likely came from an Instagram or Facebook ad.)"
+        bits.append(f"The customer's WhatsApp profile name is {contact['profile_name']}.")
+    if contact.get("product"):
+        bits.append(f"They clicked the ad for: {contact['product']}. "
+                    f"THIS is the product they are asking about — never ask them which product.")
+    else:
+        bits.append("We do NOT know which product they came from. Do not guess or name a "
+                    "product. Everything is $12, so you can still answer price, delivery "
+                    "and payment questions normally.")
+    if contact.get("last_lat") is not None:
+        bits.append(f"They already sent a location pin ({contact['last_lat']},{contact['last_lng']}"
+                    f"{' - ' + contact['last_location_text'] if contact.get('last_location_text') else ''}).")
+    context_line = "(" + " ".join(bits) + ")"
 
     if messages and messages[0]["role"] == "assistant":
         messages.insert(0, {"role": "user", "content": context_line or "(start of conversation)"})
