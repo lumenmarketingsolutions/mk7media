@@ -86,6 +86,10 @@ MAX_OUTBOUND_CHARS = 4000
 HANDOFF_TOKEN = "[[HANDOFF]]"
 # Media the agent cannot interpret -> straight to MK, no reply attempted.
 HANDOFF_MEDIA_TYPES = {"audio", "voice", "video", "image", "document"}
+# The agent ONLY works conversations it watched start from an ad. Old leads
+# replying to a months-old thread get no reply — we never saw that history, so
+# any answer would be guesswork. MK handles those in her app as she always has.
+AD_PREFILL_MARKERS = ("more info on this", "مزيد من المعلومات", "المعلومات حول هذا")
 # Where handoff pings go: the FGC number itself, so the alert lands in the
 # WhatsApp Business app MK already works in. Sent FROM the Lumen Cloud API number.
 LUMEN_NOTIFY_PHONE_ID = os.environ.get("LUMEN_NOTIFY_PHONE_ID", "1082296231636502")
@@ -214,7 +218,7 @@ def init_db():
     # Additive migrations — safe to run every boot.
     for col, ddl in (("product", "TEXT"), ("product_ad_id", "TEXT"),
                      ("last_lat", "REAL"), ("last_lng", "REAL"),
-                     ("last_location_text", "TEXT")):
+                     ("last_location_text", "TEXT"), ("agent_ok", "INTEGER DEFAULT 0")):
         try:
             conn.execute(f"ALTER TABLE wa_contacts ADD COLUMN {col} {ddl}")
         except Exception:
@@ -305,6 +309,16 @@ def _handle_referral(wa_id, msg):
     conn.close()
     print(f"[fgc-wa] referral ad {ad_id} -> product {product} for {wa_id}")
     return product
+
+
+def _mark_agent_eligible(wa_id, why):
+    conn = _conn()
+    cur = conn.execute("UPDATE wa_contacts SET agent_ok = 1 WHERE wa_id = ? AND "
+                       "COALESCE(agent_ok, 0) = 0", (wa_id,))
+    conn.commit()
+    conn.close()
+    if cur.rowcount:
+        print(f"[fgc-wa] {wa_id}: agent eligible ({why})")
 
 
 def _save_location(wa_id, lat, lng, text):
@@ -724,6 +738,13 @@ def _handle_inbound_message(msg, profiles):
         _record_message(wa_id, "in", msg_type, body, wamid=wamid)
         return
 
+    # Eligibility: an ad click (referral) or the ad's prefill greeting means this
+    # conversation started with us and we hold the whole thread.
+    if (msg.get("referral") or {}).get("source_id"):
+        _mark_agent_eligible(wa_id, "ad referral")
+    if text and any(mk in text.lower() for mk in AD_PREFILL_MARKERS):
+        _mark_agent_eligible(wa_id, "ad prefill greeting")
+
     if msg_type == "location":
         loc = msg.get("location") or {}
         _save_location(wa_id, loc.get("latitude"), loc.get("longitude"),
@@ -742,6 +763,12 @@ def _handle_inbound_message(msg, profiles):
         return
 
     if status == "opted_out":
+        return
+
+    if not contact.get("agent_ok"):
+        # Old lead replying to an ancient thread, or a conversation that did not
+        # start from one of our ads. No reply, no alert — MK owns it in the app.
+        print(f"[fgc-wa] inbound {wa_id}: {body[:60]!r} — not an ad-started thread, agent silent")
         return
 
     if _is_snoozed(contact) or status == "handed_off":
