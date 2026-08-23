@@ -136,17 +136,28 @@ def _parse_orders(text):
 
 import re
 
+# Accepts: "3900511 / 14$ / ghazir", "03-900-511 - 14 - ghazir", "3900511 14$ ghazir",
+# "+961 3 900 511 | 16.5$ | Beirut 2 pcs", optional leading name, optional product word.
+_SEP = r"\s*(?:/|-|\||,|\s)\s*"
 _LINE_RE = re.compile(
-    r"^\s*(?P<name>[A-Za-z][A-Za-z .']{1,30})?\s*(?P<phone>\+?\d[\d ]{5,14})\s*/\s*\$?\s*(?P<price>\d{1,3})\s*\$?\s*(?:/\s*(?P<rest>.+))?$"
+    r"^\s*(?P<name>[A-Za-z\u0600-\u06FF][A-Za-z\u0600-\u06FF .']{1,30}?)?\s*"
+    r"(?P<phone>\+?\d[\d \-]{5,16}\d)"
+    + _SEP +
+    r"\$?\s*(?P<price>\d{1,3}(?:[.,]\d{1,2})?)\s*(?:\$|usd|dollars?)?"
+    r"(?:" + _SEP + r"(?P<rest>.+))?\s*$",
+    re.I,
 )
+_QTY_RE = re.compile(r"(?:(?P<a>\d)\s*(?:pcs?|pieces?|pc|x)\b|\bx\s*(?P<b>\d)\b)", re.I)
+_PRODUCT_WORDS = {"patches": "patches", "patch": "patches", "pimple": "patches",
+                  "strips": "strips", "strip": "strips", "whitening": "strips", "cap": "cap", "caps": "cap"}
 
 
 def _regex_parse(text):
-    """Deterministic fallback for the standard 'number / price / city' format —
-    works without the Claude API (used when the API call fails, e.g. no credits)."""
+    """Deterministic parser for the 'number / price / city' format — runs FIRST so
+    orders never depend on the Claude API (credits, outages)."""
     orders, leftovers = [], []
     for line in text.splitlines():
-        line = line.strip()
+        line = line.strip().strip("•-* ")
         if not line:
             continue
         m = _LINE_RE.match(line)
@@ -154,11 +165,19 @@ def _regex_parse(text):
             leftovers.append(line)
             continue
         rest = (m.group("rest") or "").strip()
-        qty = 2 if re.search(r"2\s*(pcs|pieces|pc)", rest, re.I) else 1
-        city = re.sub(r"/?\s*2\s*(pcs|pieces|pc)\s*/?", "", rest, flags=re.I).strip(" /") or "Lebanon"
-        orders.append({"phone": m.group("phone").replace(" ", ""), "price": int(m.group("price")),
-                       "quantity": qty, "city": city, "name": (m.group("name") or "").strip(),
-                       "address": "", "product": "cap"})
+        qm = _QTY_RE.search(rest)
+        qty = int(qm.group("a") or qm.group("b")) if qm else 1
+        product = "cap"
+        for w, prod in _PRODUCT_WORDS.items():
+            if re.search(r"\b" + w + r"\b", rest, re.I):
+                product = prod
+                rest = re.sub(r"\b" + w + r"\b", "", rest, flags=re.I)
+                break
+        city = _QTY_RE.sub("", rest).strip(" /|,-") or "Lebanon"
+        phone = re.sub(r"[\s\-]", "", m.group("phone"))
+        price = float(m.group("price").replace(",", "."))
+        orders.append({"phone": phone, "price": price, "quantity": max(1, qty), "city": city,
+                       "name": (m.group("name") or "").strip(), "address": "", "product": product})
     return {"orders": orders, "not_orders": "\n".join(leftovers)}
 
 
@@ -183,7 +202,7 @@ def _enter_order(o):
     name = (o.get("name") or "").strip()
     first, last = (name.split(" ", 1) + [""])[:2] if name else ("WhatsApp", "".join(ch for ch in str(o["phone"]) if ch.isdigit()))
     addr = (o.get("address") or "").strip() or o.get("city") or "Lebanon"
-    note = f"Auto-entered from Mary's WhatsApp. Agreed {price:g}$ incl 3$ delivery."
+    note = f"Auto-entered from WhatsApp. Agreed {price:g}$ incl 3$ delivery."
     body = {"draft_order": {
         "line_items": [{"variant_id": variant_id, "quantity": qty,
                         "applied_discount": {"description": "WhatsApp agreed price",
@@ -221,12 +240,13 @@ def handle_order_message(wa_id, text, send_text):
                 _record_error("shopify_token", e)
                 send_text(wa_id, "Order bot can't reach the store (credentials rejected). Tell Kendall to check the Shopify vars.")
                 return
-            try:
-                parsed = _parse_orders(text)
-            except Exception as e:
-                _record_error("parse", e)
-                parsed = _regex_parse(text)  # AI parser down (e.g. no API credits) -> deterministic fallback
-                if not parsed.get("orders"):
+            parsed = _regex_parse(text)
+            if not parsed.get("orders"):
+                # Standard format didn't match -> let Claude try the messy version.
+                try:
+                    parsed = _parse_orders(text)
+                except Exception as e:
+                    _record_error("parse", f"{e} | text={text[:120]!r}")
                     send_text(wa_id, "Order bot couldn't read that. Use: number / price / city (one order per line).")
                     return
             orders = parsed.get("orders") or []
