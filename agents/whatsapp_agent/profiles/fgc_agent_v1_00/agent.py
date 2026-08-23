@@ -71,6 +71,11 @@ DB_PATH = os.environ.get("FGC_DB_PATH", "fgc_whatsapp.db")
 _default_notify = "marykatezarehghazarian@gmail.com,kendall@lumenmarketing.co"
 NOTIFY_EMAILS = [e.strip() for e in os.environ.get("FGC_NOTIFY_EMAILS", _default_notify).split(",") if e.strip()]
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
+# Admin monitoring: a live email every time the agent acts, so Kendall can watch
+# it try to sell. FGC_MONITOR=0 turns it off without touching the agent.
+MONITOR_ON = os.environ.get("FGC_MONITOR", "1") not in ("0", "false", "False", "")
+MONITOR_EMAILS = [e.strip() for e in os.environ.get(
+    "FGC_MONITOR_EMAILS", "kendall@lumenmarketing.co").split(",") if e.strip()]
 
 # Humanized reply delay (seconds): "min-max".
 try:
@@ -556,6 +561,65 @@ def _alert_handoff(wa_id, reason="", draft=None):
     )
 
 
+def _admin_monitor(wa_id, customer_msg, agent_reply, handoff=False, note=""):
+    """Live 'Agent Monitoring' email — one per agent action. Never raises."""
+    if not (MONITOR_ON and RESEND_API_KEY and MONITOR_EMAILS):
+        return
+    try:
+        contact = get_contact(wa_id) or {}
+        name = contact.get("profile_name") or f"+{wa_id}"
+        product = contact.get("product") or "unknown (no ad referral)"
+        turns = len(_history(wa_id))
+        loc = ""
+        if contact.get("last_lat") is not None:
+            loc = (f"<a href='https://maps.google.com/?q={contact['last_lat']},"
+                   f"{contact['last_lng']}'>{contact['last_lat']}, {contact['last_lng']}</a>")
+            if contact.get("last_location_text"):
+                loc += f" &middot; {contact['last_location_text']}"
+
+        if handoff:
+            state, colour = "HANDED OFF TO MK", "#c9a227"
+        elif agent_reply:
+            state, colour = "AGENT REPLIED", "#12a090"
+        else:
+            state, colour = "NO REPLY SENT", "#6f737a"
+
+        rows = "".join(
+            f"<tr><td style='padding:4px 10px;color:#6f737a;white-space:nowrap'>{k}</td>"
+            f"<td style='padding:4px 10px'>{v}</td></tr>"
+            for k, v in (("Customer", name), ("Product", product),
+                         ("Turns in thread", turns),
+                         ("Location", loc or "not given yet"),
+                         ("Note", note or "&mdash;")) if v not in (None, ""))
+
+        html = (
+            f"<div style=\"font-family:Inter,Helvetica,Arial,sans-serif;color:#16181d\">"
+            f"<p style='font-size:11px;letter-spacing:.12em;text-transform:uppercase;"
+            f"color:{colour};font-weight:700;margin:0 0 10px'>{state}</p>"
+            f"<table style='border-collapse:collapse;font-size:13px;margin-bottom:16px'>{rows}</table>"
+            f"<p style='margin:0 0 4px;color:#6f737a;font-size:12px'>Customer said</p>"
+            f"<div style='background:#f5f5f3;border-radius:8px;padding:10px 14px;margin-bottom:12px'>"
+            f"{(customer_msg or '&mdash;')}</div>"
+            f"<p style='margin:0 0 4px;color:#6f737a;font-size:12px'>Agent sent</p>"
+            f"<div style='background:#eaf5f3;border-radius:8px;padding:10px 14px;margin-bottom:16px'>"
+            f"{(agent_reply or '<i>nothing &mdash; stayed silent</i>')}</div>"
+            f"<p style='font-size:12px'><a href='https://wa.me/{wa_id}'>Open chat</a> &middot; "
+            f"<a href='https://mk7media.com/fgc-wa/debug'>Agent debug</a></p>"
+            f"<hr style='border:0;border-top:1px solid #e4e1d8'>{_conversation_html(wa_id)}</div>")
+
+        requests.post(
+            "https://api.resend.com/emails",
+            headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
+            json={"from": "FGC Agent Monitoring <notifications@lumenmarketing.co>",
+                  "to": MONITOR_EMAILS,
+                  "subject": f"[{state}] {name} — {product}",
+                  "html": html},
+            timeout=10,
+        )
+    except Exception as e:
+        print(f"[fgc-wa] monitor email failed: {e}")
+
+
 def _conversation_html(wa_id, max_msgs=20):
     rows = conversation(wa_id, limit=max_msgs)
     lines = []
@@ -769,6 +833,8 @@ def _handle_inbound_message(msg, profiles):
         # Old lead replying to an ancient thread, or a conversation that did not
         # start from one of our ads. No reply, no alert — MK owns it in the app.
         print(f"[fgc-wa] inbound {wa_id}: {body[:60]!r} — not an ad-started thread, agent silent")
+        _admin_monitor(wa_id, body, None,
+                       note="Old/non-ad thread — agent deliberately silent, MK owns it")
         return
 
     if _is_snoozed(contact) or status == "handed_off":
@@ -783,12 +849,16 @@ def _handle_inbound_message(msg, profiles):
         print(f"[fgc-wa] inbound {wa_id}: {msg_type} — cannot read, handing off to MK")
         set_contact_status(wa_id, "handed_off")
         _alert_handoff(wa_id, reason=f"{msg_type} message the agent cannot read")
+        _admin_monitor(wa_id, body, None, handoff=True,
+                       note=f"{msg_type} received — agent cannot read it")
         return
 
     if text is None:
         print(f"[fgc-wa] inbound {wa_id}: unreadable {msg_type} — handing off")
         set_contact_status(wa_id, "handed_off")
         _alert_handoff(wa_id, reason=f"unreadable {msg_type} message")
+        _admin_monitor(wa_id, body, None, handoff=True,
+                       note=f"unreadable {msg_type}")
         return
 
     if not AUTO_REPLY:
@@ -824,6 +894,7 @@ def _reply_async(wa_id, trigger_wamid=None):
                 print(f"[fgc-wa] _reply_async {wa_id}: newer inbound arrived, this thread stands down")
                 return
 
+        last_in = _last_inbound_body(wa_id)
         reply, wants_handoff = generate_reply(wa_id)
         if reply:
             send_text(wa_id, reply)
@@ -831,6 +902,7 @@ def _reply_async(wa_id, trigger_wamid=None):
             set_contact_status(wa_id, "handed_off")
             _alert_handoff(wa_id, reason="agent flagged this for MK (order to book, "
                                          "or a question it should not answer)")
+        _admin_monitor(wa_id, last_in, reply, handoff=wants_handoff)
     except Exception as e:
         print(f"[fgc-wa] reply error for {wa_id}: {repr(e)}")
 
