@@ -198,7 +198,10 @@ def _enter_order(o):
     qty = max(1, int(o.get("quantity") or 1))
     price = float(o["price"])
     goods = round(price - 3, 2)
-    disc_per_unit = round((unit * qty - goods) / qty, 2)
+    disc_per_unit = max(0.0, round((unit * qty - goods) / qty, 2))
+    # If the agreed price is above list, no discount applies; put the difference on
+    # the delivery line so the order total always equals what was agreed.
+    shipping = round(price - (unit * qty - disc_per_unit * qty), 2)
     name = (o.get("name") or "").strip()
     first, last = (name.split(" ", 1) + [""])[:2] if name else ("WhatsApp", "".join(ch for ch in str(o["phone"]) if ch.isdigit()))
     addr = (o.get("address") or "").strip() or o.get("city") or "Lebanon"
@@ -211,7 +214,7 @@ def _enter_order(o):
         "shipping_address": {"first_name": first, "last_name": last or first,
                              "address1": addr, "city": o.get("city") or "Lebanon",
                              "country": "Lebanon", "phone": _norm_phone(o["phone"])},
-        "shipping_line": {"title": "Delivery", "price": "3.00"},
+        "shipping_line": {"title": "Delivery", "price": f"{shipping:.2f}"},
         "tags": "WhatsApp, auto-entry",
         "note": note}}
     d = _shopify("POST", "/draft_orders.json", body)
