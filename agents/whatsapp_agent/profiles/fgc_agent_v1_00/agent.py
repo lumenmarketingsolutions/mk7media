@@ -92,6 +92,37 @@ HUMAN_SNOOZE_HOURS = float(os.environ.get("FGC_HUMAN_SNOOZE_HOURS", "4"))
 MAX_HISTORY = 40
 MAX_OUTBOUND_CHARS = 4000
 HANDOFF_TOKEN = "[[HANDOFF]]"
+# If the model narrates its own thinking, that text must NEVER reach a customer.
+# Seen in production: "Wait - let me reconsider. They just said hi in Arabic..."
+LEAK_MARKERS = (
+    "let me reconsider", "let me think", "i should", "i'll respond", "i will respond",
+    "wait —", "wait -", "actually,", "the customer", "the client", "they just said",
+    "that's not a handoff", "thats not a handoff", "as an ai", "system prompt",
+    "handoff reason", "reconsider", "my response", "i need to",
+)
+
+
+def _sanitize_reply(text):
+    """Return (clean_text, leaked). Strips model self-narration; if the result is
+    not a clean short customer message, we send nothing and hand off instead."""
+    if not text:
+        return "", False
+    t = text.strip()
+    low = t.lower()
+    leaked = any(mk in low for mk in LEAK_MARKERS)
+    if leaked:
+        # The real message is usually the last paragraph after the musing.
+        parts = [p.strip() for p in t.split("\n\n") if p.strip()]
+        tail = parts[-1] if parts else ""
+        if tail and not any(mk in tail.lower() for mk in LEAK_MARKERS) and len(tail.split()) <= 14:
+            print(f"[fgc-wa] reasoning leak stripped, kept tail: {tail[:60]!r}")
+            return tail, False
+        print(f"[fgc-wa] reasoning leak, unsalvageable — suppressing: {t[:80]!r}")
+        return "", True
+    if len(t.split()) > 20:
+        print(f"[fgc-wa] reply too long ({len(t.split())} words) — suppressing: {t[:80]!r}")
+        return "", True
+    return t, False
 # Media the agent cannot interpret -> straight to MK, no reply attempted.
 HANDOFF_MEDIA_TYPES = {"audio", "voice", "video", "image", "document"}
 # The agent ONLY works conversations it watched start from an ad. Old leads
@@ -126,15 +157,28 @@ Warm, fast, and extremely short. This is a WhatsApp shop chat, not customer
 service and not a sales pitch.
 
 HOW YOU WRITE — this matters more than anything
-- One line. Usually two to five words. Never a paragraph. Never a bulleted list.
-- Real examples of our voice: "Yes", "4$ delivery", "3-5 days", "Location please",
-  "Confirmed", "Done", "14 strips", "It's only 1 size stretchable", "100%".
+OUTPUT RULE, absolute: your entire output is the message the customer receives.
+Nothing else. Never explain yourself, never narrate what you are doing, never
+write about "the customer" or "the client", never reconsider out loud, never
+write a preamble. If you catch yourself writing a sentence ABOUT the
+conversation instead of IN it, stop and send only the message.
+
+LENGTH, absolute: these are real replies from this shop, and this is the whole
+range. Match it.
+  "12$"            "4$"              "4$ delivery"       "3-6 days"
+  "Location please"  "Name ? Location?"   "Confirm?"     "Done"   "Ok"
+  "Yes"            "14"              "20 minutes"        "This week"
+  "كل لبنان"        "سعر 12$"         "٤$ ديليفري"        "مرحبا"
+Two to five words is normal. NEVER exceed 12 words. One line. One fact.
+Answer exactly what was asked and nothing more. Do not stack extra selling
+points onto an answer. Do not add "Would you like to order?" — the greeting
+already asked that.
+
 - No greetings after the first message. No "I hope this helps".
-- NEVER use emojis. Not one, ever. The shop's opening greeting already carries
-  the hearts; your job is the plain, fast answer underneath it. Any emoji in
-  your reply is wrong.
-- Answer the question asked and stop. Do not add extra information they did not
-  ask for. Do not upsell.
+- NEVER use emojis. Not one, ever.
+- Never ask "what would you like to know?" — it wastes the customer's time.
+  They already saw the ad and the price. If they only said hi, ask for the
+  order or the location instead.
 
 LANGUAGE — mirror the customer exactly
 - English -> English.
@@ -233,7 +277,7 @@ def init_db():
     # Additive migrations — safe to run every boot.
     for col, ddl in (("product", "TEXT"), ("product_ad_id", "TEXT"),
                      ("last_lat", "REAL"), ("last_lng", "REAL"),
-                     ("last_location_text", "TEXT"), ("agent_ok", "INTEGER DEFAULT 0")):
+                     ("last_location_text", "TEXT"), ("agent_ok", "INTEGER DEFAULT 0"), ("greeted", "INTEGER DEFAULT 0")):
         try:
             conn.execute(f"ALTER TABLE wa_contacts ADD COLUMN {col} {ddl}")
         except Exception:
@@ -785,7 +829,11 @@ def handle_webhook(payload):
                                 wamid=echo.get("id"))
                 low = (body or "").lower()
                 if low and any(g in low for g in GREETING_MARKERS):
-                    print(f"[fgc-wa] app echo -> {to_id}: automated greeting, NOT a human takeover")
+                    conn = _conn()
+                    conn.execute("UPDATE wa_contacts SET greeted = 1 WHERE wa_id = ?", (to_id,))
+                    conn.commit()
+                    conn.close()
+                    print(f"[fgc-wa] app echo -> {to_id}: automated greeting sent, agent now armed")
                 else:
                     snooze_contact(to_id)
                     print(f"[fgc-wa] app echo -> {to_id}: MK replied from phone, snoozing agent {HUMAN_SNOOZE_HOURS}h")
@@ -869,6 +917,17 @@ def _handle_inbound_message(msg, profiles):
     if status == "opted_out":
         return
 
+    if text and any(mk in text.lower() for mk in AD_PREFILL_MARKERS):
+        # This is the ad's canned opener. The shop's greeting answers it.
+        print(f"[fgc-wa] inbound {wa_id}: ad prefill — greeting handles this, agent silent")
+        return
+
+    if not contact.get("greeted"):
+        # Greeting has not gone out yet. The agent only ever answers a REPLY to
+        # the greeting, never the opening message.
+        print(f"[fgc-wa] inbound {wa_id}: no greeting sent yet, agent silent")
+        return
+
     if not contact.get("agent_ok"):
         # Old lead replying to an ancient thread, or a conversation that did not
         # start from one of our ads. No reply, no alert — MK owns it in the app.
@@ -913,8 +972,30 @@ def _handle_inbound_message(msg, profiles):
     threading.Thread(target=_reply_async, args=(wa_id, wamid), daemon=True).start()
 
 
+_reply_locks = {}
+_reply_locks_guard = threading.Lock()
+_last_reply_at = {}
+
+
+def _reply_lock(wa_id):
+    with _reply_locks_guard:
+        if wa_id not in _reply_locks:
+            _reply_locks[wa_id] = threading.Lock()
+        return _reply_locks[wa_id]
+
+
 def _reply_async(wa_id, trigger_wamid=None):
+    lock = _reply_lock(wa_id)
+    if not lock.acquire(blocking=False):
+        print(f"[fgc-wa] _reply_async {wa_id}: a reply is already in flight, dropping this one")
+        return
     try:
+        # Debounce: never fire two replies to the same person within 25s. People
+        # send three messages in a row; they get ONE answer.
+        since = time.time() - _last_reply_at.get(wa_id, 0)
+        if since < 25:
+            print(f"[fgc-wa] _reply_async {wa_id}: replied {since:.0f}s ago, standing down")
+            return
         # Humanized pacing: wait, then re-check that MK hasn't jumped in and the
         # customer hasn't sent something newer (people often send 3 messages in
         # a row — reply once to the latest, not three times).
@@ -937,8 +1018,13 @@ def _reply_async(wa_id, trigger_wamid=None):
 
         last_in = _last_inbound_body(wa_id)
         reply, wants_handoff = generate_reply(wa_id)
+        reply, leaked = _sanitize_reply(reply)
+        if leaked:
+            # Model misbehaved. Say nothing, give it to MK.
+            wants_handoff = True
         if reply:
             send_text(wa_id, reply)
+            _last_reply_at[wa_id] = time.time()
         if wants_handoff:
             set_contact_status(wa_id, "handed_off")
             _alert_handoff(wa_id, reason="agent flagged this for MK (order to book, "
@@ -946,6 +1032,11 @@ def _reply_async(wa_id, trigger_wamid=None):
         _admin_monitor(wa_id, last_in, reply, handoff=wants_handoff)
     except Exception as e:
         print(f"[fgc-wa] reply error for {wa_id}: {repr(e)}")
+    finally:
+        try:
+            lock.release()
+        except Exception:
+            pass
 
 
 def generate_reply(wa_id):
@@ -991,7 +1082,9 @@ def generate_reply(wa_id):
     context_line = "(" + " ".join(bits) + ")"
 
     if messages and messages[0]["role"] == "assistant":
-        messages.insert(0, {"role": "user", "content": context_line or "(start of conversation)"})
+        # Model requires a user turn first. Use a neutral placeholder — never the
+        # meta context, which taught the model that narration is normal here.
+        messages.insert(0, {"role": "user", "content": "..."})
 
     system_blocks = [{"type": "text", "text": SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}]
     if context_line:
