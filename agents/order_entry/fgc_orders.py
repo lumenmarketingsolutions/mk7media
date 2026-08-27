@@ -31,10 +31,14 @@ import urllib.request
 SHOP = "https://hd8wtv-ck.myshopify.com"
 API_VERSION = "2025-07"
 CAP_VARIANT = 46831330427079
-CAP_PRICE = 19.99
-VARIANTS = {  # product keyword -> (variant_id, unit_price)
-    "cap": (46831330427079, 19.99),
-    "patches": (46831330721991, 12.99),
+# Fallback prices only — the live price is fetched from Shopify per order (see
+# _live_unit_price). NEVER trust these for discount math: when the store gets
+# repriced and this table lags, the discount lands on the wrong base price
+# (08.25-08.27 bug: cap repriced 19.99 -> 12.00, orders entered at 8.51 instead
+# of the agreed 16.50).
+VARIANTS = {  # product keyword -> (variant_id, fallback_unit_price)
+    "cap": (46831330427079, 12.00),
+    "patches": (46831330721991, 12.00),
     "strips": (46831330885831, 12.00),
 }
 
@@ -108,7 +112,7 @@ def _shopify(method, path, body=None):
 
 PARSE_PROMPT = """You parse WhatsApp order messages for a Lebanese cash-on-delivery store. \
 Messages contain one or more orders, typically "phone / price / city" with optional name, \
-"2 pcs"/"2 pieces" (quantity), address details, or product hints (cap/patches/strips — \
+"2 pcs"/"2 pieces"/"2 boxes" (quantity), address details, or product hints (cap/patches/strips — \
 default is cap). Reply ONLY with JSON: {"orders": [{"phone": "...", "price": 16, \
 "quantity": 1, "city": "...", "name": "", "address": "", "product": "cap"}], \
 "not_orders": "text that wasn't parseable as an order, or empty string"}. \
@@ -147,7 +151,7 @@ _LINE_RE = re.compile(
     r"(?:" + _SEP + r"(?P<rest>.+))?\s*$",
     re.I,
 )
-_QTY_RE = re.compile(r"(?:(?P<a>\d)\s*(?:pcs?|pieces?|pc|x)\b|\bx\s*(?P<b>\d)\b)", re.I)
+_QTY_RE = re.compile(r"(?:(?P<a>\d)\s*(?:pcs?|pieces?|pc|boxes|box|x)\b|\bx\s*(?P<b>\d)\b)", re.I)
 _PRODUCT_WORDS = {"patches": "patches", "patch": "patches", "pimple": "patches",
                   "strips": "strips", "strip": "strips", "whitening": "strips", "cap": "cap", "caps": "cap"}
 
@@ -181,6 +185,25 @@ def _regex_parse(text):
     return {"orders": orders, "not_orders": "\n".join(leftovers)}
 
 
+_price_cache = {}  # variant_id -> (price, fetched_at)
+
+
+def _live_unit_price(variant_id, fallback):
+    """Current store price for a variant, cached 1h. Falls back to the static
+    table only if Shopify can't be reached (order still gets total-verified)."""
+    hit = _price_cache.get(variant_id)
+    if hit and time.time() - hit[1] < 3600:
+        return hit[0]
+    try:
+        v = _shopify("GET", f"/variants/{variant_id}.json?fields=price")
+        price = float(v["variant"]["price"])
+        _price_cache[variant_id] = (price, time.time())
+        return price
+    except Exception as e:
+        _record_error("live_price", f"variant {variant_id}: {e}")
+        return hit[0] if hit else fallback
+
+
 def _norm_phone(raw):
     digits = "".join(ch for ch in str(raw) if ch.isdigit())
     if str(raw).strip().startswith("+") and not digits.startswith("961"):
@@ -194,7 +217,8 @@ def _norm_phone(raw):
 
 def _enter_order(o):
     product = (o.get("product") or "cap").lower()
-    variant_id, unit = VARIANTS.get(product, VARIANTS["cap"])
+    variant_id, fallback = VARIANTS.get(product, VARIANTS["cap"])
+    unit = _live_unit_price(variant_id, fallback)
     qty = max(1, int(o.get("quantity") or 1))
     price = float(o["price"])
     goods = round(price - 3, 2)
@@ -221,6 +245,16 @@ def _enter_order(o):
     draft = d.get("draft_order")
     if not draft:
         return None, f"draft failed: {d.get('body', d)}"
+    # HARD RULE: the order total must equal the agreed price before it becomes a
+    # real order. If Shopify's computed total disagrees (repriced product, math
+    # drift), the draft is deleted and nothing is entered.
+    draft_total = float(draft.get("total_price") or 0)
+    if abs(draft_total - price) > 0.01:
+        _shopify("DELETE", f"/draft_orders/{draft['id']}.json")
+        _record_error("total_mismatch",
+                      f"draft total {draft_total:.2f} != agreed {price:g} (variant {variant_id}, qty {qty})")
+        return None, (f"store total came out ${draft_total:.2f} but agreed price is ${price:g} — "
+                      "NOT entered (store prices may have changed). Tell Kendall.")
     done = _shopify("PUT", f"/draft_orders/{draft['id']}/complete.json?payment_pending=true")
     order_id = (done.get("draft_order") or {}).get("order_id")
     if not order_id:
