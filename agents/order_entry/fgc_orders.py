@@ -68,12 +68,22 @@ def _record_error(where, err):
     print(f"[fgc-orders] {where}: {err}")
 
 
+def _xlsx_available():
+    try:
+        import openpyxl  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
 def health():
     """Status dict for the admin debug endpoint — no secrets, live checks."""
     out = {
         "senders_whitelisted": sorted(FGC_ORDER_SENDERS),
         "shopify_creds_present": bool(SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET),
         "anthropic_key_present": bool(ANTHROPIC_API_KEY),
+        "whatsapp_token_present": bool(os.environ.get("WHATSAPP_ACCESS_TOKEN")),
+        "sheet_import": {"csv": True, "xlsx": _xlsx_available()},
         "recent_errors": list(_last_errors),
     }
     try:
