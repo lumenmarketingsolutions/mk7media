@@ -41,6 +41,13 @@ VARIANTS = {  # product keyword -> (variant_id, fallback_unit_price)
     "patches": (46831330721991, 12.00),
     "strips": (46831330885831, 12.00),
 }
+# Human names for the confirmation reply — Mary should see WHAT was ordered, not
+# just a total, so a wrong-product entry is obvious the moment it is made.
+PRODUCT_NAMES = {
+    "cap": "Migraine Cap",
+    "patches": "Pimple Patches",
+    "strips": "Whitening Strips",
+}
 
 FGC_ORDER_SENDERS = {
     "".join(ch for ch in s if ch.isdigit())
@@ -204,6 +211,201 @@ def _live_unit_price(variant_id, fallback):
         return hit[0] if hit else fallback
 
 
+# ---------------------------------------------------------------- duplicates
+# A sheet can be sent twice, or a corrected sheet can overlap an earlier one, so
+# every import checks the store first. The key is the customer's phone number:
+# these are one-off COD orders, so the same number appearing again is almost
+# always a re-import rather than a genuine second purchase.
+_orders_cache = {"index": None, "at": 0}
+
+
+def _norm_digits(raw):
+    d = "".join(ch for ch in str(raw or "") if ch.isdigit())
+    if d.startswith("961"):
+        d = d[3:]
+    return d.lstrip("0")
+
+
+def _existing_orders_index(max_pages=6):
+    """{phone_digits: [{name, total, product}]} for recent store orders, cached 5min."""
+    if _orders_cache["index"] is not None and time.time() - _orders_cache["at"] < 300:
+        return _orders_cache["index"]
+    idx = {}
+    path = ("/orders.json?status=any&limit=250"
+            "&fields=id,name,total_price,shipping_address,line_items,created_at")
+    try:
+        for _ in range(max_pages):
+            d = _shopify("GET", path)
+            orders = d.get("orders") or []
+            if not orders:
+                break
+            for o in orders:
+                ph = _norm_digits(((o.get("shipping_address") or {}).get("phone")))
+                if not ph:
+                    continue
+                items = ", ".join((li.get("title") or "") for li in (o.get("line_items") or [])[:2])
+                idx.setdefault(ph, []).append({
+                    "name": o.get("name"), "total": float(o.get("total_price") or 0),
+                    "product": items, "created": (o.get("created_at") or "")[:10]})
+            if len(orders) < 250:
+                break
+            last = orders[-1]["id"]
+            path = ("/orders.json?status=any&limit=250&since_id=%s"
+                    "&fields=id,name,total_price,shipping_address,line_items,created_at" % last)
+        _orders_cache["index"] = idx
+        _orders_cache["at"] = time.time()
+    except Exception as e:
+        _record_error("orders_index", e)
+        return _orders_cache["index"] or {}
+    return idx
+
+
+def _duplicate_of(o, index):
+    """Returns (existing_order_dict, exact_bool) if this order looks already entered."""
+    hits = index.get(_norm_digits(o.get("phone")))
+    if not hits:
+        return None, False
+    price = float(o.get("price") or 0)
+    for h in hits:
+        if abs(h["total"] - price) <= 0.01:
+            return h, True          # same number, same total -> re-import
+    return hits[0], False           # same number, different total -> flag, still enter
+
+
+# ------------------------------------------------------------------ media/sheets
+GRAPH = "https://graph.facebook.com/v21.0"
+
+
+def _download_media(media_id):
+    """WhatsApp media is two hops: metadata (gives a signed url), then the bytes."""
+    import requests
+    tok = os.environ.get("WHATSAPP_ACCESS_TOKEN", "")
+    if not tok:
+        raise RuntimeError("WHATSAPP_ACCESS_TOKEN not set")
+    h = {"Authorization": "Bearer " + tok}
+    meta = requests.get(f"{GRAPH}/{media_id}", headers=h, timeout=30).json()
+    url = meta.get("url")
+    if not url:
+        raise RuntimeError(f"no media url: {str(meta)[:200]}")
+    r = requests.get(url, headers=h, timeout=90)
+    r.raise_for_status()
+    return r.content, (meta.get("mime_type") or "")
+
+
+_COL_HINTS = {
+    "phone": ("phone", "number", "mobile", "tel", "whatsapp", "contact", "num"),
+    "price": ("price", "total", "amount", "cost", "paid", "value", "$"),
+    "city":  ("city", "area", "location", "region", "town", "address", "delivery"),
+    "name":  ("name", "customer", "client", "full name"),
+    "quantity": ("qty", "quantity", "pcs", "pieces", "count"),
+    "product": ("product", "item", "sku", "type"),
+}
+
+
+def _map_columns(header):
+    """header list -> {field: column index}. Unrecognised columns are ignored."""
+    out = {}
+    for i, cell in enumerate(header):
+        c = str(cell or "").strip().lower()
+        if not c:
+            continue
+        for field, hints in _COL_HINTS.items():
+            if field in out:
+                continue
+            if any(h in c for h in hints):
+                out[field] = i
+                break
+    return out
+
+
+def _rows_from_bytes(data, filename, mime):
+    """CSV or XLSX bytes -> list of row lists."""
+    name = (filename or "").lower()
+    if name.endswith((".xlsx", ".xlsm")) or "spreadsheetml" in (mime or ""):
+        import io
+        try:
+            import openpyxl
+        except ImportError:
+            raise RuntimeError("xlsx support not installed on the server (openpyxl)")
+        wb = openpyxl.load_workbook(io.BytesIO(data), data_only=True, read_only=True)
+        ws = wb[wb.sheetnames[0]]
+        return [list(r) for r in ws.iter_rows(values_only=True)]
+    import csv, io as _io
+    txt = data.decode("utf-8-sig", "replace")
+    # Try every common delimiter and keep the parse that actually yields a usable
+    # table. Sniffer alone is unreliable on hand-made sheets (mixed separators,
+    # semicolons from Excel in some locales, a stray comma inside a name).
+    best, best_score = None, -1
+    for delim in (",", ";", "\t", "|"):
+        try:
+            rows = [r for r in csv.reader(_io.StringIO(txt), delimiter=delim)]
+        except Exception:
+            continue
+        if not rows:
+            continue
+        widths = [len(r) for r in rows if any(str(c or "").strip() for c in r)]
+        if not widths:
+            continue
+        width = max(set(widths), key=widths.count)      # most common row width
+        score = width * 10
+        for r in rows[:5]:                              # a mappable header is worth more
+            m = _map_columns(r)
+            if "phone" in m and "price" in m:
+                score += 100
+                break
+        if width < 2:
+            score -= 50
+        if score > best_score:
+            best, best_score = rows, score
+    return best or [r for r in csv.reader(_io.StringIO(txt))]
+
+
+def _orders_from_sheet(data, filename, mime):
+    """Parse a sheet into the same order dicts the text parser produces.
+    Returns (orders, skipped_rows)."""
+    rows = [r for r in _rows_from_bytes(data, filename, mime) if any(str(c or "").strip() for c in r)]
+    if not rows:
+        return [], ["sheet is empty"]
+    cols, start = {}, 0
+    for i, r in enumerate(rows[:5]):          # header may not be the first row
+        m = _map_columns(r)
+        if "phone" in m and "price" in m:
+            cols, start = m, i + 1
+            break
+    orders, skipped = [], []
+    for r in rows[start:]:
+        get = lambda f: (str(r[cols[f]]).strip() if f in cols and cols[f] < len(r) and r[cols[f]] is not None else "")
+        if cols:
+            phone, price_raw = get("phone"), get("price")
+            name, city = get("name"), get("city")
+            qty_raw, prod_raw = get("quantity"), get("product")
+        else:                                  # no usable header — fall back to the text parser
+            line = " / ".join(str(c).strip() for c in r if str(c or "").strip())
+            p = _regex_parse(line)
+            if p["orders"]:
+                orders.extend(p["orders"])
+            elif line:
+                skipped.append(line[:60])
+            continue
+        price_digits = re.sub(r"[^\d.]", "", price_raw.replace(",", "."))
+        if not phone or not price_digits:
+            skipped.append((" / ".join(x for x in (name, phone, price_raw, city) if x))[:60] or "blank row")
+            continue
+        product = "cap"
+        blob = f"{prod_raw} {city}".lower()
+        for w, prod in _PRODUCT_WORDS.items():
+            if re.search(r"\b" + w + r"\b", blob):
+                product = prod
+                break
+        try:
+            qty = int(re.sub(r"[^\d]", "", qty_raw) or 1)
+        except ValueError:
+            qty = 1
+        orders.append({"phone": phone, "price": float(price_digits), "quantity": max(1, qty),
+                       "city": city or "Lebanon", "name": name, "address": "", "product": product})
+    return orders, skipped
+
+
 def _norm_phone(raw):
     digits = "".join(ch for ch in str(raw) if ch.isdigit())
     if str(raw).strip().startswith("+") and not digits.startswith("961"):
@@ -260,7 +462,23 @@ def _enter_order(o):
     if not order_id:
         return None, f"complete failed: {done.get('body', done)}"
     order = _shopify("GET", f"/orders/{order_id}.json?fields=name,total_price").get("order", {})
+    order["_product"] = PRODUCT_NAMES.get(product, product.title())
+    order["_qty"] = qty
     return order, None
+
+
+def _confirm_line(order, o):
+    """✅ #1201 · Migraine Cap ×2 · $16.50 · Ghazir — Mary sees the item, the money
+    and the delivery area, so a wrong product is obvious immediately."""
+    qty = order.get("_qty") or 1
+    item = order.get("_product") or "Item"
+    if qty > 1:
+        item += f" \u00d7{qty}"
+    city = (o.get("city") or "").strip()
+    bits = [f"\u2705 {order.get('name')}", item, f"${order.get('total_price')}"]
+    if city:
+        bits.append(city)
+    return " \u00b7 ".join(bits)
 
 
 def handle_order_message(wa_id, text, send_text):
@@ -294,7 +512,7 @@ def handle_order_message(wa_id, text, send_text):
             for o in orders:
                 order, err = _enter_order(o)
                 if order:
-                    lines.append(f"✅ {order.get('name')} · ${order.get('total_price')} · {o.get('city', '')}".strip())
+                    lines.append(_confirm_line(order, o))
                 else:
                     fails.append(f"⚠️ {o.get('phone')} / {o.get('price')}$ — {err}")
             reply = "\n".join(lines + fails)
@@ -305,6 +523,91 @@ def handle_order_message(wa_id, text, send_text):
             _record_error("entry", e)
             try:
                 send_text(wa_id, "Something broke entering that order — Kendall's been notified, try once more or send it to him.")
+            except Exception:
+                pass
+    threading.Thread(target=work, daemon=True).start()
+
+
+def handle_order_sheet(wa_id, media_id, filename, caption, send_text):
+    """Mary sends a CSV/XLSX to the order number and every row becomes an order.
+
+    Duplicate-safe: before entering anything the store's recent orders are indexed
+    by phone number. A row whose number already has an order at the same total is
+    SKIPPED (that is a re-sent or overlapping sheet). A row whose number exists at
+    a different total is still entered but flagged in the reply, so a genuine
+    second purchase goes through while a mistake is visible.
+
+    Put "force" in the caption to enter every row regardless.
+    """
+    def work():
+        try:
+            if not (SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET):
+                send_text(wa_id, "Order bot isn't configured yet (missing store credentials). Tell Kendall.")
+                return
+            send_text(wa_id, f"Got the sheet ({filename or 'file'}) — reading it now, one moment.")
+            try:
+                data, mime = _download_media(media_id)
+            except Exception as e:
+                _record_error("media", e)
+                send_text(wa_id, "I couldn't download that file from WhatsApp. Try sending it again as a document.")
+                return
+            try:
+                orders, skipped = _orders_from_sheet(data, filename, mime)
+            except Exception as e:
+                _record_error("sheet_parse", f"{e} | {filename}")
+                send_text(wa_id, f"I couldn't read that sheet ({e}). It needs a phone column and a price column — "
+                                 "CSV or Excel both work.")
+                return
+            if not orders:
+                send_text(wa_id, "I read the sheet but found no orders in it. It needs a column with the phone "
+                                 "number and one with the price. City, name, quantity and product are optional.")
+                return
+
+            force = "force" in (caption or "").lower()
+            index = {} if force else _existing_orders_index()
+            entered, dups, flagged, fails = [], [], [], []
+            for o in orders:
+                if not force:
+                    hit, exact = _duplicate_of(o, index)
+                    if hit and exact:
+                        dups.append(f"{o.get('phone')} — already entered as {hit['name']} (${hit['total']:.2f})")
+                        continue
+                    if hit:
+                        flagged.append(f"{o.get('phone')} — also has {hit['name']} (${hit['total']:.2f})")
+                order, err = _enter_order(o)
+                if order:
+                    entered.append(_confirm_line(order, o))
+                    ph = _norm_digits(o.get("phone"))
+                    index.setdefault(ph, []).append({"name": order.get("name"),
+                                                     "total": float(order.get("total_price") or 0),
+                                                     "product": order.get("_product", ""), "created": ""})
+                else:
+                    fails.append(f"⚠️ {o.get('phone')} / {o.get('price')}$ — {err}")
+
+            head = f"Sheet done — {len(entered)} entered"
+            if dups:
+                head += f", {len(dups)} skipped as already in the store"
+            if fails:
+                head += f", {len(fails)} failed"
+            parts = [head + "."]
+            if entered:
+                parts.append("\n".join(entered))
+            if dups:
+                parts.append("Already in the store (not entered again):\n" + "\n".join("• " + d for d in dups))
+            if flagged:
+                parts.append("Entered, but this number already had an order — check these:\n"
+                             + "\n".join("• " + d for d in flagged))
+            if fails:
+                parts.append("\n".join(fails))
+            if skipped:
+                parts.append(f"{len(skipped)} row(s) I couldn't read:\n" + "\n".join("• " + r for r in skipped[:8]))
+            if dups and not force:
+                parts.append('If those really are new orders, send the sheet again with "force" in the caption.')
+            send_text(wa_id, "\n\n".join(parts)[:3900])
+        except Exception as e:
+            _record_error("sheet", e)
+            try:
+                send_text(wa_id, "Something broke reading that sheet — Kendall's been notified.")
             except Exception:
                 pass
     threading.Thread(target=work, daemon=True).start()

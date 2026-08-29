@@ -1002,7 +1002,19 @@ def whatsapp_receive():
             for msg in msgs:
                 sender = msg.get("from", "")
                 text = (msg.get("text") or {}).get("body")
-                if fgc_orders.is_order_sender(sender) and text:
+                doc = msg.get("document") or {}
+                is_sheet = bool(doc.get("id")) and (
+                    (doc.get("filename") or "").lower().endswith((".csv", ".xlsx", ".xlsm", ".tsv"))
+                    or "spreadsheet" in (doc.get("mime_type") or "")
+                    or (doc.get("mime_type") or "") in ("text/csv", "application/csv"))
+                if fgc_orders.is_order_sender(sender) and is_sheet:
+                    # Mary can drop a whole order sheet into the chat; the bot reads
+                    # it, skips anything already in the store, and enters the rest.
+                    print(f"[fgc-orders] order SHEET from {sender}: {doc.get('filename')!r}")
+                    fgc_orders.handle_order_sheet(sender, doc["id"], doc.get("filename"),
+                                                  doc.get("caption") or msg.get("caption") or "",
+                                                  wa.send_text)
+                elif fgc_orders.is_order_sender(sender) and text:
                     print(f"[fgc-orders] order message from {sender}: {text[:80]!r}")
                     fgc_orders.handle_order_message(sender, text, wa.send_text)
                 elif fgc_orders.is_order_sender(sender):
