@@ -83,6 +83,30 @@ def numbers(db_path):
             for r in rows if r["pid"]]
 
 
+def events_detail(db_path, limit=200):
+    """Row-level conversion events for the operator console.
+
+    The client dashboard shows what happened to their customers; this shows what
+    happened to our events, which is a different question and only interesting to
+    whoever is running the system. Cancelled and skipped rows carry the reason,
+    because 'why did this not fire' is the whole point of looking."""
+    con = _conn(db_path)
+    try:
+        rows = con.execute(
+            "SELECT wa_id, event_name, status, value, currency, state, detail, "
+            "fired_at, ctwa_clid FROM wa_capi_events ORDER BY id DESC LIMIT ?",
+            (limit,)).fetchall()
+    except Exception:
+        return []
+    finally:
+        con.close()
+    return [{"number": _pretty(r["wa_id"]), "wa_id": _digits(r["wa_id"]),
+             "event": r["event_name"], "status": r["status"], "value": r["value"],
+             "currency": r["currency"], "state": r["state"],
+             "detail": (r["detail"] or "")[:120], "at": str(r["fired_at"] or "")[:16],
+             "attributed": bool(r["ctwa_clid"])} for r in rows]
+
+
 def summary(db_path, days=30, value_per_sale=16.0, currency="USD", phone_number_id=None):
     from . import intent
 

@@ -1150,8 +1150,13 @@ def api_provision_number():
 
     call(f"{waba}/subscribed_apps", "subscribed")
     call(f"{waba}/dataset", "dataset")
-    print(f"[provision] waba={waba} -> {json.dumps(out)[:300]}")
-    return jsonify({"ok": True, "waba_id": waba,
+    # ok reflects whether the SUBSCRIPTION actually worked, not merely that we tried.
+    # Reporting success on a failed subscribe would tell an operator their number is
+    # live when no message will ever reach us — the worst possible thing to be wrong
+    # about here, because everything downstream looks merely quiet rather than broken.
+    subscribed = bool((out.get("subscribed") or {}).get("success"))
+    print(f"[provision] waba={waba} subscribed={subscribed} -> {json.dumps(out)[:300]}")
+    return jsonify({"ok": subscribed, "waba_id": waba,
                     "dataset_id": (out.get("dataset") or {}).get("id"),
                     "detail": out})
 
@@ -1186,6 +1191,8 @@ def api_wa_stats():
         # Always list the numbers that have traffic, so the portal can render its
         # switcher without a second round trip.
         out["numbers"] = stats.numbers(fgc_wa.DB_PATH)
+        if request.args.get("events") == "1":
+            out["events_detail"] = stats.events_detail(fgc_wa.DB_PATH)
         return jsonify(out)
     except Exception as e:
         print(f"[wa-stats] failed: {e}")
