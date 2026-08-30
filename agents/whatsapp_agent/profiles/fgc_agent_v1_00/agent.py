@@ -1418,6 +1418,20 @@ def generate_reply(wa_id):
         # meta context, which taught the model that narration is normal here.
         messages.insert(0, {"role": "user", "content": "..."})
 
+    if messages and messages[-1]["role"] == "assistant":
+        # The thread already ends with one of our turns, so somebody has answered and
+        # there is nothing to reply to. This happens for real: MK answers from her
+        # phone while the agent is inside its reply delay, and her echo lands before
+        # generate_reply re-reads the history.
+        #
+        # Left unhandled the API rejects the whole call — "does not support assistant
+        # message prefill" — and the agent simply goes quiet with a 400 in the logs.
+        # Two of five real threads replayed from the August export hit this. Staying
+        # silent is the correct behaviour anyway; the bug was doing it by accident and
+        # only after paying for a failed request.
+        print(f"[fgc-wa] {wa_id}: thread ends with our own turn — nothing to reply to")
+        return None, False
+
     system_blocks = [{"type": "text", "text": SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}]
     if context_line:
         system_blocks.append({"type": "text", "text": context_line})
