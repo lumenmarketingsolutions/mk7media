@@ -1109,6 +1109,16 @@ def fgc_wa_debug():
     return jsonify(out)
 
 
+@app.route("/fgc-wa/capi")
+@admin_required
+def fgc_wa_capi_status():
+    """CAPI dispatcher state: how many conversations carry a click id, what has fired,
+    and whether we are still in dry run. The click-id count is the number that matters —
+    it is the ceiling on how many conversions can ever be attributed."""
+    from agents.whatsapp_agent.profiles.fgc_agent_v1_00 import capi_bm
+    return jsonify(capi_bm.status())
+
+
 @app.route("/fgc-wa/export")
 @admin_required
 def fgc_wa_export():

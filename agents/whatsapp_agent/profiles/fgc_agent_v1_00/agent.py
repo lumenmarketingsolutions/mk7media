@@ -266,6 +266,45 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_wa_messages_waid ON wa_messages(wa_id, created_at);
         CREATE UNIQUE INDEX IF NOT EXISTS idx_wa_messages_wamid
             ON wa_messages(wamid) WHERE wamid IS NOT NULL;
+        -- Every click-to-WhatsApp referral we have ever seen, one row per click.
+        -- `ctwa_clid` is the ONLY join key between a WhatsApp thread and the ad that
+        -- produced it. Meta emits it once, on the referral object of the first inbound
+        -- message after a click, and never again. It cannot be recovered later from
+        -- any API. If we do not write it down in the second it arrives, that
+        -- conversation is permanently unattributable — which is exactly what happened
+        -- to the 141 conversations in the August export.
+        CREATE TABLE IF NOT EXISTS wa_ctwa_clicks (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            wa_id       TEXT NOT NULL,
+            ctwa_clid   TEXT,
+            ad_id       TEXT,
+            source_type TEXT,
+            headline    TEXT,
+            product     TEXT,
+            seen_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_ctwa_waid ON wa_ctwa_clicks(wa_id, seen_at);
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_ctwa_clid
+            ON wa_ctwa_clicks(ctwa_clid) WHERE ctwa_clid IS NOT NULL;
+
+        -- Conversion events sent to Meta, so we never send one twice. Dedup here is
+        -- not politeness: a duplicate Purchase inflates the merchant's reported ROAS
+        -- and teaches the algorithm to chase a customer who already bought.
+        CREATE TABLE IF NOT EXISTS wa_capi_events (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            wa_id       TEXT NOT NULL,
+            event_name  TEXT NOT NULL,
+            event_id    TEXT NOT NULL UNIQUE,
+            ctwa_clid   TEXT,
+            value       REAL,
+            currency    TEXT,
+            state       TEXT,
+            status      TEXT,                          -- 'dry_run' | 'sent' | 'failed' | 'skipped'
+            detail      TEXT,
+            fired_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_capi_waid ON wa_capi_events(wa_id, event_name);
+
         CREATE TABLE IF NOT EXISTS wa_history_raw (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
             payload     TEXT NOT NULL,
@@ -277,7 +316,12 @@ def init_db():
     # Additive migrations — safe to run every boot.
     for col, ddl in (("product", "TEXT"), ("product_ad_id", "TEXT"),
                      ("last_lat", "REAL"), ("last_lng", "REAL"),
-                     ("last_location_text", "TEXT"), ("agent_ok", "INTEGER DEFAULT 0"), ("greeted", "INTEGER DEFAULT 0")):
+                     ("last_location_text", "TEXT"), ("agent_ok", "INTEGER DEFAULT 0"),
+                     ("greeted", "INTEGER DEFAULT 0"),
+                     # Most recent click wins for attribution: someone who clicks a
+                     # second ad weeks later and then buys converted on the second ad.
+                     # The full history stays in wa_ctwa_clicks.
+                     ("ctwa_clid", "TEXT"), ("ctwa_clid_at", "TIMESTAMP")):
         try:
             conn.execute(f"ALTER TABLE wa_contacts ADD COLUMN {col} {ddl}")
         except Exception:
@@ -348,9 +392,44 @@ def _refresh_ad_map(force=False):
 
 
 def _handle_referral(wa_id, msg):
-    """Store which product this customer came from, once, on first contact."""
+    """Record the click-to-WhatsApp referral: the click id, the ad, and the product.
+
+    The click id is written FIRST and unconditionally, before any product lookup can
+    fail. The previous version returned early when the ad name did not resolve to a
+    known product, which threw away the attribution along with it — a product we
+    cannot name is still a sale we can attribute, and the ad map goes stale every time
+    someone launches an ad with a new naming convention.
+    """
     ref = msg.get("referral") or {}
     ad_id = str(ref.get("source_id") or "")
+    clid = ref.get("ctwa_clid") or ""
+    if not ad_id and not clid:
+        return None
+
+    conn = _conn()
+    try:
+        conn.execute(
+            "INSERT OR IGNORE INTO wa_ctwa_clicks "
+            "(wa_id, ctwa_clid, ad_id, source_type, headline) VALUES (?,?,?,?,?)",
+            (wa_id, clid or None, ad_id or None,
+             ref.get("source_type"), (ref.get("headline") or "")[:300]))
+        if clid:
+            conn.execute(
+                "UPDATE wa_contacts SET ctwa_clid = ?, ctwa_clid_at = CURRENT_TIMESTAMP "
+                "WHERE wa_id = ?", (clid, wa_id))
+        conn.commit()
+    except Exception as e:
+        print(f"[fgc-wa] ctwa capture error for {wa_id}: {e}")
+    finally:
+        conn.close()
+
+    if clid:
+        print(f"[fgc-wa] ctwa_clid captured for {wa_id} (ad {ad_id or '?'})")
+    elif ad_id:
+        # Organic-looking referral, or an ad format that does not carry a click id.
+        # Worth a line in the log because a run of these means broken attribution.
+        print(f"[fgc-wa] referral ad {ad_id} for {wa_id} with NO ctwa_clid")
+
     if not ad_id:
         return None
     product = _refresh_ad_map().get(ad_id)
@@ -361,13 +440,27 @@ def _handle_referral(wa_id, msg):
     if not product:
         print(f"[fgc-wa] referral ad {ad_id}: product UNKNOWN")
         return None
+
     conn = _conn()
     conn.execute("UPDATE wa_contacts SET product = ?, product_ad_id = ? WHERE wa_id = ?",
                  (product, ad_id, wa_id))
+    conn.execute("UPDATE wa_ctwa_clicks SET product = ? WHERE wa_id = ? AND product IS NULL",
+                 (product, wa_id))
     conn.commit()
     conn.close()
     print(f"[fgc-wa] referral ad {ad_id} -> product {product} for {wa_id}")
     return product
+
+
+def get_ctwa_clid(wa_id):
+    """Most recent click id for a contact, or None. Used by the CAPI dispatcher."""
+    conn = _conn()
+    try:
+        row = conn.execute("SELECT ctwa_clid FROM wa_contacts WHERE wa_id = ?",
+                           (wa_id,)).fetchone()
+        return (row["ctwa_clid"] if row else None) or None
+    finally:
+        conn.close()
 
 
 def _mark_agent_eligible(wa_id, why):
