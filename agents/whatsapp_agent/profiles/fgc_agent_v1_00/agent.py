@@ -370,6 +370,18 @@ def init_db():
             conn.execute(f"ALTER TABLE wa_contacts ADD COLUMN {col} {ddl}")
         except Exception:
             pass
+    # Every contact that existed before via_phone_id was introduced arrived on the FGC
+    # number, because it was the only number this profile answered. Without this they
+    # sit outside every per-number view and the dashboard reads zero on an account with
+    # 141 real conversations in it.
+    try:
+        conn.execute(
+            "UPDATE wa_contacts SET via_phone_id = ? WHERE via_phone_id IS NULL",
+            (FGC_PHONE_NUMBER_ID,))
+        conn.commit()
+    except Exception as e:
+        print(f"[fgc-wa] via_phone_id backfill skipped: {e}")
+
     conn.commit()
     conn.close()
 
