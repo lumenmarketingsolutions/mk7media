@@ -1109,6 +1109,53 @@ def fgc_wa_debug():
     return jsonify(out)
 
 
+@app.route("/api/provision-number", methods=["POST"])
+def api_provision_number():
+    """Make a newly linked WABA start delivering to us.
+
+    Two steps, both idempotent. Subscribing our app to the WABA is the one that
+    matters: without it Meta never sends the messages and every other piece of this
+    system is waiting for data that will not arrive. Creating the dataset is harmless
+    to repeat — Meta returns the existing one.
+
+    Same shared secret as the stats endpoint, and it lives here rather than in the
+    portal because this is the service that holds the WhatsApp token."""
+    import hmac as _hmac
+    want = os.environ.get("WA_STATS_KEY", "")
+    got = request.headers.get("X-Stats-Key") or ""
+    if not want or not _hmac.compare_digest(str(want), str(got)):
+        return jsonify({"error": "not found"}), 404
+
+    d = request.json or {}
+    waba = str(d.get("waba_id") or "").strip()
+    if not waba:
+        return jsonify({"ok": False, "error": "waba_id required"}), 400
+    token = os.environ.get("FGC_CAPI_TOKEN") or os.environ.get("WHATSAPP_ACCESS_TOKEN", "")
+    if not token:
+        return jsonify({"ok": False, "error": "no token configured"}), 500
+
+    import urllib.request as _u, urllib.error as _ue
+    out = {}
+
+    def call(path, label):
+        try:
+            req = _u.Request(f"https://graph.facebook.com/v21.0/{path}",
+                             data=f"access_token={token}".encode(), method="POST")
+            with _u.urlopen(req, timeout=20) as r:
+                out[label] = json.loads(r.read().decode() or "{}")
+        except _ue.HTTPError as e:
+            out[label] = {"error": e.read().decode()[:200]}
+        except Exception as e:
+            out[label] = {"error": f"{type(e).__name__}: {e}"}
+
+    call(f"{waba}/subscribed_apps", "subscribed")
+    call(f"{waba}/dataset", "dataset")
+    print(f"[provision] waba={waba} -> {json.dumps(out)[:300]}")
+    return jsonify({"ok": True, "waba_id": waba,
+                    "dataset_id": (out.get("dataset") or {}).get("id"),
+                    "detail": out})
+
+
 @app.route("/api/wa-stats")
 def api_wa_stats():
     """Aggregates for the lumen.ai client dashboard.
