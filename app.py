@@ -1135,6 +1135,36 @@ def fgc_wa_capi_status():
     return jsonify(out)
 
 
+@app.route("/fgc-wa/test-reset", methods=["POST", "GET"])
+@admin_required
+def fgc_wa_test_reset():
+    """Erase one contact and everything hanging off it: messages, clicks, events.
+
+    Simulating the pipeline means writing synthetic contacts into the live database,
+    and without a way to remove them they inflate the daily digest and pollute the
+    corpus the intent model is measured against. Scoped to a single wa_id passed
+    explicitly — there is no bulk form on purpose."""
+    import sqlite3 as _sq
+    wa_id = (request.args.get("wa_id") or request.form.get("wa_id") or "").strip()
+    if not wa_id:
+        return jsonify({"error": "wa_id required"}), 400
+    deleted = {}
+    conn = _sq.connect(fgc_wa.DB_PATH)
+    try:
+        for table, col in (("wa_messages", "wa_id"), ("wa_ctwa_clicks", "wa_id"),
+                           ("wa_capi_events", "wa_id"), ("wa_contacts", "wa_id")):
+            try:
+                cur = conn.execute(f"DELETE FROM {table} WHERE {col} = ?", (wa_id,))
+                deleted[table] = cur.rowcount
+            except Exception as e:
+                deleted[table] = f"error: {e}"
+        conn.commit()
+    finally:
+        conn.close()
+    print(f"[fgc-wa] test reset for {wa_id}: {deleted}")
+    return jsonify({"wa_id": wa_id, "deleted": deleted})
+
+
 @app.route("/fgc-wa/export")
 @admin_required
 def fgc_wa_export():
