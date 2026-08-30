@@ -143,7 +143,7 @@ def summary(db_path, days=30, value_per_sale=16.0, currency="USD", phone_number_
     counts = {k: 0 for k in STATE_ORDER}
     flags = {"objection": 0, "needs_human": 0, "lost": 0, "disqualified": 0}
     rows, attention, per_campaign = [], [], {}
-    dq_reasons = {}
+    dq_reasons, obj_kinds = {}, {}
 
     for c in contacts:
         thread = msgs.get(c["wa_id"], [])
@@ -153,7 +153,7 @@ def summary(db_path, days=30, value_per_sale=16.0, currency="USD", phone_number_
         if str(last_at) < since:
             continue
 
-        state, evidence, needs_human = intent.classify(
+        state, evidence, needs_human, objection = intent.classify(
             [{"direction": m["direction"], "body": m["body"]} for m in thread],
             wa_id=c["wa_id"])
 
@@ -166,6 +166,9 @@ def summary(db_path, days=30, value_per_sale=16.0, currency="USD", phone_number_
             dq_reasons[evidence or "unknown"] = dq_reasons.get(evidence or "unknown", 0) + 1
         if needs_human:
             flags["needs_human"] += 1
+        if objection:
+            flags["objection"] += 1
+            obj_kinds[objection] = obj_kinds.get(objection, 0) + 1
 
         camp = (clicks.get(c["wa_id"]) or {}).get("campaign_name")
         if camp:
@@ -181,6 +184,7 @@ def summary(db_path, days=30, value_per_sale=16.0, currency="USD", phone_number_
             "wa_link": "https://wa.me/" + _digits(c["wa_id"]),
             "state": state,
             "reason": evidence if state == "DISQUALIFIED" else None,
+            "objection": objection,
             "campaign": camp,
             "product": c.get("product"),
             "turns": len(inbound),
@@ -220,6 +224,8 @@ def summary(db_path, days=30, value_per_sale=16.0, currency="USD", phone_number_
         "days": days,
         "disqualified_reasons": [{"reason": k, "n": v} for k, v in
                                  sorted(dq_reasons.items(), key=lambda kv: -kv[1])],
+        "objection_kinds": [{"kind": k, "n": v} for k, v in
+                            sorted(obj_kinds.items(), key=lambda kv: -kv[1])],
         "phone_number_id": phone_number_id,
     }
 

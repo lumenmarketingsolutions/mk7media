@@ -264,7 +264,7 @@ def sweep_pending(now=None):
     fired = cancelled = 0
     for r in rows:
         try:
-            state, _evidence, _human = intent.classify_wa(r["wa_id"], agent.DB_PATH)
+            state, _ev, _hu, _obj = intent.classify_wa(r["wa_id"], agent.DB_PATH)
         except Exception as e:
             print(f"[fgc-capi] sweep classify failed for {r['wa_id']}: {e}")
             continue

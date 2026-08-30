@@ -76,6 +76,40 @@ HUMAN_REQ = rx(r"kell?[ie]mn[iy] 3arab[iy]|كلمني عربي|speak arabic|comp
 
 BUSINESS_CONFIRM = rx(r"^\s*(done|confirmed|تم|تمام)\s*[.!]?\s*$")
 
+# ---- ENQUIRY and OBJECTION
+#
+# These were left out of the first runtime classifier on the grounds that neither fires
+# a Meta event, so neither was worth computing. That was a mistake made from the wrong
+# point of view. The merchant does not care which states produce events — they care
+# that 128 people arrived and they cannot see what became of them. A funnel reading
+# 128 NEW and 8 sales with nothing in between looks broken even when it is accurate.
+#
+# The simulator caught this before a customer did: a haggler and a trust objector both
+# came out as NEW, which is exactly what someone reading their own dashboard would
+# call wrong.
+
+HOWMUCH = r"(?:2?ad[ei]?[shy]*|qad+e?sh|kad+e?sh|kam|cam|how\s*much|combien)"
+PRICE_W = r"(?:price|pri[cs]e|se3e?r|s[ae]3r|sa3ra|se3ra|se3erou|sa3ro|prix|سعر|سعرو|السعر)"
+PRICE_Q = rx(rf"\b{PRICE_W}\b|\b{HOWMUCH}\b|قديش|بكم|شو سعر|ادي سعر|كم سعر|le prix")
+
+DELIVERY_Q = rx(r"\b(deliver\w*|del[ei]v\w*|dlv|dilev\w*|livraison|shipping)\b|"
+                r"توصيل|دلفري|ديليفري|\bwasel\b|\byousal\w*\b|\btousal\b|في توصيل|بتاخدو")
+
+PRODUCT_Q = rx(r"\b(box|3olbe|3elbe|strips?|colou?rs?|bidayen|bet\s*dayin|dayin|"
+               r"kil\s*we7de|byij\w*|feha|fiha|how long|kam yom|shu hayda|shou hayda)\b|"
+               r"شو هيدا|كم يوم|قديش بيضل|شو بيعمل")
+
+# Objections split by kind, because the merchant needs to act on them differently:
+# a price objection is a pricing decision, a trust objection is a proof problem.
+PRICE_OBJ = rx(r"\bm[iu]ch\b|\bmish\b|\bmesh\b|مش|\bmab?out\b|\bghal[ei]\b|"
+               r"\bexpensive\b|غالي|3mel[il]?na+\s*3arde|3arde|discount|khasem|خصم|عرض|"
+               r"bi2awes+|بيقوص")
+
+TRUST_OBJ = rx(r"\b(sa7+|sah|s7i7|sahih|mazbout\w*|asli|as?li|original|copy|fake|"
+               r"madmoun|damen|guarantee\w*|warrant\w*)\b|"
+               r"صحيح|أصلي|اصلي|مضمون|مش مصدق|مصدق|مية بالمية|miye bel miye|"
+               r"\biza\s*ma\s*(chta8|shta8|zabat)\w*|\bbre?d[ou]n\b|\breturn\b|\brefund\b")
+
 # ---- disqualification: never a customer, as opposed to LOST which is a customer we
 # lost. The distinction is the whole point. LOST says the script or the follow-up
 # failed and is worth fixing. DISQUALIFIED says the targeting is wrong and no script on
@@ -166,13 +200,14 @@ def classify(messages, wa_id=None):
     reached, state, needs_human = "NEW", "NEW", False
     rung_evidence = lost_evidence = None
     asked_location = False
+    objection = None
 
     # Checked first, but only against stated intent. Somebody who says "just looking"
     # and then asks the price has told us what they are; letting them climb the ladder
     # puts them in the merchant's follow-up list and, worse, inside a conversion event.
     reason = disqualify(wa_id, messages)
     if reason:
-        return "DISQUALIFIED", reason, False
+        return "DISQUALIFIED", reason, False, None
 
     for m in messages:
         body = (m.get("body") or "").strip()
@@ -189,6 +224,15 @@ def classify(messages, wa_id=None):
         if PREFILL.search(body):
             continue                                    # a button press, not a message
 
+        # Objections annotate rather than advance. Somebody who argues about the price
+        # has read it and is still typing, which puts them ahead of everyone who went
+        # quiet — so an objection must never drag a conversation back down the ladder.
+        if PRICE_OBJ.search(body) and (re.search(r"\d|\$", body)
+                                       or re.search(r"3arde|discount|خصم", body, re.I)):
+            objection = objection or "price"
+        elif TRUST_OBJ.search(body):
+            objection = objection or "trust"
+
         hit = None
         # COMMITTED, strongest first. Each of these is something a person only types
         # when they expect a delivery.
@@ -200,6 +244,12 @@ def classify(messages, wa_id=None):
             hit = "INTENT"
         elif QTY.search(body):
             hit = "QUALIFIED"
+        elif PRODUCT_Q.search(body):
+            hit = "QUALIFIED"
+        elif PRICE_Q.search(body) or DELIVERY_Q.search(body) or objection:
+            # Asking the price is the smallest real signal there is, but it is a
+            # signal: this person read the ad and typed something of their own.
+            hit = "ENQUIRY"
 
         if CANCEL.search(body) or NO.search(body):
             state = "LOST"
@@ -217,7 +267,7 @@ def classify(messages, wa_id=None):
             state = reached                             # a commitment un-does a walk-away
 
     evidence = lost_evidence if state == "LOST" else rung_evidence
-    return state, evidence, needs_human
+    return state, evidence, needs_human, objection
 
 
 def classify_wa(wa_id, db_path):
@@ -244,7 +294,7 @@ def on_conversation_update(wa_id):
     """
     from . import agent, capi_bm
     try:
-        state, evidence, needs_human = classify_wa(wa_id, agent.DB_PATH)
+        state, evidence, needs_human, objection = classify_wa(wa_id, agent.DB_PATH)
     except Exception as e:
         print(f"[fgc-intent] classify failed for {wa_id}: {e}")
         return None
