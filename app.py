@@ -1109,6 +1109,36 @@ def fgc_wa_debug():
     return jsonify(out)
 
 
+@app.route("/api/wa-stats")
+def api_wa_stats():
+    """Aggregates for the lumen.ai client dashboard.
+
+    Authenticated with a shared secret compared in constant time, not with the admin
+    cookie — this is service-to-service and it should not depend on a human session
+    existing. Returns shape only: counts, states, campaigns, idle times. Never a
+    message body, because a dashboard is the thing most likely to be screenshotted."""
+    import hmac as _hmac
+    want = os.environ.get("WA_STATS_KEY", "")
+    got = request.headers.get("X-Stats-Key") or request.args.get("key") or ""
+    if not want or not _hmac.compare_digest(str(want), str(got)):
+        return jsonify({"error": "not found"}), 404
+    from agents.whatsapp_agent.profiles.fgc_agent_v1_00 import stats
+    try:
+        days = max(1, min(int(request.args.get("days", 30)), 365))
+    except ValueError:
+        days = 30
+    try:
+        value = float(request.args.get("value", 16))
+    except ValueError:
+        value = 16.0
+    try:
+        return jsonify(stats.summary(fgc_wa.DB_PATH, days=days, value_per_sale=value,
+                                     currency=request.args.get("currency", "USD")))
+    except Exception as e:
+        print(f"[wa-stats] failed: {e}")
+        return jsonify({"error": "unavailable"}), 500
+
+
 @app.route("/fgc-wa/capi")
 @admin_required
 def fgc_wa_capi_status():
