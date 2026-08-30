@@ -1122,7 +1122,17 @@ def fgc_wa_capi_status():
         fgc_wa.backfill_ad_lineage()
     except Exception as e:
         print(f"[fgc-capi] backfill skipped: {e}")
-    return jsonify(capi_bm.status())
+    # Also settle anything whose window has closed. The webhook sweeps on every inbound
+    # message, but a conversation that goes quiet right after committing has no next
+    # message to trigger on — so this endpoint is the safety net for exactly the case
+    # that matters most.
+    try:
+        sweep = capi_bm.sweep_pending()
+    except Exception as e:
+        sweep = {"error": str(e)}
+    out = capi_bm.status()
+    out["last_sweep"] = sweep
+    return jsonify(out)
 
 
 @app.route("/fgc-wa/export")

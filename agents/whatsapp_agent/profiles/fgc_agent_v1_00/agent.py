@@ -305,8 +305,9 @@ def init_db():
             value       REAL,
             currency    TEXT,
             state       TEXT,
-            status      TEXT,                          -- 'dry_run' | 'sent' | 'failed' | 'skipped'
+            status      TEXT,                          -- 'pending' | 'dry_run' | 'sent' | 'failed' | 'skipped' | 'cancelled'
             detail      TEXT,
+            fire_after  REAL,                          -- unix ts; settle window for Purchase
             fired_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         CREATE INDEX IF NOT EXISTS idx_capi_waid ON wa_capi_events(wa_id, event_name);
@@ -320,6 +321,10 @@ def init_db():
     )
     conn.commit()
     # Lineage columns, for databases created before ad set / campaign capture existed.
+    try:
+        conn.execute("ALTER TABLE wa_capi_events ADD COLUMN fire_after REAL")
+    except Exception:
+        pass
     for col, ddl in (("adset_id", "TEXT"), ("adset_name", "TEXT"),
                      ("campaign_id", "TEXT"), ("campaign_name", "TEXT"),
                      ("ad_name", "TEXT"), ("resolved_at", "TIMESTAMP")):
@@ -1124,6 +1129,18 @@ def _handle_inbound_message(msg, profiles):
     is_new = _record_message(wa_id, "in", msg_type, body, wamid=wamid)
     if not is_new:
         return
+
+    # Re-read intent and dispatch conversion events. On its own thread and wrapped,
+    # because a customer waiting on a reply must never pay for a Graph call — and
+    # because an attribution bug must never be able to take the sales agent down.
+    def _intent_pass():
+        try:
+            from . import intent, capi_bm
+            intent.on_conversation_update(wa_id)
+            capi_bm.sweep_pending()
+        except Exception as e:
+            print(f"[fgc-intent] pass failed for {wa_id}: {e}")
+    threading.Thread(target=_intent_pass, daemon=True).start()
 
     contact = get_contact(wa_id) or {}
     status = contact.get("status", "active")

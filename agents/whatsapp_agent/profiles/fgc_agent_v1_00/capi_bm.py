@@ -52,6 +52,19 @@ SETTLE_SECONDS = int(os.environ.get("FGC_CAPI_SETTLE_SECONDS", str(30 * 60)))
 
 CURRENCY = os.environ.get("FGC_CAPI_CURRENCY", "USD")
 
+# Purchase value per product. A Purchase with no value is close to useless to Meta's
+# optimiser, and guessing one is worse than a sensible default, so this is explicit
+# and overridable per deployment.
+DEFAULT_VALUE = float(os.environ.get("FGC_CAPI_DEFAULT_VALUE", "12"))
+PRODUCT_VALUES = {}
+for _pair in os.environ.get("FGC_CAPI_PRODUCT_VALUES", "").split(","):
+    if ":" in _pair:
+        _k, _v = _pair.rsplit(":", 1)
+        try:
+            PRODUCT_VALUES[_k.strip()] = float(_v)
+        except ValueError:
+            pass
+
 VALID_EVENTS = ("LeadSubmitted", "Purchase")
 
 
@@ -200,6 +213,91 @@ def send(wa_id, event_name, ctwa_clid=None, value=None, state=None,
     return f"failed:{detail[:80]}"
 
 
+def queue(wa_id, event_name, state=None, value=None, evidence=None):
+    """Hold an event until the settle window closes, then re-check before sending.
+
+    A commitment is not a sale until it survives a few minutes. Thread 3192446 in the
+    August export gave an address, was quoted a $4 delivery fee, said la2 shukran, and
+    re-committed two turns later — the whole cycle inside five turns. Firing on the
+    address reports a sale that did not exist; suppressing on the walk-away loses one
+    that did. Queuing and re-checking is the only behaviour that survives both.
+    """
+    from . import agent
+    event_id = _event_id(wa_id, event_name, agent.get_ctwa_clid(wa_id))
+    if already_fired(wa_id, event_name, agent.get_ctwa_clid(wa_id)):
+        return "skipped:duplicate"
+    conn = _db()
+    try:
+        row = conn.execute("SELECT status FROM wa_capi_events WHERE event_id = ?",
+                           (event_id,)).fetchone()
+        if row:
+            return f"already:{row['status']}"
+        conn.execute(
+            "INSERT INTO wa_capi_events (wa_id, event_name, event_id, state, status, "
+            "detail, fire_after) VALUES (?,?,?,?,?,?,?)",
+            (wa_id, event_name, event_id, state, "pending",
+             (evidence or "")[:500], time.time() + SETTLE_SECONDS))
+        conn.commit()
+    finally:
+        conn.close()
+    print(f"[fgc-capi] queued {event_name} for {wa_id}, settles in {SETTLE_SECONDS}s")
+    return "queued"
+
+
+def sweep_pending(now=None):
+    """Fire, or cancel, every queued event whose settle window has closed.
+
+    Re-classifies the conversation first. If the customer walked away during the
+    window the event is cancelled and never sent — which is the entire reason the
+    window exists.
+    """
+    from . import agent, intent
+    now = now or time.time()
+    conn = _db()
+    try:
+        rows = conn.execute(
+            "SELECT id, wa_id, event_name, event_id, state FROM wa_capi_events "
+            "WHERE status = 'pending' AND fire_after <= ?", (now,)).fetchall()
+    finally:
+        conn.close()
+
+    fired = cancelled = 0
+    for r in rows:
+        try:
+            state, _evidence, _human = intent.classify_wa(r["wa_id"], agent.DB_PATH)
+        except Exception as e:
+            print(f"[fgc-capi] sweep classify failed for {r['wa_id']}: {e}")
+            continue
+
+        conn = _db()
+        try:
+            if state != "COMMITTED":
+                conn.execute(
+                    "UPDATE wa_capi_events SET status='cancelled', "
+                    "detail=? WHERE id=?",
+                    (f"settled as {state}, not sent", r["id"]))
+                conn.commit()
+                cancelled += 1
+                print(f"[fgc-capi] cancelled {r['event_name']} for {r['wa_id']} "
+                      f"— settled as {state}")
+                continue
+            # Clear the pending row so send() can write its own result under the same
+            # event_id, which is what keeps dedup honest.
+            conn.execute("DELETE FROM wa_capi_events WHERE id=?", (r["id"],))
+            conn.commit()
+        finally:
+            conn.close()
+
+        value = PRODUCT_VALUES.get((agent.get_attribution(r["wa_id"]) or {}).get("product"),
+                                   DEFAULT_VALUE)
+        send(r["wa_id"], r["event_name"], value=value, state="COMMITTED")
+        fired += 1
+
+    if fired or cancelled:
+        print(f"[fgc-capi] sweep: {fired} fired, {cancelled} cancelled")
+    return {"fired": fired, "cancelled": cancelled, "checked": len(rows)}
+
+
 def status():
     """Config and counts, for the debug endpoint."""
     conn = _db()
@@ -207,6 +305,8 @@ def status():
         rows = conn.execute(
             "SELECT event_name, status, COUNT(*) n FROM wa_capi_events "
             "GROUP BY event_name, status").fetchall()
+        pending = conn.execute(
+            "SELECT COUNT(*) n FROM wa_capi_events WHERE status='pending'").fetchone()["n"]
         captured = conn.execute(
             "SELECT COUNT(*) n FROM wa_contacts WHERE ctwa_clid IS NOT NULL").fetchone()["n"]
         clicks = conn.execute("SELECT COUNT(*) n FROM wa_ctwa_clicks").fetchone()["n"]
@@ -227,6 +327,9 @@ def status():
         "token_configured": bool(ACCESS_TOKEN),
         "test_event_code": TEST_EVENT_CODE or None,
         "settle_seconds": SETTLE_SECONDS,
+        "pending_in_settle_window": pending,
+        "default_value": DEFAULT_VALUE,
+        "product_values": PRODUCT_VALUES or None,
         "currency": CURRENCY,
         "contacts_with_ctwa_clid": captured,
         "ctwa_clicks_recorded": clicks,
