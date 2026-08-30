@@ -1099,6 +1099,14 @@ def _handle_inbound_message(msg, profiles):
     wamid = msg.get("id")
     if not wa_id:
         return
+    # Never let the shop's own number become a contact. Some coexistence payloads put
+    # the business's outbound messages in the `messages` array rather than in
+    # `message_echoes`, and without this the agent creates a contact for itself, files
+    # its own replies as customer messages, and can end up answering itself. The
+    # history importer has always guarded this; the live path did not.
+    if wa_id == FGC_BUSINESS_NUMBER:
+        print(f"[fgc-wa] ignoring self-addressed message {wamid}")
+        return
 
     _upsert_contact(wa_id, profile_name=profiles.get(wa_id))
     _handle_referral(wa_id, msg)
