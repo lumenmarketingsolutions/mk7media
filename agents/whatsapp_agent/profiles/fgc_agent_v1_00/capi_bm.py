@@ -96,7 +96,7 @@ def already_fired(wa_id, event_name, ctwa_clid=None):
 
 
 def send(wa_id, event_name, ctwa_clid=None, value=None, state=None,
-         event_time=None, product=None, extra=None):
+         event_time=None, product=None, extra=None, attribution=None):
     """Send one business-messaging conversion. Returns a short status string.
 
     Safe-fail by design: every path returns a string and none raise, because this is
@@ -106,12 +106,21 @@ def send(wa_id, event_name, ctwa_clid=None, value=None, state=None,
     if event_name not in VALID_EVENTS:
         return f"skipped:unknown-event:{event_name}"
 
-    if ctwa_clid is None:
+    # Pull the full attribution row once: click id, ad, ad set, campaign. Meta needs
+    # only the click id, but the campaign and ad set go into custom_data so the
+    # merchant report can break results down by campaign without a second join back
+    # into the ad account — and so that a conversation stays traceable to its ad even
+    # after the ad is deleted and the Graph lookup would return nothing.
+    if attribution is None:
         try:
             from . import agent
-            ctwa_clid = agent.get_ctwa_clid(wa_id)
+            attribution = agent.get_attribution(wa_id) or {}
         except Exception:
-            ctwa_clid = None
+            attribution = {}
+    if ctwa_clid is None:
+        ctwa_clid = attribution.get("ctwa_clid")
+    if product is None:
+        product = attribution.get("product")
 
     event_id = _event_id(wa_id, event_name, ctwa_clid)
     ts = int(event_time or time.time())
@@ -152,6 +161,10 @@ def send(wa_id, event_name, ctwa_clid=None, value=None, state=None,
     # cannot be backfilled onto events that already landed.
     if state:
         payload["custom_data"]["conversation_state"] = state
+    for key in ("ad_id", "adset_id", "campaign_id", "campaign_name", "adset_name",
+                "ad_name"):
+        if attribution.get(key):
+            payload["custom_data"][key] = attribution[key]
     if extra:
         payload["custom_data"].update(extra)
 
@@ -197,6 +210,13 @@ def status():
         captured = conn.execute(
             "SELECT COUNT(*) n FROM wa_contacts WHERE ctwa_clid IS NOT NULL").fetchone()["n"]
         clicks = conn.execute("SELECT COUNT(*) n FROM wa_ctwa_clicks").fetchone()["n"]
+        with_camp = conn.execute(
+            "SELECT COUNT(*) n FROM wa_ctwa_clicks WHERE campaign_id IS NOT NULL"
+        ).fetchone()["n"]
+        by_camp = conn.execute(
+            "SELECT campaign_name, COUNT(*) n FROM wa_ctwa_clicks "
+            "WHERE campaign_id IS NOT NULL GROUP BY campaign_id ORDER BY n DESC LIMIT 10"
+        ).fetchall()
     except Exception as e:
         return {"error": str(e)}
     finally:
@@ -210,6 +230,9 @@ def status():
         "currency": CURRENCY,
         "contacts_with_ctwa_clid": captured,
         "ctwa_clicks_recorded": clicks,
+        "clicks_with_campaign_resolved": with_camp,
+        "clicks_by_campaign": [{"campaign": r["campaign_name"], "clicks": r["n"]}
+                               for r in by_camp],
         "events": [{"event": r["event_name"], "status": r["status"], "n": r["n"]}
                    for r in rows],
     }

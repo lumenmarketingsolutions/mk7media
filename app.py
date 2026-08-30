@@ -1116,6 +1116,12 @@ def fgc_wa_capi_status():
     and whether we are still in dry run. The click-id count is the number that matters —
     it is the ceiling on how many conversions can ever be attributed."""
     from agents.whatsapp_agent.profiles.fgc_agent_v1_00 import capi_bm
+    # Repair any clicks whose campaign could not be resolved when they arrived. Cheap
+    # when there is nothing to fix, and it means the numbers below are never stale.
+    try:
+        fgc_wa.backfill_ad_lineage()
+    except Exception as e:
+        print(f"[fgc-capi] backfill skipped: {e}")
     return jsonify(capi_bm.status())
 
 

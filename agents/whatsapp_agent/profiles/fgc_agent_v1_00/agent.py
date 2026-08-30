@@ -274,14 +274,20 @@ def init_db():
         -- conversation is permanently unattributable — which is exactly what happened
         -- to the 141 conversations in the August export.
         CREATE TABLE IF NOT EXISTS wa_ctwa_clicks (
-            id          INTEGER PRIMARY KEY AUTOINCREMENT,
-            wa_id       TEXT NOT NULL,
-            ctwa_clid   TEXT,
-            ad_id       TEXT,
-            source_type TEXT,
-            headline    TEXT,
-            product     TEXT,
-            seen_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            wa_id        TEXT NOT NULL,
+            ctwa_clid    TEXT,
+            ad_id        TEXT,
+            adset_id     TEXT,
+            adset_name   TEXT,
+            campaign_id  TEXT,
+            campaign_name TEXT,
+            ad_name      TEXT,
+            source_type  TEXT,
+            headline     TEXT,
+            product      TEXT,
+            resolved_at  TIMESTAMP,
+            seen_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         CREATE INDEX IF NOT EXISTS idx_ctwa_waid ON wa_ctwa_clicks(wa_id, seen_at);
         CREATE UNIQUE INDEX IF NOT EXISTS idx_ctwa_clid
@@ -312,6 +318,15 @@ def init_db():
         );
         """
     )
+    conn.commit()
+    # Lineage columns, for databases created before ad set / campaign capture existed.
+    for col, ddl in (("adset_id", "TEXT"), ("adset_name", "TEXT"),
+                     ("campaign_id", "TEXT"), ("campaign_name", "TEXT"),
+                     ("ad_name", "TEXT"), ("resolved_at", "TIMESTAMP")):
+        try:
+            conn.execute(f"ALTER TABLE wa_ctwa_clicks ADD COLUMN {col} {ddl}")
+        except Exception:
+            pass
     conn.commit()
     # Additive migrations — safe to run every boot.
     for col, ddl in (("product", "TEXT"), ("product_ad_id", "TEXT"),
@@ -391,6 +406,105 @@ def _refresh_ad_map(force=False):
     return _AD_MAP["map"]
 
 
+# Ad lineage cache. Meta's referral payload carries `source_id` — the AD id — and
+# nothing above it. Campaign and ad set have to be resolved through the Graph API, so
+# the lineage is cached per ad: a campaign's ads are stable, and the same ad produces
+# hundreds of conversations.
+_LINEAGE = {}
+
+
+def _resolve_ad_lineage(ad_id, force=False):
+    """ad_id -> {ad_name, adset_id, adset_name, campaign_id, campaign_name} or None.
+
+    One Graph call returns the whole chain. Deliberately NOT scoped to
+    FGC_AD_ACCOUNT: when the destination number moves between accounts, or an ad runs
+    from a different account, resolving by ad id still works where an account-scoped
+    map would silently miss.
+    """
+    ad_id = str(ad_id or "")
+    if not ad_id:
+        return None
+    if not force and ad_id in _LINEAGE:
+        return _LINEAGE[ad_id]
+    if not FGC_ADS_TOKEN:
+        return None
+    try:
+        r = requests.get(
+            f"{GRAPH_BASE}/{ad_id}",
+            params={"fields": "name,adset{id,name},campaign{id,name}",
+                    "access_token": FGC_ADS_TOKEN},
+            timeout=15,
+        )
+        d = r.json() or {}
+        if "error" in d:
+            print(f"[fgc-wa] lineage lookup failed for ad {ad_id}: "
+                  f"{d['error'].get('message', '')[:120]}")
+            return None
+        out = {
+            "ad_name": d.get("name"),
+            "adset_id": (d.get("adset") or {}).get("id"),
+            "adset_name": (d.get("adset") or {}).get("name"),
+            "campaign_id": (d.get("campaign") or {}).get("id"),
+            "campaign_name": (d.get("campaign") or {}).get("name"),
+        }
+        _LINEAGE[ad_id] = out
+        return out
+    except Exception as e:
+        print(f"[fgc-wa] lineage lookup error for ad {ad_id}: {e}")
+        return None
+
+
+def backfill_ad_lineage(limit=200):
+    """Fill in campaign/ad set for clicks captured while the API was unreachable.
+
+    Attribution capture must never depend on a Graph call succeeding in the moment —
+    the click id is unrecoverable, the lineage is not. So capture writes the row
+    immediately and this repairs it afterwards. Called from the CAPI status endpoint,
+    and safe to call as often as you like.
+    """
+    conn = _conn()
+    try:
+        rows = conn.execute(
+            "SELECT DISTINCT ad_id FROM wa_ctwa_clicks "
+            "WHERE ad_id IS NOT NULL AND campaign_id IS NULL LIMIT ?", (limit,)
+        ).fetchall()
+        fixed = 0
+        for row in rows:
+            lin = _resolve_ad_lineage(row["ad_id"])
+            if not lin or not lin.get("campaign_id"):
+                continue
+            conn.execute(
+                "UPDATE wa_ctwa_clicks SET ad_name=?, adset_id=?, adset_name=?, "
+                "campaign_id=?, campaign_name=?, resolved_at=CURRENT_TIMESTAMP "
+                "WHERE ad_id=? AND campaign_id IS NULL",
+                (lin["ad_name"], lin["adset_id"], lin["adset_name"],
+                 lin["campaign_id"], lin["campaign_name"], row["ad_id"]))
+            fixed += 1
+        conn.commit()
+        if fixed:
+            print(f"[fgc-wa] lineage backfilled for {fixed} ad(s)")
+        return fixed
+    except Exception as e:
+        print(f"[fgc-wa] lineage backfill error: {e}")
+        return 0
+    finally:
+        conn.close()
+
+
+def get_attribution(wa_id):
+    """Everything we know about where this conversation came from: click id, ad,
+    ad set, campaign. This is what the CAPI dispatcher and the merchant report read."""
+    conn = _conn()
+    try:
+        row = conn.execute(
+            "SELECT ctwa_clid, ad_id, ad_name, adset_id, adset_name, campaign_id, "
+            "campaign_name, product, seen_at FROM wa_ctwa_clicks "
+            "WHERE wa_id = ? ORDER BY seen_at DESC LIMIT 1", (wa_id,)).fetchone()
+        return dict(row) if row else None
+    finally:
+        conn.close()
+
+
 def _handle_referral(wa_id, msg):
     """Record the click-to-WhatsApp referral: the click id, the ad, and the product.
 
@@ -406,13 +520,24 @@ def _handle_referral(wa_id, msg):
     if not ad_id and not clid:
         return None
 
+    # Resolve the campaign BEFORE the insert where possible, but never let a failed
+    # lookup stop the write — the click id is the irreplaceable part and
+    # backfill_ad_lineage() repairs the rest later.
+    lin = _resolve_ad_lineage(ad_id) or {}
+
     conn = _conn()
     try:
         conn.execute(
             "INSERT OR IGNORE INTO wa_ctwa_clicks "
-            "(wa_id, ctwa_clid, ad_id, source_type, headline) VALUES (?,?,?,?,?)",
-            (wa_id, clid or None, ad_id or None,
-             ref.get("source_type"), (ref.get("headline") or "")[:300]))
+            "(wa_id, ctwa_clid, ad_id, ad_name, adset_id, adset_name, campaign_id, "
+            " campaign_name, source_type, headline, resolved_at) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            (wa_id, clid or None, ad_id or None, lin.get("ad_name"),
+             lin.get("adset_id"), lin.get("adset_name"), lin.get("campaign_id"),
+             lin.get("campaign_name"), ref.get("source_type"),
+             (ref.get("headline") or "")[:300],
+             time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+             if lin.get("campaign_id") else None))
         if clid:
             conn.execute(
                 "UPDATE wa_contacts SET ctwa_clid = ?, ctwa_clid_at = CURRENT_TIMESTAMP "
@@ -424,7 +549,8 @@ def _handle_referral(wa_id, msg):
         conn.close()
 
     if clid:
-        print(f"[fgc-wa] ctwa_clid captured for {wa_id} (ad {ad_id or '?'})")
+        camp = lin.get("campaign_name") or lin.get("campaign_id") or "campaign unresolved"
+        print(f"[fgc-wa] ctwa_clid captured for {wa_id} — ad {ad_id or '?'} / {camp}")
     elif ad_id:
         # Organic-looking referral, or an ad format that does not carry a click id.
         # Worth a line in the log because a run of these means broken attribution.
