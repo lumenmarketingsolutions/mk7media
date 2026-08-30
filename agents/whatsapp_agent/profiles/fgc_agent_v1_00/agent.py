@@ -59,6 +59,20 @@ FGC_PHONE_NUMBER_ID = os.environ.get("FGC_WHATSAPP_PHONE_NUMBER_ID", "1164242853
 FGC_WABA_ID = os.environ.get("FGC_WHATSAPP_WABA_ID", "884373514193136")
 FGC_BUSINESS_NUMBER = "".join(ch for ch in os.environ.get("FGC_WHATSAPP_BUSINESS_NUMBER", "96181873275") if ch.isdigit())
 
+# A staging number running the same code as the live client number. Everything learned
+# on it transfers, and nothing learned on it risks a client's traffic. Set
+# FGC_TEST_PHONE_NUMBER_ID once the number is onboarded and this profile answers on
+# both without a code change.
+FGC_TEST_PHONE_NUMBER_ID = os.environ.get("FGC_TEST_PHONE_NUMBER_ID", "")
+FGC_TEST_BUSINESS_NUMBER = "".join(
+    ch for ch in os.environ.get("FGC_TEST_BUSINESS_NUMBER", "") if ch.isdigit())
+
+# Only these wa_ids may run the in-chat test commands. Without an allow-list a real
+# customer who happens to type "reset" would wipe their own order history, which is a
+# far worse outcome than a slightly awkward test flow.
+FGC_TESTERS = {"".join(c for c in n if c.isdigit())
+               for n in os.environ.get("FGC_TESTERS", "").split(",") if n.strip()}
+
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 AGENT_MODEL = os.environ.get("WHATSAPP_AGENT_MODEL", "claude-opus-4-7")
 
@@ -341,7 +355,8 @@ def init_db():
                      # Most recent click wins for attribution: someone who clicks a
                      # second ad weeks later and then buys converted on the second ad.
                      # The full history stays in wa_ctwa_clicks.
-                     ("ctwa_clid", "TEXT"), ("ctwa_clid_at", "TIMESTAMP")):
+                     ("ctwa_clid", "TEXT"), ("ctwa_clid_at", "TIMESTAMP"),
+                     ("via_phone_id", "TEXT")):
         try:
             conn.execute(f"ALTER TABLE wa_contacts ADD COLUMN {col} {ddl}")
         except Exception:
@@ -594,6 +609,29 @@ def get_ctwa_clid(wa_id):
         conn.close()
 
 
+def _reset_conversation(wa_id):
+    """Wipe one thread back to nothing: messages, attribution, queued events, and the
+    contact's own flags. Used by the /reset test command and the admin endpoint."""
+    conn = _conn()
+    try:
+        for table in ("wa_messages", "wa_ctwa_clicks", "wa_capi_events"):
+            try:
+                conn.execute(f"DELETE FROM {table} WHERE wa_id = ?", (wa_id,))
+            except Exception:
+                pass
+        conn.execute(
+            "UPDATE wa_contacts SET status='active', greeted=0, agent_ok=0, "
+            "human_snooze_until=NULL, product=NULL, product_ad_id=NULL, "
+            "ctwa_clid=NULL, ctwa_clid_at=NULL, last_lat=NULL, last_lng=NULL, "
+            "last_location_text=NULL WHERE wa_id = ?", (wa_id,))
+        conn.commit()
+    except Exception as e:
+        print(f"[fgc-wa] reset failed for {wa_id}: {e}")
+    finally:
+        conn.close()
+    print(f"[fgc-wa] conversation reset for {wa_id}")
+
+
 def _mark_agent_eligible(wa_id, why):
     conn = _conn()
     cur = conn.execute("UPDATE wa_contacts SET agent_ok = 1 WHERE wa_id = ? AND "
@@ -612,10 +650,16 @@ def _save_location(wa_id, lat, lng, text):
     conn.close()
 
 
-def _upsert_contact(wa_id, *, profile_name=None):
+def _upsert_contact(wa_id, *, profile_name=None, via_phone_id=None):
     conn = _conn()
     conn.execute("INSERT INTO wa_contacts (wa_id, profile_name) VALUES (?, ?) ON CONFLICT(wa_id) DO NOTHING",
                  (wa_id, profile_name))
+    if via_phone_id:
+        # Which of our numbers this person reached us on. Replies must go back out the
+        # same way — answering a staging tester from the client's live number would be
+        # both confusing and, on a client number, genuinely damaging.
+        conn.execute("UPDATE wa_contacts SET via_phone_id = ? WHERE wa_id = ?",
+                     (str(via_phone_id), wa_id))
     if profile_name:
         conn.execute(
             "UPDATE wa_contacts SET profile_name = COALESCE(NULLIF(profile_name, ''), ?) WHERE wa_id = ?",
@@ -730,11 +774,28 @@ def verify_signature(raw_body, signature_header):
 
 
 # ── Sending ──────────────────────────────────────────────────────────────────
-def _graph_post(payload):
-    if not WHATSAPP_ACCESS_TOKEN or not FGC_PHONE_NUMBER_ID:
-        print("[fgc-wa] WARNING: token or FGC_WHATSAPP_PHONE_NUMBER_ID not set — cannot send")
+def _phone_id_for(wa_id):
+    """The number this contact reached us on, falling back to the live FGC number."""
+    try:
+        conn = _conn()
+        try:
+            row = conn.execute("SELECT via_phone_id FROM wa_contacts WHERE wa_id = ?",
+                               (wa_id,)).fetchone()
+        finally:
+            conn.close()
+        if row and row["via_phone_id"]:
+            return str(row["via_phone_id"])
+    except Exception:
+        pass
+    return FGC_PHONE_NUMBER_ID
+
+
+def _graph_post(payload, phone_id=None):
+    phone_id = phone_id or _phone_id_for(payload.get("to") or "")
+    if not WHATSAPP_ACCESS_TOKEN or not phone_id:
+        print("[fgc-wa] WARNING: token or phone number id not set — cannot send")
         return None
-    url = f"{GRAPH_BASE}/{FGC_PHONE_NUMBER_ID}/messages"
+    url = f"{GRAPH_BASE}/{phone_id}/messages"
     try:
         r = requests.post(
             url,
@@ -1006,12 +1067,13 @@ def _handle_state_sync(value):
 
 
 def is_fgc_event(value):
-    """True when this webhook change belongs to the FGC number. Dormant (always
-    False) until FGC_WHATSAPP_PHONE_NUMBER_ID is configured."""
-    if not FGC_PHONE_NUMBER_ID:
-        return False
+    """True when this webhook change belongs to the FGC number, or to the staging
+    number. Dormant (always False) until a phone number id is configured."""
     meta = value.get("metadata") or {}
-    return str(meta.get("phone_number_id") or "") == str(FGC_PHONE_NUMBER_ID)
+    pid = str(meta.get("phone_number_id") or "")
+    if not pid:
+        return False
+    return pid in {str(x) for x in (FGC_PHONE_NUMBER_ID, FGC_TEST_PHONE_NUMBER_ID) if x}
 
 
 def handle_webhook(payload):
@@ -1069,8 +1131,9 @@ def handle_webhook(payload):
                 if wa_id:
                     profiles[wa_id] = name
 
+            via = str((value.get("metadata") or {}).get("phone_number_id") or "")
             for msg in value.get("messages", []) or []:
-                _handle_inbound_message(msg, profiles)
+                _handle_inbound_message(msg, profiles, via_phone_id=via)
 
 
 def _extract_text(msg):
@@ -1094,7 +1157,7 @@ def _extract_text(msg):
     return None
 
 
-def _handle_inbound_message(msg, profiles):
+def _handle_inbound_message(msg, profiles, via_phone_id=None):
     wa_id = msg.get("from")
     wamid = msg.get("id")
     if not wa_id:
@@ -1104,16 +1167,41 @@ def _handle_inbound_message(msg, profiles):
     # `message_echoes`, and without this the agent creates a contact for itself, files
     # its own replies as customer messages, and can end up answering itself. The
     # history importer has always guarded this; the live path did not.
-    if wa_id == FGC_BUSINESS_NUMBER:
+    if wa_id in {n for n in (FGC_BUSINESS_NUMBER, FGC_TEST_BUSINESS_NUMBER) if n}:
         print(f"[fgc-wa] ignoring self-addressed message {wamid}")
         return
 
-    _upsert_contact(wa_id, profile_name=profiles.get(wa_id))
+    _upsert_contact(wa_id, profile_name=profiles.get(wa_id), via_phone_id=via_phone_id)
     _handle_referral(wa_id, msg)
 
     text = _extract_text(msg)
     msg_type = msg.get("type") or "unknown"
     body = text if text is not None else f"[{msg_type} message]"
+
+    # Test commands, allow-listed numbers only. Resetting from inside the chat is what
+    # makes iterating on the agent practical: run a conversation to its end, type
+    # /reset, and the next message starts a genuinely fresh thread — no laptop, no
+    # admin page, no leftover state quietly changing the next result.
+    if text and wa_id in FGC_TESTERS:
+        cmd = text.strip().lower()
+        if cmd in ("/reset", "reset", "/clear"):
+            _reset_conversation(wa_id)
+            send_text(wa_id, "Thread cleared. Next message starts fresh.")
+            return
+        if cmd in ("/state", "/status"):
+            try:
+                from . import intent
+                st, ev, human = intent.classify_wa(wa_id, DB_PATH)
+                att = get_attribution(wa_id) or {}
+                send_text(wa_id, (
+                    f"state: {st}\n"
+                    f"evidence: {ev or '—'}\n"
+                    f"needs human: {'yes' if human else 'no'}\n"
+                    f"campaign: {att.get('campaign_name') or '—'}\n"
+                    f"click id: {'yes' if att.get('ctwa_clid') else 'no'}"))
+            except Exception as e:
+                send_text(wa_id, f"state check failed: {e}")
+            return
 
     if msg_type in ("reaction", "system", "unsupported", "ephemeral"):
         if msg_type == "reaction":
