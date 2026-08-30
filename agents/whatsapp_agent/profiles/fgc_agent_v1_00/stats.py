@@ -8,10 +8,15 @@ copy rows between them — two sources of truth is how you end up with a dashboa
 quietly disagrees with reality — the portal asks this module a question over HTTP and
 renders the answer.
 
-Nothing here writes. Nothing here returns a message body to the portal either: the
-dashboard shows the shape of a conversation, never its contents. A merchant reading
-their own funnel does not need a transcript on screen, and the moment transcripts are
-on screen they are also in screenshots.
+Nothing here writes. Nothing here returns a message body either — the dashboard shows
+the shape of a conversation, never its contents. A merchant reading their own funnel
+does not need a transcript on screen, and the moment transcripts are on screen they are
+also in screenshots.
+
+Phone numbers ARE returned in full, deliberately. Masking them looked prudent and was
+useless: the operator's next action after reading this table is to open the thread in
+WhatsApp or paste the number into their order sheet, and a masked number makes both
+impossible. It is the merchant's own customer list, shown to the merchant.
 """
 import sqlite3
 import time
@@ -26,9 +31,20 @@ def _conn(db_path):
     return con
 
 
-def _mask(wa_id):
-    d = "".join(c for c in str(wa_id or "") if c.isdigit())
-    return ("•••• " + d[-4:]) if len(d) >= 4 else "••••"
+def _digits(wa_id):
+    return "".join(c for c in str(wa_id or "") if c.isdigit())
+
+
+def _pretty(wa_id):
+    """+961 81 873 275 — grouped so a human can read it back over the phone."""
+    d = _digits(wa_id)
+    if not d:
+        return "—"
+    if d.startswith("961") and len(d) >= 10:
+        return f"+961 {d[3:5]} {d[5:8]} {d[8:]}"
+    if len(d) == 11 and d.startswith("1"):
+        return f"+1 {d[1:4]} {d[4:7]} {d[7:]}"
+    return "+" + d
 
 
 def _age(ts):
@@ -48,14 +64,39 @@ def _age(ts):
     return f"{mins // 1440}d"
 
 
-def summary(db_path, days=30, value_per_sale=16.0, currency="USD"):
+def numbers(db_path):
+    """Every business number that has actually received traffic, with a count.
+
+    Read from the data rather than from configuration, so a number that was connected
+    but never used does not appear as an empty tab, and a number nobody remembered to
+    write down still shows up the moment a customer messages it."""
+    con = _conn(db_path)
+    try:
+        rows = con.execute(
+            "SELECT COALESCE(via_phone_id,'') pid, COUNT(*) n FROM wa_contacts "
+            "GROUP BY COALESCE(via_phone_id,'') ORDER BY n DESC").fetchall()
+    except Exception:
+        return []
+    finally:
+        con.close()
+    return [{"phone_number_id": r["pid"], "conversations": r["n"]}
+            for r in rows if r["pid"]]
+
+
+def summary(db_path, days=30, value_per_sale=16.0, currency="USD", phone_number_id=None):
     from . import intent
 
     since = (datetime.utcnow() - timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
     con = _conn(db_path)
     try:
-        contacts = [dict(r) for r in con.execute(
-            "SELECT wa_id, product, last_inbound_at, created_at FROM wa_contacts").fetchall()]
+        if phone_number_id:
+            contacts = [dict(r) for r in con.execute(
+                "SELECT wa_id, product, last_inbound_at, created_at, via_phone_id "
+                "FROM wa_contacts WHERE via_phone_id = ?", (str(phone_number_id),)).fetchall()]
+        else:
+            contacts = [dict(r) for r in con.execute(
+                "SELECT wa_id, product, last_inbound_at, created_at, via_phone_id "
+                "FROM wa_contacts").fetchall()]
 
         # One pass over messages rather than a query per contact. At this size either
         # works; at ten clients the per-contact version is the thing that falls over.
@@ -76,8 +117,9 @@ def summary(db_path, days=30, value_per_sale=16.0, currency="USD"):
         con.close()
 
     counts = {k: 0 for k in STATE_ORDER}
-    flags = {"objection": 0, "needs_human": 0, "lost": 0}
+    flags = {"objection": 0, "needs_human": 0, "lost": 0, "disqualified": 0}
     rows, attention, per_campaign = [], [], {}
+    dq_reasons = {}
 
     for c in contacts:
         thread = msgs.get(c["wa_id"], [])
@@ -88,12 +130,16 @@ def summary(db_path, days=30, value_per_sale=16.0, currency="USD"):
             continue
 
         state, evidence, needs_human = intent.classify(
-            [{"direction": m["direction"], "body": m["body"]} for m in thread])
+            [{"direction": m["direction"], "body": m["body"]} for m in thread],
+            wa_id=c["wa_id"])
 
         if state in counts:
             counts[state] += 1
         elif state == "LOST":
             flags["lost"] += 1
+        elif state == "DISQUALIFIED":
+            flags["disqualified"] += 1
+            dq_reasons[evidence or "unknown"] = dq_reasons.get(evidence or "unknown", 0) + 1
         if needs_human:
             flags["needs_human"] += 1
 
@@ -106,8 +152,11 @@ def summary(db_path, days=30, value_per_sale=16.0, currency="USD"):
 
         inbound = [m for m in thread if m["direction"] == "in"]
         rows.append({
-            "masked": _mask(c["wa_id"]),
+            "number": _pretty(c["wa_id"]),
+            "wa_id": _digits(c["wa_id"]),
+            "wa_link": "https://wa.me/" + _digits(c["wa_id"]),
             "state": state,
+            "reason": evidence if state == "DISQUALIFIED" else None,
             "campaign": camp,
             "product": c.get("product"),
             "turns": len(inbound),
@@ -120,7 +169,8 @@ def summary(db_path, days=30, value_per_sale=16.0, currency="USD"):
         # customer the merchant already paid to acquire.
         if needs_human or (state in ("QUALIFIED", "INTENT") and _stale(last_at, hours=4)):
             attention.append({
-                "masked": _mask(c["wa_id"]),
+                "number": _pretty(c["wa_id"]),
+                "wa_link": "https://wa.me/" + _digits(c["wa_id"]),
                 "state": "NEEDS_HUMAN" if needs_human else state,
                 "idle": _age(last_at),
                 "campaign": camp,
@@ -144,6 +194,9 @@ def summary(db_path, days=30, value_per_sale=16.0, currency="USD"):
                                key=lambda kv: -kv[1]["convos"])],
         "events": events,
         "days": days,
+        "disqualified_reasons": [{"reason": k, "n": v} for k, v in
+                                 sorted(dq_reasons.items(), key=lambda kv: -kv[1])],
+        "phone_number_id": phone_number_id,
     }
 
 

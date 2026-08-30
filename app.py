@@ -1131,9 +1131,15 @@ def api_wa_stats():
         value = float(request.args.get("value", 16))
     except ValueError:
         value = 16.0
+    pid = (request.args.get("phone_number_id") or "").strip() or None
     try:
-        return jsonify(stats.summary(fgc_wa.DB_PATH, days=days, value_per_sale=value,
-                                     currency=request.args.get("currency", "USD")))
+        out = stats.summary(fgc_wa.DB_PATH, days=days, value_per_sale=value,
+                            currency=request.args.get("currency", "USD"),
+                            phone_number_id=pid)
+        # Always list the numbers that have traffic, so the portal can render its
+        # switcher without a second round trip.
+        out["numbers"] = stats.numbers(fgc_wa.DB_PATH)
+        return jsonify(out)
     except Exception as e:
         print(f"[wa-stats] failed: {e}")
         return jsonify({"error": "unavailable"}), 500

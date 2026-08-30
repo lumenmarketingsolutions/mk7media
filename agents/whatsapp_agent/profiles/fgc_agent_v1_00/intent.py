@@ -76,10 +76,81 @@ HUMAN_REQ = rx(r"kell?[ie]mn[iy] 3arab[iy]|كلمني عربي|speak arabic|comp
 
 BUSINESS_CONFIRM = rx(r"^\s*(done|confirmed|تم|تمام)\s*[.!]?\s*$")
 
+# ---- disqualification: never a customer, as opposed to LOST which is a customer we
+# lost. The distinction is the whole point. LOST says the script or the follow-up
+# failed and is worth fixing. DISQUALIFIED says the targeting is wrong and no script on
+# earth would have helped. Telling a merchant "30% went cold" and "30% were never
+# reachable" are different sentences with different fixes behind them.
+#
+# This state NEVER produces a Meta event. Not a Lead, not a negative signal, nothing.
+# The optimiser learns from what we send it, and there is no event that means "we did
+# not want this one" — the only honest way to say that is silence.
+
+# Disqualification is read from what somebody SAYS, never from their phone number.
+#
+# The first version of this rule disqualified anyone without a +961 number, on the
+# reasoning that the shop only delivers inside Lebanon. That rule was wrong, and the
+# order book says so plainly: 12 of 78 paid orders came from foreign numbers, every one
+# delivered to a Lebanese address — Ghassaniyeh, jbeil, naccache, ras beirut, Tripoli,
+# Koura, Aley, Akkar. Lebanon is full of people carrying Syrian, Gulf, US and European
+# SIMs. The rule would have thrown away 15% of real customers.
+#
+# The clincher: the ads only run in Lebanon, so anyone in the thread is in Lebanon
+# already. Where their SIM was bought says nothing about where they live.
+#
+# Only stated intent counts. "Just looking", "not interested", "asking for my friend".
+
+NOT_INTERESTED = rx(r"\bnot interested\b|\bno thanks?\b|\bmaybe (later|another time)\b|"
+                    r"\bsome other time\b|\bnot (right )?now\b|\bnext time\b|"
+                    r"\bchange(d)? my mind\b|\bma ba2a bad+[iy]\b|\bma bad+[iy]\b|"
+                    r"مش مهتم|مو مهتم|مرة تانية|بعدين|ما بدي|ما بعد بدي|لاحقا|لاحقاً")
+
+JUST_LOOKING = rx(r"\bjust (looking|browsing|checking|seeing)\b|\bhaving a look\b|"
+                  r"\bbas 3am (shouf|shuf|etfarraj)\b|\bkenet 3am shouf\b|"
+                  r"عم تفرج|بس عم شوف|بشوف بعدين|حابب اشوف بس")
+
+RESELLER = rx(r"\b(wholesale|jomla|jimla|bel jomle|reseller|resell|distributor|"
+              r"bulk|bel jomla|supplier|agent)\b|جملة|بالجملة|موزع|وكيل")
+
+NOT_A_BUYER = rx(r"\bfor a friend\b|just ask(ing)?|kenet? 3am\s*(e|i)?st[ae]fs[ae]r|"
+                 r"3am estafsar|curious|survey|student|research|"
+                 r"كنت عم استفسر|بس عم اسأل|لصديق|لصاحبي")
+
+JOB_OR_SPAM = rx(r"\b(job|hiring|vacancy|cv|resume|internship|partnership|"
+                 r"collab(oration)?|promo(te)? your|marketing services|seo|"
+                 r"increase your sales)\b|وظيفة|توظيف|سيرة ذاتية")
+
 RUNG = {"NEW": 0, "ENQUIRY": 1, "QUALIFIED": 2, "INTENT": 3, "COMMITTED": 4}
 
 
-def classify(messages):
+def disqualify(wa_id, messages):
+    """Why this person was never going to buy, in their own words, or None.
+
+    Read only from what the customer says. Returns a reason rather than a bare flag,
+    because "wholesale enquiry" and "not interested" call for completely different
+    responses from the merchant, and a single DISQUALIFIED count with no breakdown is
+    a number nobody can act on.
+    """
+    for m in messages:
+        if m.get("direction") != "in":
+            continue
+        b = (m.get("body") or "").strip()
+        if not b:
+            continue
+        if JOB_OR_SPAM.search(b):
+            return "not a customer enquiry"
+        if RESELLER.search(b):
+            return "wholesale enquiry"
+        if NOT_A_BUYER.search(b):
+            return "asking on someone else's behalf"
+        if JUST_LOOKING.search(b):
+            return "just browsing"
+        if NOT_INTERESTED.search(b):
+            return "said they are not interested"
+    return None
+
+
+def classify(messages, wa_id=None):
     """Walk a thread in order and return (state, evidence, needs_human).
 
     `messages` is a list of dicts with `direction` ('in' | 'out' | 'out_app') and
@@ -95,6 +166,13 @@ def classify(messages):
     reached, state, needs_human = "NEW", "NEW", False
     rung_evidence = lost_evidence = None
     asked_location = False
+
+    # Checked first, but only against stated intent. Somebody who says "just looking"
+    # and then asks the price has told us what they are; letting them climb the ladder
+    # puts them in the merchant's follow-up list and, worse, inside a conversion event.
+    reason = disqualify(wa_id, messages)
+    if reason:
+        return "DISQUALIFIED", reason, False
 
     for m in messages:
         body = (m.get("body") or "").strip()
@@ -151,7 +229,7 @@ def classify_wa(wa_id, db_path):
             (wa_id,)).fetchall()
     finally:
         conn.close()
-    return classify([dict(r) for r in rows])
+    return classify([dict(r) for r in rows], wa_id=wa_id)
 
 
 # ---------------------------------------------------------------- the trigger
@@ -170,6 +248,11 @@ def on_conversation_update(wa_id):
     except Exception as e:
         print(f"[fgc-intent] classify failed for {wa_id}: {e}")
         return None
+
+    if state == "DISQUALIFIED":
+        # Recorded for the merchant, never reported to Meta.
+        print(f"[fgc-intent] {wa_id} disqualified: {evidence}")
+        return state
 
     try:
         if RUNG.get(state, 0) >= RUNG["QUALIFIED"] and state != "LOST":
