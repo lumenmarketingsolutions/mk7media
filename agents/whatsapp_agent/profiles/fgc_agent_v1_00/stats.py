@@ -107,6 +107,35 @@ def events_detail(db_path, limit=200):
              "attributed": bool(r["ctwa_clid"])} for r in rows]
 
 
+def attribution(db_path):
+    """Why conversations do or do not carry a product and an ad.
+
+    Three different failures hide behind one empty column and they need three different
+    fixes: no referral at all (organic traffic, nothing to attribute), a referral whose
+    ad we could not name a product for (a mapping problem), and a referral with no click
+    id (attribution impossible even though we know the ad). Counting them together tells
+    you nothing about which to fix."""
+    con = _conn(db_path)
+    try:
+        def one(sql):
+            try:
+                return con.execute(sql).fetchone()["n"]
+            except Exception:
+                return None
+        return {
+            "contacts": one("SELECT COUNT(*) n FROM wa_contacts"),
+            "with_ad": one("SELECT COUNT(*) n FROM wa_contacts WHERE product_ad_id IS NOT NULL"),
+            "with_product": one("SELECT COUNT(*) n FROM wa_contacts WHERE product IS NOT NULL"),
+            "with_click_id": one("SELECT COUNT(*) n FROM wa_contacts WHERE ctwa_clid IS NOT NULL"),
+            "ad_but_no_product": one(
+                "SELECT COUNT(*) n FROM wa_contacts "
+                "WHERE product_ad_id IS NOT NULL AND product IS NULL"),
+            "clicks_rows": one("SELECT COUNT(*) n FROM wa_ctwa_clicks"),
+        }
+    finally:
+        con.close()
+
+
 def summary(db_path, days=30, value_per_sale=16.0, currency="USD", phone_number_id=None):
     from . import intent
 

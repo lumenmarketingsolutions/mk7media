@@ -1193,6 +1193,8 @@ def api_wa_stats():
         out["numbers"] = stats.numbers(fgc_wa.DB_PATH)
         if request.args.get("events") == "1":
             out["events_detail"] = stats.events_detail(fgc_wa.DB_PATH)
+        if request.args.get("attribution") == "1":
+            out["attribution"] = stats.attribution(fgc_wa.DB_PATH)
         return jsonify(out)
     except Exception as e:
         print(f"[wa-stats] failed: {e}")
