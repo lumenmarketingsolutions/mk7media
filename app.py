@@ -1508,3 +1508,20 @@ def health():
 
 if __name__ == "__main__":
     app.run(debug=True, port=5050)
+@app.route("/fgc-orders/import-leads", methods=["POST"])
+def fgc_import_leads():
+    import os as _os
+    expected = _os.environ.get("FGC_IMPORT_SECRET", "")
+    if not expected:
+        return jsonify({"error": "FGC_IMPORT_SECRET not configured"}), 503
+    data = request.get_json(silent=True) or {}
+    if data.get("secret") != expected:
+        return jsonify({"error": "unauthorized"}), 401
+    product = str(data.get("product") or "strips").lower()
+    leads   = data.get("leads") or []
+    results = fgc_orders.import_leads_batch(leads, product=product)
+    imported = sum(1 for r in results if r["status"] == "imported")
+    skipped  = sum(1 for r in results if r["status"] == "skipped")
+    errors   = sum(1 for r in results if r["status"] == "error")
+    return jsonify({"results": results,
+                    "summary": {"imported": imported, "skipped": skipped, "errors": errors}})
