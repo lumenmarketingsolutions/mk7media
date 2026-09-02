@@ -621,3 +621,46 @@ def handle_order_sheet(wa_id, media_id, filename, caption, send_text):
             except Exception:
                 pass
     threading.Thread(target=work, daemon=True).start()
+
+
+# ------------------------------------------------------------------ batch import
+import re as _re
+
+
+def import_leads_batch(leads, product="strips"):
+    try:
+        _shopify_token()
+    except Exception as e:
+        return [{"phone": "", "status": "error", "message": f"Cannot reach Shopify: {e}"}]
+
+    index = _existing_orders_index()
+    results = []
+    for lead in leads:
+        phone_raw = str(lead.get("phone") or "").strip()
+        price = float(lead.get("price") or 0)
+        city  = str(lead.get("city")  or "Lebanon").strip()
+        notes = str(lead.get("notes") or "").strip()
+        num   = lead.get("num", "?")
+        m = _re.search(r"(\d+)\s*(?:box(?:es)?|pcs?|pieces?|units?)", notes, _re.IGNORECASE)
+        qty = int(m.group(1)) if m else 1
+        o = {"phone": phone_raw, "price": price, "city": city,
+             "quantity": qty, "product": product, "name": "", "address": city}
+        dup, exact = _duplicate_of(o, index)
+        if exact:
+            results.append({"phone": phone_raw, "status": "skipped",
+                            "message": f"#{num} already in Shopify ({dup['name']} ${dup['total']:.2f})"})
+            continue
+        order, err = _enter_order(o)
+        if err:
+            results.append({"phone": phone_raw, "status": "error",
+                            "message": f"#{num} {phone_raw} FAILED: {err}"})
+            continue
+        line = _confirm_line(order, o)
+        status = "flagged" if dup else "imported"
+        results.append({"phone": phone_raw, "status": status,
+                        "message": line + (" warning: same number had another order" if dup else "")})
+        ph = _norm_digits(phone_raw)
+        index.setdefault(ph, []).append(
+            {"name": order.get("name"), "total": price,
+             "product": PRODUCT_NAMES.get(product, product), "created": ""})
+    return results
