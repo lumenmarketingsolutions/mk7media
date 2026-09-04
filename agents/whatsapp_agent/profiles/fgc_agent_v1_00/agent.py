@@ -103,6 +103,27 @@ except Exception:
 
 HUMAN_SNOOZE_HOURS = float(os.environ.get("FGC_HUMAN_SNOOZE_HOURS", "4"))
 
+# Server-owned greeting (added 04.09.2026). The WhatsApp Business app's automated
+# greeting only fires while MK's phone is on and online, and the agent used to wait
+# for it. Every offline minute silenced the agent on every new lead. Now the server
+# greets ad-started threads itself, so the phone is no longer in the critical path.
+#   FGC_GREETING_MODE  fallback (default): wait FGC_GREETING_WAIT seconds; if the
+#                      app's greeting echo landed meanwhile, skip ours (never a
+#                      double). Otherwise send ours.
+#                      always: send at once, never wait for the app.
+#                      off: old behaviour, wait for the app greeting.
+#   FGC_GREETING_WAIT  seconds to give the phone in fallback mode, default 30.
+#   FGC_GREETING_TEXT  the message. Default is the app's pink-heart greeting.
+#                      A literal "\n" in the env value becomes a line break.
+GREETING_MODE = os.environ.get("FGC_GREETING_MODE", "fallback").strip().lower() or "fallback"
+try:
+    GREETING_WAIT = max(0.0, float(os.environ.get("FGC_GREETING_WAIT", "30")))
+except Exception:
+    GREETING_WAIT = 30.0
+GREETING_TEXT = os.environ.get(
+    "FGC_GREETING_TEXT", "Hello💕 this item is for $12\n\nWould you like to order?"
+).replace("\\n", "\n").strip()
+
 MAX_HISTORY = 40
 MAX_OUTBOUND_CHARS = 4000
 HANDOFF_TOKEN = "[[HANDOFF]]"
@@ -1136,11 +1157,13 @@ def handle_webhook(payload):
                                 wamid=echo.get("id"))
                 low = (body or "").lower()
                 if low and any(g in low for g in GREETING_MARKERS):
-                    conn = _conn()
-                    conn.execute("UPDATE wa_contacts SET greeted = 1 WHERE wa_id = ?", (to_id,))
-                    conn.commit()
-                    conn.close()
-                    print(f"[fgc-wa] app echo -> {to_id}: automated greeting sent, agent now armed")
+                    if _claim_greeting(to_id):
+                        print(f"[fgc-wa] app echo -> {to_id}: automated greeting sent, agent now armed")
+                    else:
+                        # We already greeted from the server. The app greeting is still
+                        # switched on in MK's phone, so this customer saw two. Log loudly.
+                        print(f"[fgc-wa] app echo -> {to_id}: DOUBLE GREETING — app greeting fired "
+                              "after the server one; switch the app greeting off")
                 else:
                     snooze_contact(to_id)
                     print(f"[fgc-wa] app echo -> {to_id}: MK replied from phone, snoozing agent {HUMAN_SNOOZE_HOURS}h")
@@ -1271,14 +1294,20 @@ def _handle_inbound_message(msg, profiles, via_phone_id=None):
         return
 
     if text and any(mk in text.lower() for mk in AD_PREFILL_MARKERS):
-        # This is the ad's canned opener. The shop's greeting answers it.
-        print(f"[fgc-wa] inbound {wa_id}: ad prefill — greeting handles this, agent silent")
+        # This is the ad's canned opener. The greeting answers it: the app's if the
+        # phone is on, ours otherwise (see _schedule_greeting).
+        scheduled = _schedule_greeting(wa_id)
+        print(f"[fgc-wa] inbound {wa_id}: ad prefill — greeting handles this, agent silent"
+              + (" (server greeting scheduled)" if scheduled else ""))
         return
 
     if not contact.get("greeted"):
         # Greeting has not gone out yet. The agent only ever answers a REPLY to
-        # the greeting, never the opening message.
-        print(f"[fgc-wa] inbound {wa_id}: no greeting sent yet, agent silent")
+        # the greeting, never the opening message. On an ad-started thread the
+        # server now guarantees that greeting goes out; we speak again on their reply.
+        scheduled = _schedule_greeting(wa_id)
+        print(f"[fgc-wa] inbound {wa_id}: no greeting sent yet, agent silent"
+              + (" (server greeting scheduled)" if scheduled else ""))
         return
 
     if not contact.get("agent_ok"):
@@ -1335,6 +1364,89 @@ def _reply_lock(wa_id):
         if wa_id not in _reply_locks:
             _reply_locks[wa_id] = threading.Lock()
         return _reply_locks[wa_id]
+
+
+_greeting_pending = set()
+_greeting_lock = threading.Lock()
+
+
+def _claim_greeting(wa_id):
+    """Atomically flip greeted 0 -> 1. True only for the one caller that won, so two
+    webhook deliveries for the same thread can never produce two greetings."""
+    conn = _conn()
+    cur = conn.execute("UPDATE wa_contacts SET greeted = 1 WHERE wa_id = ? AND "
+                       "COALESCE(greeted, 0) = 0", (wa_id,))
+    conn.commit()
+    conn.close()
+    return bool(cur.rowcount)
+
+
+def _unclaim_greeting(wa_id):
+    conn = _conn()
+    conn.execute("UPDATE wa_contacts SET greeted = 0 WHERE wa_id = ?", (wa_id,))
+    conn.commit()
+    conn.close()
+
+
+def _mk_has_spoken(wa_id):
+    conn = _conn()
+    row = conn.execute("SELECT 1 FROM wa_messages WHERE wa_id = ? AND direction = 'out_app' "
+                       "LIMIT 1", (wa_id,)).fetchone()
+    conn.close()
+    return bool(row)
+
+
+def _schedule_greeting(wa_id):
+    """Kick off the server-side greeting for an ad-started thread. Idempotent: one
+    timer per contact, and nothing at all once the contact is greeted."""
+    if GREETING_MODE == "off":
+        return False
+    contact = get_contact(wa_id) or {}
+    if contact.get("greeted") or not contact.get("agent_ok"):
+        return False
+    if contact.get("status") in ("handed_off", "opted_out"):
+        return False
+    with _greeting_lock:
+        if wa_id in _greeting_pending:
+            return True
+        _greeting_pending.add(wa_id)
+    threading.Thread(target=_greet_async, args=(wa_id,), daemon=True).start()
+    return True
+
+
+def _greet_async(wa_id):
+    try:
+        if GREETING_MODE == "fallback" and GREETING_WAIT > 0:
+            time.sleep(GREETING_WAIT)
+        contact = get_contact(wa_id) or {}
+        if contact.get("greeted"):
+            print(f"[fgc-wa] greeting {wa_id}: app greeting arrived in time, ours not needed")
+            return
+        if _is_snoozed(contact) or contact.get("status") in ("handed_off", "opted_out"):
+            print(f"[fgc-wa] greeting {wa_id}: MK already in this thread, not greeting")
+            return
+        if _mk_has_spoken(wa_id):
+            # An older thread MK has already handled from her phone. A "$12, would
+            # you like to order?" opener there would be nonsense. She keeps it.
+            print(f"[fgc-wa] greeting {wa_id}: MK has spoken in this thread before, not greeting")
+            return
+        if not _claim_greeting(wa_id):
+            return
+        data = send_text(wa_id, GREETING_TEXT)
+        if not data:
+            # Send failed. Give the claim back so a later app greeting can still arm us.
+            _unclaim_greeting(wa_id)
+            print(f"[fgc-wa] greeting {wa_id}: send FAILED, contact left ungreeted")
+            return
+        # The greeting is the only thing we send unprompted. Whatever they typed
+        # before it, the agent speaks again only when they reply to this.
+        print(f"[fgc-wa] greeting {wa_id}: server greeting sent ({GREETING_MODE}), "
+              "agent now armed, waiting for their reply")
+    except Exception as e:
+        print(f"[fgc-wa] greeting error for {wa_id}: {repr(e)}")
+    finally:
+        with _greeting_lock:
+            _greeting_pending.discard(wa_id)
 
 
 def _reply_async(wa_id, trigger_wamid=None):

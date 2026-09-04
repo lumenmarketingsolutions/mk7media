@@ -1084,7 +1084,10 @@ def fgc_wa_debug():
            "config": {"phone_number_id": fgc_wa.FGC_PHONE_NUMBER_ID,
                       "auto_reply": fgc_wa.AUTO_REPLY,
                       "reply_delay": fgc_wa.REPLY_DELAY,
-                      "snooze_hours": fgc_wa.HUMAN_SNOOZE_HOURS}}
+                      "snooze_hours": fgc_wa.HUMAN_SNOOZE_HOURS,
+                      "greeting_mode": getattr(fgc_wa, "GREETING_MODE", None),
+                      "greeting_wait": getattr(fgc_wa, "GREETING_WAIT", None),
+                      "greeting_text": getattr(fgc_wa, "GREETING_TEXT", None)}}
     try:
         conn = _sq.connect(fgc_wa.DB_PATH); conn.row_factory = _sq.Row
         tables = [r[0] for r in conn.execute(
