@@ -35,6 +35,7 @@ Shared with the MK7 profile (already set on Railway):
 """
 
 import os
+import re
 import json
 import time
 import hmac
@@ -230,13 +231,17 @@ LANGUAGE — mirror the customer exactly
 - French -> French.
 Keep it Lebanese and casual, never formal Modern Standard Arabic.
 
-YOUR REAL JOB — CLOSE THE ORDER
-You are not a FAQ bot. You are here to close sales. On every message, find the
-path to the order and take it: answer what they asked in one line, then move
-them toward giving their location. When there is a clear path to a yes, take it
-and close — do not stall, do not over-explain, do not hand a closeable order to
-a human. The order is only real once they give a location (a pin, or an area
-plus address). Ask with exactly: "Location please" or "Kindly share your location".
+YOUR REAL JOB — CLOSE THE SALE
+You are a SALES agent, not customer service. Your one goal is to close the order.
+On every single message, find the path to the sale and take it: answer what they
+asked in one short line, then move them toward giving their location so the order
+can be booked. Assume they want to buy — your job is to remove the last little
+reason they haven't yet. When there is any path to a yes, take it and close; do
+not stall, do not over-explain, and never hand a closeable order to a human.
+Try to carry the whole conversation yourself and only hand off when you genuinely
+cannot proceed (see the short list below). The order is only real once they give
+a location (a pin, or an area plus address). Ask with exactly: "Location please"
+or "Kindly share your location".
 
 MONEY
 - Every pack is $12. Delivery is a flat $4 anywhere in Lebanon. ALWAYS give the
@@ -417,11 +422,20 @@ def init_db():
                      # second ad weeks later and then buys converted on the second ad.
                      # The full history stays in wa_ctwa_clicks.
                      ("ctwa_clid", "TEXT"), ("ctwa_clid_at", "TIMESTAMP"),
-                     ("via_phone_id", "TEXT")):
+                     ("via_phone_id", "TEXT"),
+                     # Recovery sweep: one re-engagement message per contact, inside
+                     # the 24h window. reengaged_at is the atomic dedup claim.
+                     ("reengaged_at", "TIMESTAMP"), ("reengage_kind", "TEXT")):
         try:
             conn.execute(f"ALTER TABLE wa_contacts ADD COLUMN {col} {ddl}")
         except Exception:
             pass
+    # Single-runner lock so only one gunicorn worker runs the recovery sweep per tick.
+    try:
+        conn.execute("CREATE TABLE IF NOT EXISTS wa_sweep_lock "
+                     "(id INTEGER PRIMARY KEY CHECK(id=1), last_run REAL)")
+    except Exception:
+        pass
     # Every contact that existed before via_phone_id was introduced arrived on the FGC
     # number, because it was the only number this profile answered. Without this they
     # sit outside every per-number view and the dashboard reads zero on an account with
@@ -934,6 +948,134 @@ def send_text(to_wa_id, body):
     return data
 
 
+# ── Recovery / re-engagement sweep ────────────────────────────────────────────
+# WhatsApp only allows a free-form message within 24h of the customer's last
+# message. This sweep uses that window: exactly one recovery message per contact,
+# fired ~20-23h after their last inbound (their last chance before it shuts).
+#   - never truly replied (only the ad opener) -> offer 10$ if they order today
+#   - a real conversation that went quiet      -> a light "still interested?"
+REENGAGE_ON = os.environ.get("FGC_REENGAGE", "0") not in ("0", "false", "False", "")
+REENGAGE_MIN_H = float(os.environ.get("FGC_REENGAGE_MIN_H", "20"))
+REENGAGE_MAX_H = float(os.environ.get("FGC_REENGAGE_MAX_H", "23"))
+REENGAGE_INTERVAL = int(os.environ.get("FGC_REENGAGE_INTERVAL", "1800"))  # 30 min
+
+_ARABIC_RE = re.compile(r"[؀-ۿ]")
+
+REENGAGE_MSG = {
+    "noreply": {
+        "ar": "لسا مهتم؟ إذا طلبت اليوم بصير السعر 10$ بدل 12$ (زائد 4$ توصيل).",
+        "en": "Still interested? Order today and it's 10$ instead of 12$ (+ 4$ delivery).",
+    },
+    "died": {
+        "ar": "لسا مهتم؟",
+        "en": "Still interested?",
+    },
+}
+
+
+def _genuine_inbound_count(conn, wa_id):
+    """Real customer messages, excluding the ad opener and media/system placeholders."""
+    rows = conn.execute(
+        "SELECT body, msg_type FROM wa_messages WHERE wa_id=? AND direction='in'", (wa_id,)
+    ).fetchall()
+    n = 0
+    for r in rows:
+        b = (r["body"] or "")
+        if r["msg_type"] in ("reaction", "system", "unsupported", "ephemeral"):
+            continue
+        if b.startswith("[") and b.endswith("]"):
+            continue
+        if any(mk in b.lower() for mk in AD_PREFILL_MARKERS):
+            continue
+        n += 1
+    return n
+
+
+def _last_inbound_lang(conn, wa_id):
+    r = conn.execute("SELECT body FROM wa_messages WHERE wa_id=? AND direction='in' "
+                     "ORDER BY id DESC LIMIT 1", (wa_id,)).fetchone()
+    return "ar" if (r and _ARABIC_RE.search(r["body"] or "")) else "en"
+
+
+def _reengage_candidates(conn):
+    """Contacts inside the 20-23h band who never got a recovery message."""
+    return conn.execute(
+        "SELECT wa_id, last_inbound_at FROM wa_contacts "
+        "WHERE COALESCE(agent_ok,0)=1 AND status='active' AND reengaged_at IS NULL "
+        "AND (human_snooze_until IS NULL OR human_snooze_until < strftime('%s','now')) "
+        "AND last_inbound_at IS NOT NULL "
+        "AND (julianday('now') - julianday(last_inbound_at))*24 BETWEEN ? AND ?",
+        (REENGAGE_MIN_H, REENGAGE_MAX_H),
+    ).fetchall()
+
+
+def reengage_sweep(dry=False):
+    """Message everyone in the recovery band once. Returns the list acted on."""
+    conn = _conn()
+    out = []
+    for r in _reengage_candidates(conn):
+        wa_id = r["wa_id"]
+        kind = "died" if _genuine_inbound_count(conn, wa_id) >= 1 else "noreply"
+        lang = _last_inbound_lang(conn, wa_id)
+        msg = REENGAGE_MSG[kind][lang]
+        out.append({"wa_id": wa_id, "kind": kind, "lang": lang, "msg": msg,
+                    "last_inbound_at": r["last_inbound_at"]})
+        if dry:
+            continue
+        # Atomic claim — whichever worker flips reengaged_at first sends; others skip.
+        cur = conn.execute("UPDATE wa_contacts SET reengaged_at=CURRENT_TIMESTAMP, "
+                           "reengage_kind=? WHERE wa_id=? AND reengaged_at IS NULL",
+                           (kind, wa_id))
+        conn.commit()
+        if cur.rowcount == 1:
+            send_text(wa_id, msg)
+    conn.close()
+    return out
+
+
+def _claim_sweep():
+    """True for exactly one worker per interval."""
+    import time as _t
+    now = _t.time()
+    conn = _conn()
+    conn.execute("INSERT OR IGNORE INTO wa_sweep_lock(id, last_run) VALUES(1, 0)")
+    cur = conn.execute("UPDATE wa_sweep_lock SET last_run=? WHERE id=1 AND ?-last_run > ?",
+                       (now, now, REENGAGE_INTERVAL - 5))
+    conn.commit()
+    conn.close()
+    return cur.rowcount == 1
+
+
+_sweeper_started = False
+_sweeper_guard = threading.Lock()
+
+
+def ensure_sweeper():
+    """Start the recovery loop once per worker process (post-fork safe)."""
+    global _sweeper_started
+    if _sweeper_started or not REENGAGE_ON:
+        return
+    with _sweeper_guard:
+        if _sweeper_started:
+            return
+        _sweeper_started = True
+
+    def _loop():
+        import time as _t
+        while True:
+            try:
+                if _claim_sweep():
+                    sent = reengage_sweep(dry=False)
+                    if sent:
+                        print(f"[fgc-reengage] messaged {len(sent)} contacts")
+            except Exception as e:
+                print(f"[fgc-reengage] sweep error: {e}")
+            _t.sleep(REENGAGE_INTERVAL)
+
+    threading.Thread(target=_loop, daemon=True).start()
+    print("[fgc-reengage] sweeper started")
+
+
 # ── Notifications ────────────────────────────────────────────────────────────
 def _notify_team(subject, html):
     if not RESEND_API_KEY or not NOTIFY_EMAILS:
@@ -1181,6 +1323,7 @@ def is_fgc_event(value):
 
 def handle_webhook(payload):
     """Handle a webhook payload (only FGC-number changes; app.py routes us)."""
+    ensure_sweeper()  # lazy-start the recovery loop once per worker (no scheduler exists)
     for entry in payload.get("entry", []) or []:
         for change in entry.get("changes", []) or []:
             value = change.get("value", {}) or {}

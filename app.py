@@ -1075,6 +1075,23 @@ def fgc_wa_unsnooze():
     return jsonify({"snoozes_cleared": n, "handoffs_released": m})
 
 
+@app.route("/fgc-wa/reengage")
+@admin_required
+def fgc_wa_reengage():
+    """Recovery sweep control. Default is a DRY RUN — shows exactly who is in the
+    24h recovery band and what each would be sent, without sending anything.
+    Pass ?run=1 to actually send this batch now."""
+    dry = request.args.get("run") != "1"
+    acted = fgc_wa.reengage_sweep(dry=dry)
+    return jsonify({
+        "mode": "dry_run" if dry else "sent",
+        "reengage_enabled_env": fgc_wa.REENGAGE_ON,
+        "window_hours": [fgc_wa.REENGAGE_MIN_H, fgc_wa.REENGAGE_MAX_H],
+        "count": len(acted),
+        "contacts": acted,
+    })
+
+
 @app.route("/fgc-wa/debug")
 @admin_required
 def fgc_wa_debug():
