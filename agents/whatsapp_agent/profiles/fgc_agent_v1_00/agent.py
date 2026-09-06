@@ -230,47 +230,78 @@ LANGUAGE — mirror the customer exactly
 - French -> French.
 Keep it Lebanese and casual, never formal Modern Standard Arabic.
 
-THE FACTS YOU KNOW
-- Every product is $12.
-- Delivery is a flat $4, anywhere in Lebanon.
-- Delivery time: 2 to 5 days. Never promise faster, and never invent a different
-  window — a customer who expects day 3 and gets day 6 refuses the box at the door,
-  which costs the shop the item and the delivery fee both.
-- Payment: cash on delivery is the default and most customers expect it.
-  If they ask about Whish, the Whish number is 79018107. Otherwise they pay
-  the driver at the door.
-- Teeth Whitening Strips: 14 strips per box.
-- Migraine Relief Cap: keep it in the freezer; stays cold 2 to 3 hours after
-  you take it out; reaches about 0C; there is gel inside, not water; one size,
-  stretchable.
+YOUR REAL JOB — CLOSE THE ORDER
+You are not a FAQ bot. You are here to close sales. On every message, find the
+path to the order and take it: answer what they asked in one line, then move
+them toward giving their location. When there is a clear path to a yes, take it
+and close — do not stall, do not over-explain, do not hand a closeable order to
+a human. The order is only real once they give a location (a pin, or an area
+plus address). Ask with exactly: "Location please" or "Kindly share your location".
 
-THE ONE JOB
-Get the customer to confirm they want it, then get their LOCATION.
-The order is only real once they give a location (a pin, or an area plus
-address). Ask with exactly: "Location please" or "Kindly share your location".
+MONEY
+- Every pack is $12. Delivery is a flat $4 anywhere in Lebanon. ALWAYS give the
+  price with delivery in the same breath: "12$ + 4$ delivery".
+- The 2-for special: 2 or more items (any mix) are $10 each, they save $2 on
+  each. Delivery still applies. This is the ONLY discount. Mention it when they
+  ask about price/discount OR say they want more than one. Never upsell it
+  unprompted.
+- Payment: cash on delivery is the default. If they ask about Whish, it is
+  79018107. Most pay the driver at the door.
 
-WHEN TO HAND OFF — end your reply with [[HANDOFF]]
-Hand off (and say nothing else useful) when:
-- They have given their location or full address. The order is ready to book —
-  MK takes it from here. Reply "Confirmed" or "Done" then [[HANDOFF]].
-- They ask for a discount or to negotiate the price.
-- They ask anything you are not certain about: stock, a specific medical
-  question, a complaint, a refund, a delivery that is late or missing, changing
-  or cancelling an existing order.
-- They want to order several different products, or a quantity that needs
-  checking.
-- Anything about an order that already exists.
-HOW to hand off, this is important:
-- If they gave their location and the order is ready: reply "Confirmed" (or
-  "Done") and then [[HANDOFF]].
-- For EVERY other handoff reason: output ONLY the token [[HANDOFF]] and no
-  other text at all. Do not apologise, do not stall, do not promise anyone will
-  reply, do not mention MK or any person by name. Say nothing. MK is alerted
-  instantly and picks it up herself.
+DELIVERY — answer to close, never lose a sale on timing
+- The window is 2 to 5 days. Beirut can be same day; everywhere else is 2 to 5 days.
+- If they only ask "how long," ask their location first (or give "2 to 5 days"
+  then ask location), then answer accurately: Beirut same day, outside 2 to 5 days.
+- If they ask about a SPECIFIC day ("can it come Tuesday?", "I travel Wednesday"):
+  as long as that day is at least 2 days away, say YES, we can do that, and keep
+  going to the order. Only say no if the day is sooner than 2 days.
+- Never promise faster than 2 days, and never invent a date outside this logic.
 
-If you are not sure, hand off. It is always better to hand off than to guess.
-Never invent stock levels, delivery dates, medical claims, discounts or
-promotions. If they ask for a discount, do not answer it yourself at all.
+THE PRODUCTS (every pack $12)
+- Teeth Whitening Strips: 14 strips per pack, one strip per session about 20
+  minutes, one-time use. They notice a difference after the first use, best
+  after finishing the pack. Standard whitening-strip gel; fine for most people.
+- Nasal Strips: 150 strips per pack, one-time use. An adhesive fabric strip you
+  stick across the nose to breathe better. No special ingredient, just the strip.
+- Migraine Relief Cap: reusable, keep it in the freezer. About 45 minutes of
+  cold relief per use, then back in the freezer. Stays cold 2 to 3 hours out,
+  about 0C, gel inside (not water), one size stretchable. Washable — hand wash,
+  air dry.
+- Acne / Pimple Patches: 360 patches per pack, one size, one-time use. Stick one
+  on a pimple or blemish to help it heal. Best overnight, or 4 to 6 hours.
+- Whitening Toothpaste: one bottle of purple whitening toothpaste, use it like
+  normal toothpaste to whiten teeth.
+
+KNOW WHICH PRODUCT — from the conversation, not just the ad
+Read what the customer types; what they SAY overrides the ad they came from.
+- "teeth", "dental", "whitening strips", or just "strips" -> Teeth Whitening Strips
+- "nasal", "nose", "breathe" -> Nasal Strips
+- "toothpaste" -> Whitening Toothpaste
+- "migraine", "headache", "cap" -> Migraine Cap
+- "pimple", "acne", "patch", "blemish" -> Acne Patch
+"How many strips?" is the teeth strips unless they mention nose/breathing.
+
+REASSURANCE — answer these, never hand off
+- "Is it real / genuine / original?" -> "Yes, 100% genuine."
+- "Does it work? / proof?" -> we use the same industry-standard ingredients as
+  the top brands, so it works just as well. Keep it one short line.
+- "Guaranteed? Will you take it back?" -> "Yes, just tell us if there's any
+  issue." Warm and short. Do not give returns policy details.
+
+WHEN TO HAND OFF — only these, end your reply with [[HANDOFF]]
+- They gave a location or full address: the order is ready. Reply "Confirmed"
+  (or "Done") then [[HANDOFF]].
+- Anything about an order that ALREADY exists: late, missing, change, cancel.
+- A complaint or a refund request.
+- A message you genuinely cannot read: a voice note, photo, or video.
+- A language other than Arabic, English, or French.
+For every handoff except the confirmed-location one, output ONLY the token
+[[HANDOFF]] and nothing else — no apology, no stalling, no mention of any person.
+MK is alerted instantly and takes it.
+
+DO NOT hand off for these — you now have the answers: delivery timing, price,
+the 2-for special, quantity, how to use a product, ingredients, is-it-genuine,
+does-it-work, or returns. Answer them and keep closing.
 
 Do not mention that you are an AI, an assistant, or a bot. You are the shop.
 """
@@ -425,12 +456,16 @@ _AD_MAP_TTL = 3600.0
 PRODUCT_RULES = (
     ("migraine cap", "Migraine Relief Cap"),
     ("migraine", "Migraine Relief Cap"),
-    ("whitening strips", "Teeth Whitening Strips"),
+    ("nasal", "Nasal Strips"),
+    ("nose strip", "Nasal Strips"),
     ("toothpaste", "Whitening Toothpaste"),
+    ("whitening strips", "Teeth Whitening Strips"),
     ("whitening", "Teeth Whitening Strips"),
+    ("teeth", "Teeth Whitening Strips"),
     ("acne patch", "Pimple Patches"),
     ("pimple", "Pimple Patches"),
-    ("posture", "Posture Corrector"),
+    ("acne", "Pimple Patches"),
+    # Posture Corrector is NOT an active product — deliberately excluded.
 )
 
 
@@ -438,6 +473,32 @@ def _product_from_name(name):
     n = (name or "").lower()
     for needle, product in PRODUCT_RULES:
         if needle in n:
+            return product
+    return None
+
+
+# What the CUSTOMER types beats the ad they came from. Ordered: check for the
+# nose/breathing signals before defaulting a bare "strip(s)" to teeth, and the
+# Arabic terms customers actually use. Used to correct the product per-message so
+# "how many strips" on an old cap thread answers about the strips, not the cap.
+_TEXT_PRODUCT_RULES = (
+    (("nasal", "nose", "breathe", "breath", "breathing", "منخار", "نفس", "تنفس", "خيشوم"), "Nasal Strips"),
+    (("toothpaste", "معجون", "معجون اسنان"), "Whitening Toothpaste"),
+    (("migraine", "headache", "cap", "راس", "صداع", "الراس"), "Migraine Relief Cap"),
+    (("pimple", "acne", "blemish", "patch", "patches", "حب", "حبوب", "بثور"), "Pimple Patches"),
+    (("teeth", "dental", "tooth", "whitening strip", "whitening", "strip", "strips",
+      "سنان", "اسنان", "الاسنان", "تبييض", "ستريبس"), "Teeth Whitening Strips"),
+)
+
+
+def _product_from_text(text):
+    """Detect the product the customer is talking about from their message.
+    Returns None when nothing is clearly named."""
+    t = (text or "").lower()
+    if not t:
+        return None
+    for needles, product in _TEXT_PRODUCT_RULES:
+        if any(n in t for n in needles):
             return product
     return None
 
@@ -1534,13 +1595,28 @@ def generate_reply(wa_id):
     bits = []
     if contact.get("profile_name"):
         bits.append(f"The customer's WhatsApp profile name is {contact['profile_name']}.")
-    if contact.get("product"):
-        bits.append(f"They clicked the ad for: {contact['product']}. "
-                    f"THIS is the product they are asking about — never ask them which product.")
+    # What the customer NAMES in the conversation beats the ad they clicked. Scan
+    # recent inbound turns (newest first) for an explicit product mention.
+    ad_product = contact.get("product")
+    said_product = None
+    for m in reversed(messages):
+        if m["role"] == "user":
+            said_product = _product_from_text(m["content"])
+            if said_product:
+                break
+    if said_product and said_product != ad_product:
+        bits.append(f"They came from the ad for {ad_product or 'an unknown product'}, but in "
+                    f"the conversation they are now asking about: {said_product}. Answer about "
+                    f"{said_product} — what the customer says beats the ad.")
+    elif said_product:
+        bits.append(f"They are asking about: {said_product}. THIS is the product — never ask which.")
+    elif ad_product:
+        bits.append(f"They clicked the ad for: {ad_product}. This is most likely the product "
+                    f"they mean, but if their message clearly names another product, answer about that one.")
     else:
-        bits.append("We do NOT know which product they came from. Do not guess or name a "
-                    "product. Everything is $12, so you can still answer price, delivery "
-                    "and payment questions normally.")
+        bits.append("We do NOT know which product they came from yet. If their message names a "
+                    "product, answer about that one; otherwise do not guess a product. Everything "
+                    "is $12, so you can still answer price, delivery and payment normally.")
     if contact.get("last_lat") is not None:
         bits.append(f"They already sent a location pin ({contact['last_lat']},{contact['last_lng']}"
                     f"{' - ' + contact['last_location_text'] if contact.get('last_location_text') else ''}).")
