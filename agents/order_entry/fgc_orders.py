@@ -477,6 +477,81 @@ def _enter_order(o):
     return order, None
 
 
+# ── Agent-closed sales → Shopify ──────────────────────────────────────────────
+# When the FGC WhatsApp sales agent closes a deal (customer gave a location and
+# the agent confirmed), log the order here automatically. Name = the phone number,
+# $12/item (or $10 each for 2+), flat $4 delivery, tagged "agent deal".
+AGENT_PRODUCT_VARIANTS = {
+    "Migraine Relief Cap": 46831330427079,
+    "Teeth Whitening Strips": 46831330885831,
+    "Pimple Patches": 46831330721991,
+    # Nasal Strips and Whitening Toothpaste are not in the Shopify store yet, so
+    # orders for them cannot be auto-created — they stay with MK until added.
+}
+
+
+def _reverse_geocode(lat, lng):
+    """Coordinates -> a Lebanese area name. Best-effort; None on any failure."""
+    import requests
+    try:
+        r = requests.get(
+            "https://nominatim.openstreetmap.org/reverse",
+            params={"lat": lat, "lon": lng, "format": "json", "zoom": 14,
+                    "accept-language": "en"},
+            headers={"User-Agent": "FGC-Shop-Order/1.0 (feelsgoodclub.com)"},
+            timeout=12,
+        ).json()
+        a = r.get("address", {}) or {}
+        for k in ("town", "city", "village", "suburb", "municipality",
+                  "county", "state_district", "state"):
+            if a.get(k):
+                return a[k]
+    except Exception as e:
+        _record_error("reverse_geocode", f"{lat},{lng}: {e}")
+    return None
+
+
+def enter_agent_order(*, phone, product, lat=None, lng=None, location_text=None, qty=1):
+    """Create a completed COD order from an agent-closed sale.
+    Returns (order_dict, None) or (None, error_string)."""
+    variant_id = AGENT_PRODUCT_VARIANTS.get(product)
+    digits = "".join(ch for ch in str(phone) if ch.isdigit())
+    if not variant_id:
+        _record_error("agent_order", f"no Shopify variant for {product!r} (phone {digits})")
+        return None, f"no Shopify product for {product}"
+    qty = max(1, int(qty or 1))
+    unit = 10.00 if qty >= 2 else 12.00          # 2-for special
+    disc = round(12.00 - unit, 2)                # per-unit discount (Shopify applies per unit)
+    area = (location_text or "").strip() or (_reverse_geocode(lat, lng) if (lat and lng) else None) or "Lebanon"
+    note = f"AGENT-CLOSED SALE. {product} x{qty} at {unit:g}$ each + 4$ delivery."
+    if lat and lng:
+        note += f" Location: https://maps.google.com/?q={lat},{lng}"
+    line = {"variant_id": variant_id, "quantity": qty}
+    if disc > 0:
+        line["applied_discount"] = {"description": "Agent 2-for price",
+                                    "value_type": "fixed_amount",
+                                    "value": f"{disc:.2f}", "amount": f"{disc:.2f}"}
+    body = {"draft_order": {
+        "line_items": [line],
+        "shipping_address": {"first_name": digits, "last_name": "(WhatsApp)",
+                             "address1": area, "city": area, "country": "Lebanon",
+                             "phone": _norm_phone(phone)},
+        "shipping_line": {"title": "Delivery", "price": "4.00"},
+        "tags": "agent deal, WhatsApp, auto-entry",
+        "note": note}}
+    d = _shopify("POST", "/draft_orders.json", body)
+    draft = d.get("draft_order")
+    if not draft:
+        return None, f"draft failed: {d.get('body', d)}"
+    done = _shopify("PUT", f"/draft_orders/{draft['id']}/complete.json?payment_pending=true")
+    oid = (done.get("draft_order") or {}).get("order_id")
+    if not oid:
+        _shopify("DELETE", f"/draft_orders/{draft['id']}.json")
+        return None, f"complete failed: {done.get('body', done)}"
+    order = _shopify("GET", f"/orders/{oid}.json?fields=name,total_price").get("order", {})
+    return order, None
+
+
 def _confirm_line(order, o):
     """✅ #1201 · Migraine Cap ×2 · $16.50 · Ghazir — Mary sees the item, the money
     and the delivery area, so a wrong product is obvious immediately."""

@@ -1696,6 +1696,9 @@ def _reply_async(wa_id, trigger_wamid=None):
             _last_reply_at[wa_id] = time.time()
         if wants_handoff:
             set_contact_status(wa_id, "handed_off")
+            # A confirmed order (a location on file + a "Confirmed"/"Done" reply) is
+            # a closed sale — log it straight to Shopify before handing to MK.
+            _maybe_log_agent_order(wa_id, reply)
             _alert_handoff(wa_id, reason="agent flagged this for MK (order to book, "
                                          "or a question it should not answer)")
         _admin_monitor(wa_id, last_in, reply, handoff=wants_handoff)
@@ -1706,6 +1709,47 @@ def _reply_async(wa_id, trigger_wamid=None):
             lock.release()
         except Exception:
             pass
+
+
+AGENT_ORDERS_ON = os.environ.get("FGC_AGENT_ORDERS", "0") not in ("0", "false", "False", "")
+_CONFIRM_WORDS = ("confirm", "done", "تم", "تمام", "confirmed")
+
+
+def _maybe_log_agent_order(wa_id, reply):
+    """On a confirmed sale (location on file + a confirmation reply), create the
+    order in Shopify. Best-effort — never blocks the handoff, never raises."""
+    if not AGENT_ORDERS_ON:
+        return
+    try:
+        contact = get_contact(wa_id) or {}
+        if contact.get("last_lat") is None and not contact.get("last_location_text"):
+            return  # no location → not a booked order, just a normal handoff
+        r = (reply or "").lower()
+        if not any(w in r for w in _CONFIRM_WORDS):
+            return  # only the "Confirmed"/"Done" close, not other handoffs
+        # Product: what they named in the conversation beats the ad they clicked.
+        product = None
+        for m in _history(wa_id):
+            if m["direction"] == "in":
+                p = _product_from_text(m["body"])
+                if p:
+                    product = p
+                    break
+        product = product or contact.get("product")
+        if not product:
+            print(f"[fgc-wa] agent order skipped {wa_id}: unknown product")
+            return
+        from agents.order_entry import fgc_orders
+        order, err = fgc_orders.enter_agent_order(
+            phone=wa_id, product=product,
+            lat=contact.get("last_lat"), lng=contact.get("last_lng"),
+            location_text=contact.get("last_location_text"))
+        if order:
+            print(f"[fgc-wa] agent order logged {order.get('name')} ({product}) for {wa_id}")
+        else:
+            print(f"[fgc-wa] agent order NOT logged for {wa_id}: {err}")
+    except Exception as e:
+        print(f"[fgc-wa] agent order error {wa_id}: {e}")
 
 
 def generate_reply(wa_id):
