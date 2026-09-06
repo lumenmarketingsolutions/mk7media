@@ -287,9 +287,9 @@ Read what the customer types; what they SAY overrides the ad they came from.
 "How many strips?" is the teeth strips unless they mention nose/breathing.
 The note at the very end of these instructions tells you which product this
 customer is on. Trust it. If it says the product is unknown, do NOT name or
-describe ANY product (never default to the migraine cap or anything else) —
-answer price/delivery only or ask which product. Naming the wrong product is
-the worst mistake you can make here.
+describe ANY product (never default to the migraine cap or anything else) and
+do NOT ask which product — answer price/delivery only and let them reveal it.
+Naming the wrong product is the worst mistake you can make here.
 
 REASSURANCE — answer these, never hand off
 - "Is it real / genuine / original?" -> "Yes, 100% genuine."
@@ -525,6 +525,77 @@ def _product_from_text(text):
     return None
 
 
+# The authoritative source of truth: each FGC ad SET / campaign sells exactly one
+# product, so the referral's ad -> its ad set/campaign id -> the product, with zero
+# guessing from what the customer typed or what the ad headline said. Pulled from
+# act_1337494034720023 on 2026-09-06; extend when new products/campaigns launch (the
+# ad-set-NAME fallback below already covers new ones that follow the naming convention).
+PRODUCT_BY_CAMPAIGN = {
+    "120247759799100353": "Teeth Whitening Strips",
+    "120248292003920353": "Pimple Patches",
+    "120248291945840353": "Pimple Patches",
+    "120247923099400353": "Pimple Patches",
+    "120248296188790353": "Migraine Relief Cap",
+    "120247809603120353": "Migraine Relief Cap",
+    "120247915433860353": "Migraine Relief Cap",
+    "120248345125330353": "Nasal Strips",
+    "120248346999360353": "Whitening Toothpaste",
+    "120248233595000353": "Whitening Toothpaste",
+}
+PRODUCT_BY_ADSET = {
+    # Mixed-product campaigns (Website Sales CBO, Instagram DM) — resolve at ad-set level.
+    "120248252363870353": "Pimple Patches",
+    "120248252355420353": "Teeth Whitening Strips",
+    "120248252348610353": "Migraine Relief Cap",
+    "120248250989170353": "Whitening Toothpaste",
+    "120248250981930353": "Teeth Whitening Strips",
+}
+
+
+def _product_from_lineage(lin):
+    """Product from the ad's OWN structure — ad set id, then campaign id, then the
+    ad-set/campaign name (self-describing, controlled by us). This beats anything the
+    customer typed or the ad headline claimed."""
+    if not lin:
+        return None
+    return (PRODUCT_BY_ADSET.get(str(lin.get("adset_id") or ""))
+            or PRODUCT_BY_CAMPAIGN.get(str(lin.get("campaign_id") or ""))
+            or _product_from_text(f"{lin.get('adset_name') or ''} {lin.get('campaign_name') or ''}"))
+
+
+def backfill_products(limit=500):
+    """Resolve product for existing contacts that never got one, using each stored
+    click's ad id -> ad-set/campaign lineage. Safe to run repeatedly."""
+    conn = _conn()
+    rows = conn.execute(
+        "SELECT DISTINCT c.wa_id, k.ad_id, k.adset_id, k.campaign_id, k.adset_name, k.campaign_name "
+        "FROM wa_contacts c JOIN wa_ctwa_clicks k ON k.wa_id = c.wa_id "
+        "WHERE (c.product IS NULL OR c.product = '') AND k.ad_id IS NOT NULL "
+        "ORDER BY k.seen_at DESC LIMIT ?", (limit,)).fetchall()
+    conn.close()
+    fixed = {}
+    for r in rows:
+        wa_id = r["wa_id"]
+        if wa_id in fixed:
+            continue
+        lin = {"adset_id": r["adset_id"], "campaign_id": r["campaign_id"],
+               "adset_name": r["adset_name"], "campaign_name": r["campaign_name"]}
+        product = _product_from_lineage(lin)
+        if not product:  # lineage not stored yet — resolve it live
+            lin = _resolve_ad_lineage(r["ad_id"]) or {}
+            product = _product_from_lineage(lin) or _refresh_ad_map().get(str(r["ad_id"]))
+        if not product:
+            continue
+        c = _conn()
+        c.execute("UPDATE wa_contacts SET product=?, product_ad_id=? WHERE wa_id=? "
+                  "AND (product IS NULL OR product='')", (product, r["ad_id"], wa_id))
+        c.execute("UPDATE wa_ctwa_clicks SET product=? WHERE wa_id=? AND product IS NULL",
+                  (product, wa_id))
+        c.commit(); c.close()
+        fixed[wa_id] = product
+    return fixed
+
+
 def _referral_hint(wa_id):
     """The ad copy (headline / body / URL) from this contact's most recent click,
     so the model can infer the product when our mapping failed. Short, safe on error."""
@@ -723,16 +794,19 @@ def _handle_referral(wa_id, msg):
 
     if not ad_id:
         return None
-    product = _refresh_ad_map().get(ad_id)
+    # 1) The ad's OWN structure decides the product — ad set id / campaign id /
+    #    ad-set name. This is the reliable signal; reference it over the click text.
+    product = _product_from_lineage(lin)
+    # 2) Ad-name map (also structural), then 3) the ad copy Meta shipped, last.
     if not product:
-        # Fall back to the ad copy Meta ships with the referral — headline, body
-        # AND the destination URL (usually the product page). Uses the richer
-        # message detector so "teeth"/"nasal"/Arabic terms all resolve.
+        product = _refresh_ad_map().get(ad_id)
+    if not product:
         product = _product_from_text(
             f"{ref.get('headline') or ''} {ref.get('body') or ''} {ref.get('source_url') or ''}")
     if not product:
         print(f"[fgc-wa] referral ad {ad_id}: product UNKNOWN "
-              f"(headline={ref.get('headline')!r} url={ref.get('source_url')!r})")
+              f"(adset={lin.get('adset_id')} camp={lin.get('campaign_id')} "
+              f"name={lin.get('adset_name')!r})")
         return None
 
     conn = _conn()
@@ -1842,9 +1916,10 @@ def generate_reply(wa_id):
         else:
             bits.append("We do NOT know which product they came from, and there is no ad text to "
                         "go on. CRITICAL: do NOT name, describe, or assume ANY specific product "
-                        "(never mention the migraine cap, strips, patches, etc). Keep it to price "
-                        "($12 + $4 delivery), delivery and payment, or ask 'Which product are you "
-                        "interested in?' Naming the wrong product loses the sale.")
+                        "(never mention the migraine cap, strips, patches, etc), and do NOT ask "
+                        "them which product. Keep it to price ($12 + $4 delivery), delivery and "
+                        "payment. Let them reveal the product; the moment they name or hint at "
+                        "one, answer about that. Naming the wrong product loses the sale.")
     if contact.get("last_lat") is not None:
         bits.append(f"They already sent a location pin ({contact['last_lat']},{contact['last_lng']}"
                     f"{' - ' + contact['last_location_text'] if contact.get('last_location_text') else ''}).")

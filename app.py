@@ -1075,6 +1075,18 @@ def fgc_wa_unsnooze():
     return jsonify({"snoozes_cleared": n, "handoffs_released": m})
 
 
+@app.route("/fgc-wa/backfill-products")
+@admin_required
+def fgc_wa_backfill_products():
+    """Resolve product for past contacts that never got one, from each click's
+    ad set / campaign. One-time cleanup after the ad-set-id mapping went in."""
+    limit = request.args.get("limit", default=500, type=int)
+    fixed = fgc_wa.backfill_products(limit=limit)
+    from collections import Counter
+    return jsonify({"fixed_count": len(fixed),
+                    "by_product": dict(Counter(fixed.values()))})
+
+
 @app.route("/fgc-wa/reengage")
 @admin_required
 def fgc_wa_reengage():
