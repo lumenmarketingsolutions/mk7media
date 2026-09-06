@@ -285,6 +285,11 @@ Read what the customer types; what they SAY overrides the ad they came from.
 - "migraine", "headache", "cap" -> Migraine Cap
 - "pimple", "acne", "patch", "blemish" -> Acne Patch
 "How many strips?" is the teeth strips unless they mention nose/breathing.
+The note at the very end of these instructions tells you which product this
+customer is on. Trust it. If it says the product is unknown, do NOT name or
+describe ANY product (never default to the migraine cap or anything else) —
+answer price/delivery only or ask which product. Naming the wrong product is
+the worst mistake you can make here.
 
 REASSURANCE — answer these, never hand off
 - "Is it real / genuine / original?" -> "Yes, 100% genuine."
@@ -407,7 +412,10 @@ def init_db():
         pass
     for col, ddl in (("adset_id", "TEXT"), ("adset_name", "TEXT"),
                      ("campaign_id", "TEXT"), ("campaign_name", "TEXT"),
-                     ("ad_name", "TEXT"), ("resolved_at", "TIMESTAMP")):
+                     ("ad_name", "TEXT"), ("resolved_at", "TIMESTAMP"),
+                     # The ad copy Meta ships with every click — the most reliable
+                     # product signal, and it never expires like the ads token does.
+                     ("source_url", "TEXT"), ("ad_body", "TEXT")):
         try:
             conn.execute(f"ALTER TABLE wa_ctwa_clicks ADD COLUMN {col} {ddl}")
         except Exception:
@@ -515,6 +523,24 @@ def _product_from_text(text):
         if any(n in t for n in needles):
             return product
     return None
+
+
+def _referral_hint(wa_id):
+    """The ad copy (headline / body / URL) from this contact's most recent click,
+    so the model can infer the product when our mapping failed. Short, safe on error."""
+    try:
+        conn = _conn()
+        r = conn.execute(
+            "SELECT headline, ad_body, source_url FROM wa_ctwa_clicks "
+            "WHERE wa_id=? ORDER BY seen_at DESC LIMIT 1", (wa_id,)).fetchone()
+        conn.close()
+        if not r:
+            return None
+        parts = [r["headline"], r["ad_body"], r["source_url"]]
+        hint = " ".join(p for p in parts if p).strip()
+        return hint[:240] or None
+    except Exception:
+        return None
 
 
 def _refresh_ad_map(force=False):
@@ -667,12 +693,14 @@ def _handle_referral(wa_id, msg):
         conn.execute(
             "INSERT OR IGNORE INTO wa_ctwa_clicks "
             "(wa_id, ctwa_clid, ad_id, ad_name, adset_id, adset_name, campaign_id, "
-            " campaign_name, source_type, headline, resolved_at) "
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            " campaign_name, source_type, headline, source_url, ad_body, resolved_at) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (wa_id, clid or None, ad_id or None, lin.get("ad_name"),
              lin.get("adset_id"), lin.get("adset_name"), lin.get("campaign_id"),
              lin.get("campaign_name"), ref.get("source_type"),
              (ref.get("headline") or "")[:300],
+             (ref.get("source_url") or "")[:500],
+             (ref.get("body") or "")[:500],
              time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
              if lin.get("campaign_id") else None))
         if clid:
@@ -697,11 +725,14 @@ def _handle_referral(wa_id, msg):
         return None
     product = _refresh_ad_map().get(ad_id)
     if not product:
-        # Fall back to the ad copy Meta ships with the referral.
-        product = _product_from_name(
-            f"{ref.get('headline') or ''} {ref.get('body') or ''}")
+        # Fall back to the ad copy Meta ships with the referral — headline, body
+        # AND the destination URL (usually the product page). Uses the richer
+        # message detector so "teeth"/"nasal"/Arabic terms all resolve.
+        product = _product_from_text(
+            f"{ref.get('headline') or ''} {ref.get('body') or ''} {ref.get('source_url') or ''}")
     if not product:
-        print(f"[fgc-wa] referral ad {ad_id}: product UNKNOWN")
+        print(f"[fgc-wa] referral ad {ad_id}: product UNKNOWN "
+              f"(headline={ref.get('headline')!r} url={ref.get('source_url')!r})")
         return None
 
     conn = _conn()
@@ -1798,12 +1829,22 @@ def generate_reply(wa_id):
     elif said_product:
         bits.append(f"They are asking about: {said_product}. THIS is the product — never ask which.")
     elif ad_product:
-        bits.append(f"They clicked the ad for: {ad_product}. This is most likely the product "
-                    f"they mean, but if their message clearly names another product, answer about that one.")
+        bits.append(f"They clicked the ad for: {ad_product}. This is the product they mean; "
+                    f"only switch if their message clearly names a different one.")
     else:
-        bits.append("We do NOT know which product they came from yet. If their message names a "
-                    "product, answer about that one; otherwise do not guess a product. Everything "
-                    "is $12, so you can still answer price, delivery and payment normally.")
+        # No product resolved. Fall back to the ad copy Meta shipped with the click,
+        # so the model can infer even when our mapping/token failed.
+        ad_hint = _referral_hint(wa_id)
+        if ad_hint:
+            bits.append(f"We could not map their product, but they clicked an ad that said: "
+                        f"\"{ad_hint}\". Infer the product from that ad text. If it is still not "
+                        f"clear which product, do NOT name or describe any product.")
+        else:
+            bits.append("We do NOT know which product they came from, and there is no ad text to "
+                        "go on. CRITICAL: do NOT name, describe, or assume ANY specific product "
+                        "(never mention the migraine cap, strips, patches, etc). Keep it to price "
+                        "($12 + $4 delivery), delivery and payment, or ask 'Which product are you "
+                        "interested in?' Naming the wrong product loses the sale.")
     if contact.get("last_lat") is not None:
         bits.append(f"They already sent a location pin ({contact['last_lat']},{contact['last_lng']}"
                     f"{' - ' + contact['last_location_text'] if contact.get('last_location_text') else ''}).")
