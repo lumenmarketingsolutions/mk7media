@@ -1114,8 +1114,132 @@ def _reengage_candidates(conn):
     ).fetchall()
 
 
+# ── Re-engagement gate (added 07.09.2026) ─────────────────────────────────────
+# The sweep used to fire "still interested?" at anyone still marked active, which
+# included people who had already ordered: MK closes most sales from her phone, so
+# nothing ever flips those threads to handed_off. Two layers now sit in front of
+# every send, and BOTH must clear:
+#   1. hard rules on the thread (any sign of an order, a walk-away, or an unanswered
+#      customer message) -> never send;
+#   2. the model reads the whole thread and says what happened; only an explicit
+#      "safe to nudge" verdict sends. Any failure fails closed.
+# Blocked contacts are stamped so they are never re-judged; the conversation stops.
+REENGAGE_JUDGE_MODEL = os.environ.get("FGC_REENGAGE_JUDGE_MODEL", "") or AGENT_MODEL
+
+REENGAGE_JUDGE_PROMPT = """You review a WhatsApp sales thread for a small Lebanese online shop (Feels Good Club). \
+Messages marked CUSTOMER are from the customer. Messages marked SHOP are from the shop \
+(the owner typing from her phone, or the shop's assistant). Customers write in English, \
+Arabic script, Lebanese arabizi (Latin letters with numbers, e.g. "badde we7de") or French.
+
+The shop wants to send this one-line nudge to people who went quiet: "Still interested?"
+
+Decide whether that nudge is appropriate. Answer with exactly one word:
+PURCHASED  - the customer ordered, gave a location/address/name/phone for delivery, \
+confirmed an order, or the shop confirmed an order. Any sign at all that a sale happened \
+or is in progress. When in doubt, choose this.
+CLOSED     - the customer said no, not interested, cancel, later, or the conversation is \
+otherwise finished and a nudge would be unwelcome.
+NEEDS_REPLY - the customer's last message is a real question or request that nobody \
+answered. They need a proper answer, not a nudge.
+NUDGE_OK   - the shop answered everything, the customer simply stopped replying, and \
+there is no sign of an order. Only this answer allows the nudge.
+
+Thread:
+"""
+
+
+def _thread_for_judge(conn, wa_id, limit=60):
+    rows = conn.execute(
+        "SELECT direction, body, msg_type FROM wa_messages WHERE wa_id=? "
+        "ORDER BY id DESC LIMIT ?", (wa_id, limit)).fetchall()
+    lines = []
+    for r in reversed(rows):
+        who = "CUSTOMER" if r["direction"] == "in" else "SHOP"
+        body = (r["body"] or "").strip()
+        if not body:
+            body = f"[{r['msg_type']} message]"
+        lines.append(f"{who}: {body}")
+    return "\n".join(lines)
+
+
+def _reengage_hard_block(conn, wa_id):
+    """Return a reason string if the thread must never get a nudge, else None."""
+    rows = conn.execute(
+        "SELECT direction, body, msg_type FROM wa_messages WHERE wa_id=? ORDER BY id",
+        (wa_id,)).fetchall()
+    msgs = [dict(r) for r in rows]
+    if not msgs:
+        return "empty thread"
+    try:
+        from . import intent
+        state = intent.classify(msgs, wa_id=wa_id)[0]
+    except Exception as e:
+        return f"classifier failed ({e})"
+    if state in ("COMMITTED", "INTENT"):
+        return f"order signal ({state})"
+    if state in ("LOST", "DISQUALIFIED"):
+        return f"walked away ({state})"
+    asked_location = False
+    for m in msgs:
+        body = (m.get("body") or "").strip()
+        low = body.lower()
+        if m["direction"] == "in":
+            if m.get("msg_type") == "location" or "[location" in low:
+                return "customer sent a location pin"
+            if asked_location and body and not any(mk in low for mk in AD_PREFILL_MARKERS):
+                return "customer answered the shop's location request"
+        else:
+            if re.match(r"^\s*(done|confirmed|تم|تمام)\s*[.!]?\s*$", body, re.I):
+                return "shop confirmed the order"
+            try:
+                from . import intent
+                if intent.ASK_LOCATION.search(body):
+                    asked_location = True
+            except Exception:
+                pass
+    if msgs[-1]["direction"] == "in":
+        last = (msgs[-1].get("body") or "")
+        if not any(mk in last.lower() for mk in AD_PREFILL_MARKERS):
+            return "customer's last message is unanswered"
+    return None
+
+
+def _reengage_judge(conn, wa_id):
+    """Ask the model what happened in the thread. Returns one of PURCHASED / CLOSED /
+    NEEDS_REPLY / NUDGE_OK, or 'ERROR:<why>'. Anything but NUDGE_OK blocks."""
+    if not ANTHROPIC_API_KEY:
+        return "ERROR:no api key"
+    try:
+        import anthropic
+        client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+        resp = client.messages.create(
+            model=REENGAGE_JUDGE_MODEL, max_tokens=10,
+            messages=[{"role": "user",
+                       "content": REENGAGE_JUDGE_PROMPT + _thread_for_judge(conn, wa_id)}])
+        text = "".join(getattr(b, "text", "") for b in resp.content).strip().upper()
+        for v in ("PURCHASED", "NEEDS_REPLY", "CLOSED", "NUDGE_OK"):
+            if v in text:
+                return v
+        return f"ERROR:unparsed {text[:30]!r}"
+    except Exception as e:
+        return f"ERROR:{repr(e)[:80]}"
+
+
+def reengage_decide(conn, wa_id):
+    """(send: bool, reason: str). Both gates must clear for send to be True."""
+    block = _reengage_hard_block(conn, wa_id)
+    if block:
+        return False, f"rule: {block}"
+    verdict = _reengage_judge(conn, wa_id)
+    if verdict == "NUDGE_OK":
+        return True, "judge: NUDGE_OK"
+    return False, f"judge: {verdict}"
+
+
 def reengage_sweep(dry=False):
-    """Message everyone in the recovery band once. Returns the list acted on."""
+    """Nudge everyone in the recovery band who clears both gates, once. Blocked
+    contacts are stamped too, so a buyer is never re-examined. Returns the list
+    considered, each with its decision."""
     conn = _conn()
     out = []
     for r in _reengage_candidates(conn):
@@ -1123,17 +1247,25 @@ def reengage_sweep(dry=False):
         kind = "died" if _genuine_inbound_count(conn, wa_id) >= 1 else "noreply"
         lang = _last_inbound_lang(conn, wa_id)
         msg = REENGAGE_MSG[kind][lang]
+        send, reason = reengage_decide(conn, wa_id)
         out.append({"wa_id": wa_id, "kind": kind, "lang": lang, "msg": msg,
+                    "send": send, "reason": reason,
                     "last_inbound_at": r["last_inbound_at"]})
         if dry:
             continue
-        # Atomic claim — whichever worker flips reengaged_at first sends; others skip.
+        stamp = kind if send else f"blocked:{reason[:60]}"
+        # Atomic claim — whichever worker stamps first acts; others skip.
         cur = conn.execute("UPDATE wa_contacts SET reengaged_at=CURRENT_TIMESTAMP, "
                            "reengage_kind=? WHERE wa_id=? AND reengaged_at IS NULL",
-                           (kind, wa_id))
+                           (stamp, wa_id))
         conn.commit()
-        if cur.rowcount == 1:
+        if cur.rowcount != 1:
+            continue
+        if send:
             send_text(wa_id, msg)
+            print(f"[fgc-reengage] {wa_id}: nudged ({kind}/{lang}) — {reason}")
+        else:
+            print(f"[fgc-reengage] {wa_id}: NOT nudged — {reason}")
     conn.close()
     return out
 
@@ -1170,9 +1302,11 @@ def ensure_sweeper():
         while True:
             try:
                 if _claim_sweep():
-                    sent = reengage_sweep(dry=False)
-                    if sent:
-                        print(f"[fgc-reengage] messaged {len(sent)} contacts")
+                    seen = reengage_sweep(dry=False)
+                    if seen:
+                        n = sum(1 for x in seen if x["send"])
+                        print(f"[fgc-reengage] considered {len(seen)}, nudged {n}, "
+                              f"blocked {len(seen) - n}")
             except Exception as e:
                 print(f"[fgc-reengage] sweep error: {e}")
             _t.sleep(REENGAGE_INTERVAL)
