@@ -1,61 +1,43 @@
-# Client intake: the questions that train the observer
+# WhatsApp Pixel intake: fifteen questions before we watch a single chat
 
-Ask these on the onboarding call. The answers go straight into the client file. None
-of them are about how to reply to customers, because nothing replies. They are about
-one thing only: how this business knows a lead is real and a sale has happened.
+Ask in order, on the onboarding call, with the client's phone open. Every time they
+generalise, ask for the last real chat. Paste the answers into the client's context box
+in the admin; the fields in brackets are what each answer becomes. Nothing here is about
+how to reply to customers. Nothing replies.
 
-## About the business (context the classifier reads)
+## The shape of the business
+1. In one breath, what do you sell, and who is the person on the other end of the chat? [business_description]
+2. Walk me through the last sale you closed on WhatsApp, message by message. What did they say first, what did you say, how did it end? [how_fulfilment_works, committed_signals]
+3. Where does the conversation go after WhatsApp? Nowhere, a call, a visit, a booking link, a payment link, a courier? [how_fulfilment_works, how_customers_pay]
 
-1. **In one or two sentences, what do you sell and who buys it?**
-   `business_description`
-2. **List every product or service you'd want to see in reporting, with its price.**
-   `what_is_sold`, `product_values` (the value Meta optimises toward), `currency`
-3. **How does a customer pay?** Cash to the courier, card link, bank transfer, pay at the venue.
-   `how_customers_pay`
-4. **What happens after they say yes?** Courier, pickup, appointment, enrolment. How long does it take?
-   `how_fulfilment_works`
+## The moment it's sold (fires Purchase, the event ads optimise on)
+4. In that chat, at which exact message did you know you had them? Not when the money arrived. The message. [sale_definition]
+5. What does the customer have to hand you before you can act on it? An address, a slot, a name, a deposit, a photo of a transfer? [sale_definition, location_pin_is_commitment]
+6. Does money ever move inside the chat (transfer screenshot, OMT, Whish, card link)? Before or after the thing in Q5? [how_customers_pay, settle_minutes]
+7. If someone writes "ok, I'll take it" and then goes quiet, is that a sale to you? How often does that happen? [qualified_signals, context_notes]
+8. After they commit, how long until it is really done? In that window, how often do they back out, and what do they say? [settle_minutes, lost_signals]
+   Cash on delivery: 30 minutes. Bookings: 60. Anything with a deposit: 0.
 
-## The lead (fires LeadSubmitted, for reporting)
+## The lead before the sale (fires LeadSubmitted, reporting only)
+9. What is the first question a serious buyer asks, and what does a time waster ask? Real examples of both. [qualified_signals]
+10. What details do you always need before you can quote or book? [qualified_lead_definition]
+11. List what you sell with a price on each, then tell me which one you'd most like the ads to bring more of. [what_is_sold, product_values, currency]
 
-5. **What does a customer have to tell you before you can actually do anything for them?**
-   Item and quantity? Treatment and a day? Their child's level? `qualified_lead_definition`
-6. **Give me three real messages from customers who turned out to be serious.**
-   `qualified_signals`
+## What is not a customer (fires nothing)
+12. What does a "no" look like in your chats? Real phrases, including the polite ones that don't say no. [lost_signals]
+13. Who messages this number that will never buy? Wholesalers, suppliers, job seekers, influencers, people asking for a friend. [disqualify_signals]
+14. What objections come up most, and what do you say back? Price ("mish 12?") and trust ("asli?") are different. [typical_objections]
 
-## The sale (fires Purchase, what Meta optimises on)
+## Plumbing
+15. Which ad sets send people to this number, does anyone else reply from it, and which languages and scripts do customers write in? [languages, context_notes]
+    Every WhatsApp ad set must point at this number or its clicks carry no id and can never be attributed.
 
-7. **Inside the chat, what is the exact moment you consider it sold?**
-   Not when the money arrives. The moment in the conversation. An address, a booked slot,
-   a deposit screenshot, a name for the reservation. `sale_definition`
-8. **Give me three real messages that were that moment.** `committed_signals`
-9. **Do customers drop a location pin, and does that alone mean the order is on?**
-   `location_pin_is_commitment`
-10. **How often does someone commit and then back out within the hour, and what do they say?**
-    Sets `settle_minutes`. Cash-on-delivery: 30. Bookings: 60. Anything with a deposit: 0.
-
-## What is not a customer (never fires anything)
-
-11. **What does a "no" sound like from your customers?** Real phrases, any language.
-    `lost_signals`
-12. **Who messages you that is not a customer?** Wholesalers, suppliers, job seekers, influencers.
-    `disqualify_signals`
-13. **What objections come up most, and what do you say back?** `typical_objections`
-    This stops the classifier reading a haggle as a loss.
-
-## Housekeeping
-
-14. **Which languages and scripts do customers write in?** `languages`
-15. **Which ad sets point at this WhatsApp number?** All of them must, or the click id never
-    arrives and nothing can be attributed. Check it on the call, not after.
-
-## What the answers become
-
-| Milestone | Event sent to Meta | Ad sets can optimise on it |
+| Conversation state | Event sent to Meta | Ads can optimise on it |
 |---|---|---|
-| QUALIFIED / INTENT | LeadSubmitted | No, reporting only |
-| COMMITTED (Q7) | Purchase, with the value from Q2 | Yes, for click-to-WhatsApp |
-| LOST / DISQUALIFIED | nothing | |
+| QUALIFIED / INTENT (Q9, Q10) | LeadSubmitted | No, reporting only |
+| COMMITTED (Q4, Q5) | Purchase, value from Q11 | Yes |
+| LOST / DISQUALIFIED (Q12, Q13) | nothing | |
 
-Purchase waits the settle window from Q10 and is cancelled if the customer walks away
-inside it. First week runs in dry run: the client sees every decision with its evidence
-quote before a single event reaches Meta.
+Purchase waits the settle window from Q8 and is cancelled if the customer walks away
+inside it. The first week runs in dry run: every decision is logged with the customer's
+exact words, and nothing reaches Meta until it is switched on.
