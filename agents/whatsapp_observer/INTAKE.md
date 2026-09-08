@@ -1,4 +1,6 @@
-# WhatsApp Pixel intake: fifteen questions before we watch a single chat
+# WhatsApp Pixel intake: the questions before we watch a single chat
+
+The "win" is whatever the business counts as success: an order, a booked call, an appointment, a signup, a deposit. Every question about "the sale" below means the win.
 
 Ask in order, on the onboarding call, with the client's phone open. Every time they
 generalise, ask for the last real chat. Paste the answers into the client's context box

@@ -25,6 +25,10 @@ PROMPT = """You are an analyst reading a WhatsApp thread between a business and 
 Your only job is to decide the conversation's current STATE and quote the exact
 customer text that proves it. You never reply to anyone.
 
+A "win" for this business is whatever the owner says it is: an order, a booked call, a booked
+appointment, a signup, a deposit. Treat the owner's definition of the win exactly as a shop
+would treat a sale.
+
 THE BUSINESS (in the owner's own words)
 {contract}
 
@@ -33,16 +37,16 @@ NEW          the customer has said nothing meaningful (only the ad's prefill tex
 ENQUIRY      the customer asked something real about price, product, availability, terms, location.
 QUALIFIED    the customer has given the specifics the owner listed under "qualified lead": {qualified}
 INTENT       the customer clearly said they want it or will proceed, but has NOT yet done the sale action.
-COMMITTED    the customer did the exact thing the owner listed under "sale": {sale}
-             Only this state counts as a sale. When unsure between INTENT and COMMITTED, choose INTENT.
-LOST         the customer said no, not now, cancel, too expensive and left, or walked away after committing.
+COMMITTED    the customer did the exact thing the owner listed under "the win": {sale}
+             Only this state counts as a win. When unsure between INTENT and COMMITTED, choose INTENT.
+LOST         the customer said no, not now, cancel, too expensive and left, walked away after committing, or no-showed and went quiet.
 DISQUALIFIED never a customer: wholesale, job seeker, spam, asking for someone else, just looking.
 NEEDS_HUMAN  a complaint, an existing-order problem, or a request no observer can judge.
 
 RULES
 - Walk the thread in order. A later "no" undoes an earlier commitment. A later commitment undoes an earlier "no".
 - The ad prefill message carries zero intent.
-- "ok", "yes", a thumbs up, "I'll take it" on their own are INTENT at most, never COMMITTED.
+- "ok", "yes", a thumbs up, "I'll take it", "book me" on their own are INTENT at most, never COMMITTED.
 - Only customer messages carry evidence. The business's own messages give context only.
 - Customers may write in any of: {languages}. Latin-letter Arabic ("badde wehde") is normal.
 - If you name a product, use only names from this list when one fits: {products}
@@ -93,7 +97,8 @@ def _model(client, msgs):
         prompt = PROMPT.format(
             contract=_contract_text(client),
             qualified=c.get("qualified_lead_definition") or "(not specified: use judgement, be strict)",
-            sale=c.get("sale_definition") or "(not specified: the customer gives what they need for delivery or booking)",
+            sale=(c.get("sale_definition") or "(not specified: the customer gives what the business needs to deliver, book the call, or hold the slot)")
+                 + ((" The win for this business is: " + ", ".join(c["win_type"])) if isinstance(c.get("win_type"), list) and c.get("win_type") else ""),
             languages=", ".join(c.get("languages") or ["English"]),
             products=", ".join((c.get("product_values") or {}).keys()) or "(none listed)")
         lines = []

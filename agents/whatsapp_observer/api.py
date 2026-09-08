@@ -11,7 +11,7 @@ EDITABLE = ("business_name", "phone_number_id", "waba_id", "dataset_id", "curren
             "product_values", "settle_minutes", "dry_run", "business_description", "what_is_sold",
             "how_customers_pay", "how_fulfilment_works", "qualified_lead_definition", "sale_definition",
             "committed_signals", "qualified_signals", "lost_signals", "disqualify_signals",
-            "location_pin_is_commitment", "typical_objections", "languages", "context_notes")
+            "location_pin_is_commitment", "typical_objections", "languages", "context_notes", "win_type")
 
 
 def _authed():
@@ -47,7 +47,8 @@ def _claude(system, user, max_tokens=1500):
 
 FIELDS_DOC = """Config fields you may set (JSON types in brackets):
 business_description [str], what_is_sold [str], how_customers_pay [str], how_fulfilment_works [str],
-qualified_lead_definition [str], sale_definition [str], committed_signals [list of str],
+qualified_lead_definition [str], sale_definition [str: the WIN, whatever the owner counts as success: an order, a booked call, an appointment, a signup, a deposit],
+win_type [list of str, e.g. "A booked call"], committed_signals [list of str],
 qualified_signals [list of str], lost_signals [list of str], disqualify_signals [list of str],
 location_pin_is_commitment [bool], typical_objections [str], languages [list of str],
 product_values [object name->number, the sale value Meta optimises on], currency [str, ISO code],
@@ -59,7 +60,7 @@ def _apply_from_model(cfg, text):
     changes. Returns (new_cfg, changed_fields, reply)."""
     system = ("You maintain the configuration of a WhatsApp conversation observer for one business. "
               "The observer never replies to customers; it only decides when a conversation shows a qualified "
-              "lead and when it shows a sale, then sends those to Meta as events. Prose fields are read by the "
+              "lead and when it shows a win (a sale, a booked call, an appointment, a signup, a deposit, whatever the owner counts), then sends those to Meta as events. Prose fields are read by the "
               "classifier verbatim, so keep the owner's own words and specifics.\n" + FIELDS_DOC +
               "\nReply with ONE JSON object: {\"changes\": {field: value, ...}, \"reply\": \"<one to three plain sentences "
               "telling the operator what you changed or what is still missing>\"}. Only include fields that should change. "

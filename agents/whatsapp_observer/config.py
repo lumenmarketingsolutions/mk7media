@@ -57,7 +57,7 @@ class Client:
         r = self.raw
         return {k: r.get(k) for k in (
             "business_description", "what_is_sold", "how_customers_pay", "how_fulfilment_works",
-            "qualified_lead_definition", "sale_definition", "committed_signals", "qualified_signals",
+            "qualified_lead_definition", "sale_definition", "win_type", "committed_signals", "qualified_signals",
             "lost_signals", "disqualify_signals", "location_pin_is_commitment",
             "typical_objections", "languages", "product_values", "currency", "default_value")}
 
