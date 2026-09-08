@@ -1,0 +1,31 @@
+{
+  "slug": "client-slug",
+  "business_name": "Business Name",
+
+  "phone_number_id": "PHONE_NUMBER_ID from the signup redirect page",
+  "waba_id": "WHATSAPP_BUSINESS_ACCOUNT_ID from the signup redirect page",
+  "dataset_id": "created by /api/provision-number on this WABA",
+  "capi_token_env": "LUMEN_META_CAPI_TOKEN",
+  "ads_token_env": "LUMEN_META_CAPI_TOKEN",
+  "app_secret_env": "WHATSAPP_APP_SECRET",
+
+  "currency": "USD",
+  "default_value": 0,
+  "product_values": {"Product A": 0, "Product B": 0},
+  "settle_minutes": 30,
+  "dry_run": true,
+
+  "business_description": "Q1: what the business is and who buys from it, in the owner's words",
+  "what_is_sold": "Q2: the products or services, with prices",
+  "how_customers_pay": "Q3: cash on delivery / card link / transfer / pay at the venue",
+  "how_fulfilment_works": "Q4: courier / pickup / appointment / enrolment, and how long it takes",
+  "qualified_lead_definition": "Q5: the specifics a customer must give before the business can act",
+  "sale_definition": "Q6: the exact moment the owner counts it as a sale inside the chat",
+  "committed_signals": ["Q7: phrases or actions that mean the sale happened"],
+  "qualified_signals": ["Q8: phrases or actions that mean the lead is real"],
+  "lost_signals": ["Q9: phrases that mean no / not now / cancel"],
+  "disqualify_signals": ["Q10: wholesale, job seekers, suppliers, other non-customers"],
+  "location_pin_is_commitment": false,
+  "typical_objections": "Q11: the objections that come up, and what the owner says back",
+  "languages": ["English", "Arabic", "Arabic in Latin letters"]
+}

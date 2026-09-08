@@ -10,10 +10,14 @@ from functools import wraps
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 
 from agents.whatsapp_agent import agent as wa  # which profile is live: see ACTIVE_PROFILE in agents/whatsapp_agent/__init__.py
-from agents.whatsapp_agent.profiles.fgc_agent_v1_00 import agent as fgc_wa  # FGC number (coexistence); dormant until FGC_WHATSAPP_PHONE_NUMBER_ID is set
+from agents.whatsapp_agent.profiles.fgc_agent_v1_00 import agent as fgc_wa
+from agents.whatsapp_observer import observer as wa_observer, config as observer_config  # no-reply attribution clients
+from agents.whatsapp_observer.api import bp as observer_api_bp
+app_observer_bp = observer_api_bp  # FGC number (coexistence); dormant until FGC_WHATSAPP_PHONE_NUMBER_ID is set
 from agents.order_entry import fgc_orders  # Mary's WhatsApp -> Shopify order bot; dormant until FGC_ORDER_SENDERS is set
 
 app = Flask(__name__)
+app.register_blueprint(app_observer_bp)
 
 # Session secret — set FLASK_SECRET_KEY in Railway. Random fallback for local dev only.
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-" + uuid.uuid4().hex)
@@ -983,14 +987,25 @@ def whatsapp_receive():
     # payload by value.metadata.phone_number_id — FGC changes go ONLY to the FGC
     # agent, everything else goes ONLY to the active profile. Without the split
     # the active profile would answer FGC customers from the wrong number.
-    fgc_entries, main_entries = [], []
+    fgc_entries, main_entries, observer_entries = [], [], []
     for entry in payload.get("entry", []) or []:
-        fgc_ch = [c for c in entry.get("changes", []) or [] if fgc_wa.is_fgc_event(c.get("value", {}) or {})]
-        main_ch = [c for c in entry.get("changes", []) or [] if not fgc_wa.is_fgc_event(c.get("value", {}) or {})]
+        changes = entry.get("changes", []) or []
+        fgc_ch = [c for c in changes if fgc_wa.is_fgc_event(c.get("value", {}) or {})]
+        # Observer clients: numbers listed in agents/whatsapp_observer/clients/. Watched
+        # for attribution only, never answered, so they must never reach either agent.
+        obs_ch = [c for c in changes if c not in fgc_ch and wa_observer.is_observer_event(c.get("value", {}) or {})]
+        main_ch = [c for c in changes if c not in fgc_ch and c not in obs_ch]
         if fgc_ch:
             fgc_entries.append({**entry, "changes": fgc_ch})
+        if obs_ch:
+            observer_entries.append({**entry, "changes": obs_ch})
         if main_ch:
             main_entries.append({**entry, "changes": main_ch})
+    if observer_entries:
+        try:
+            wa_observer.handle_webhook({**payload, "entry": observer_entries})
+        except Exception as e:
+            print(f"[observer] webhook handler error: {e}")
     # Order-entry bot: messages from whitelisted senders (Mary/Kendall) are
     # orders for the FGC store, not leads — route them to the order bot and
     # strip them out so the sales agent never replies to an order line.
@@ -1102,6 +1117,16 @@ def fgc_wa_reengage():
         "count": len(acted),
         "contacts": acted,
     })
+
+
+@app.route("/observer/<slug>/report")
+@admin_required
+def observer_report(slug):
+    """Per-client observer report: states, events (with dry-run decisions), by campaign."""
+    for c in observer_config.load_all().values():
+        if c.slug == slug:
+            return jsonify(wa_observer.report(c))
+    return jsonify({"error": "unknown client", "known": [c.slug for c in observer_config.load_all().values()]}), 404
 
 
 @app.route("/fgc-wa/debug")
