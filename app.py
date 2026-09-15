@@ -1090,6 +1090,14 @@ def fgc_wa_unsnooze():
     return jsonify({"snoozes_cleared": n, "handoffs_released": m})
 
 
+@app.route("/fgc-wa/ad-map")
+@admin_required
+def fgc_wa_ad_map():
+    """Every ad the webhook has seen, how its product was decided, and which ones are
+    still unverified (not in product_map.json). Check this after launching new ads."""
+    return jsonify(fgc_wa.ad_registry())
+
+
 @app.route("/fgc-wa/backfill-products")
 @admin_required
 def fgc_wa_backfill_products():

@@ -1,0 +1,2953 @@
+{
+ "generated": "2026-09-15",
+ "account": "act_1337494034720023",
+ "products": [
+  "Teeth Whitening Strips",
+  "Nasal Strips",
+  "Migraine Relief Cap",
+  "Pimple Patches",
+  "Whitening Toothpaste",
+  "Posture Corrector"
+ ],
+ "ads": {
+  "120248551380560353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Sep 14 HiSmile Box",
+   "adset_id": "120248397325420353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 81873275",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "856065704165478",
+   "status": "ACTIVE"
+  },
+  "120248544278910353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Sep 13 B",
+   "adset_id": "120248397325420353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 81873275",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "2927560280937401",
+   "status": "ACTIVE"
+  },
+  "120248544271240353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Sep 13 A",
+   "adset_id": "120248397325420353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 81873275",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "4264460153852471",
+   "status": "ACTIVE"
+  },
+  "120248397406080353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Whitening | Aug 20",
+   "adset_id": "120248397325420353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 81873275",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "3182159751993257",
+   "status": "PAUSED"
+  },
+  "120248397404940353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Whitening 1",
+   "adset_id": "120248397325420353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 81873275",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1090362316784388",
+   "status": "PAUSED"
+  },
+  "120248397402600353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Aug 20 IGDM (proven)",
+   "adset_id": "120248397325420353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 81873275",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "2067322700822793",
+   "status": "ACTIVE"
+  },
+  "120248397400810353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne V2 | Aug 27 A",
+   "adset_id": "120248397322820353",
+   "adset_name": "FGC | Acne Patch | Leads | LB | 81873275",
+   "campaign_id": "120248292003920353",
+   "campaign_name": "FGC | Acne Patch | Leads | WhatsApp | LB",
+   "video_id": "4742262709348939",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248397399190353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne V2 | Aug 30 Mighty Patch",
+   "adset_id": "120248397322820353",
+   "adset_name": "FGC | Acne Patch | Leads | LB | 81873275",
+   "campaign_id": "120248292003920353",
+   "campaign_name": "FGC | Acne Patch | Leads | WhatsApp | LB",
+   "video_id": "1396982655739077",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248397382790353": {
+   "product": "Whitening Toothpaste",
+   "how": "title",
+   "ad_name": "FGC | Toothpaste | Aug 23 Purple Demo",
+   "adset_id": "120248397318270353",
+   "adset_name": "FGC | Whitening Toothpaste | Leads | LB | 81873275",
+   "campaign_id": "120248346999360353",
+   "campaign_name": "FGC | Whitening Toothpaste | Leads | WhatsApp | LB",
+   "video_id": "2125830871697730",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248397391060353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Migraine Cap | Aug 20 B (proven)",
+   "adset_id": "120248397321080353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 81873275",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "3573895062759352",
+   "status": "ACTIVE"
+  },
+  "120248397403590353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Whitening 5",
+   "adset_id": "120248397325420353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 81873275",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "2035591410408860",
+   "status": "ACTIVE"
+  },
+  "120248397403150353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Aug 20 Purple",
+   "adset_id": "120248397325420353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 81873275",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "27854666117562216",
+   "status": "ACTIVE"
+  },
+  "120248397386280353": {
+   "product": "Nasal Strips",
+   "how": "frames",
+   "ad_name": "FGC | Nose Strips | Aug 31 A",
+   "adset_id": "120248397319640353",
+   "adset_name": "FGC | Nose Strips | Leads | LB | 81873275",
+   "campaign_id": "120248345125330353",
+   "campaign_name": "FGC | Nose Strips | Leads | WhatsApp | LB",
+   "video_id": "1065867846326573",
+   "status": "ACTIVE"
+  },
+  "120248397382320353": {
+   "product": "Whitening Toothpaste",
+   "how": "title",
+   "ad_name": "FGC | Toothpaste | Aug 23 Brush Demo",
+   "adset_id": "120248397318270353",
+   "adset_name": "FGC | Whitening Toothpaste | Leads | LB | 81873275",
+   "campaign_id": "120248346999360353",
+   "campaign_name": "FGC | Whitening Toothpaste | Leads | WhatsApp | LB",
+   "video_id": "4515567725322032",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248397383360353": {
+   "product": "Whitening Toothpaste",
+   "how": "title",
+   "ad_name": "FGC | Toothpaste | Aug 23 V34 Bottle B",
+   "adset_id": "120248397318270353",
+   "adset_name": "FGC | Whitening Toothpaste | Leads | LB | 81873275",
+   "campaign_id": "120248346999360353",
+   "campaign_name": "FGC | Whitening Toothpaste | Leads | WhatsApp | LB",
+   "video_id": "1059583766991104",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248397324460353": {
+   "product": "Pimple Patches",
+   "how": "frames",
+   "ad_name": "FGC | Acne V2 | Image 1 (proven)",
+   "adset_id": "120248397322820353",
+   "adset_name": "FGC | Acne Patch | Leads | LB | 81873275",
+   "campaign_id": "120248292003920353",
+   "campaign_name": "FGC | Acne Patch | Leads | WhatsApp | LB",
+   "video_id": null,
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248397401720353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne V2 | Aug 27 B",
+   "adset_id": "120248397322820353",
+   "adset_name": "FGC | Acne Patch | Leads | LB | 81873275",
+   "campaign_id": "120248292003920353",
+   "campaign_name": "FGC | Acne Patch | Leads | WhatsApp | LB",
+   "video_id": "28467924732840983",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248397396870353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 7 | V2",
+   "adset_id": "120248397321080353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 81873275",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "4306850662979094",
+   "status": "ACTIVE"
+  },
+  "120248397395530353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | Migraine Cap | Aug 22 D (Magic cap stack)",
+   "adset_id": "120248397321080353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 81873275",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "3489780004530167",
+   "status": "ACTIVE"
+  },
+  "120248397388590353": {
+   "product": "Nasal Strips",
+   "how": "frames",
+   "ad_name": "FGC | Nose Strips | Aug 31 B",
+   "adset_id": "120248397319640353",
+   "adset_name": "FGC | Nose Strips | Leads | LB | 81873275",
+   "campaign_id": "120248345125330353",
+   "campaign_name": "FGC | Nose Strips | Leads | WhatsApp | LB",
+   "video_id": "4893416890885081",
+   "status": "ACTIVE"
+  },
+  "120248397394920353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | Migraine Cap | Aug 19 C",
+   "adset_id": "120248397321080353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 81873275",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "1617475606721032",
+   "status": "ACTIVE"
+  },
+  "120248397383140353": {
+   "product": "Whitening Toothpaste",
+   "how": "title",
+   "ad_name": "FGC | Toothpaste | Aug 23 V34 Bottle",
+   "adset_id": "120248397318270353",
+   "adset_name": "FGC | Whitening Toothpaste | Leads | LB | 81873275",
+   "campaign_id": "120248346999360353",
+   "campaign_name": "FGC | Whitening Toothpaste | Leads | WhatsApp | LB",
+   "video_id": "1036494925865513",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248335149910353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne V2 | Aug 30 Mighty Patch",
+   "adset_id": "120248292004150353",
+   "adset_name": "FGC | Acne Patch | Leads | LB | 79018107",
+   "campaign_id": "120248292003920353",
+   "campaign_name": "FGC | Acne Patch | Leads | WhatsApp | LB",
+   "video_id": "1729750818281738",
+   "status": "ADSET_PAUSED"
+  },
+  "120248292006460353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne V2 | Aug 27 A",
+   "adset_id": "120248292004150353",
+   "adset_name": "FGC | Acne Patch | Leads | LB | 79018107",
+   "campaign_id": "120248292003920353",
+   "campaign_name": "FGC | Acne Patch | Leads | WhatsApp | LB",
+   "video_id": "1377321700638489",
+   "status": "ADSET_PAUSED"
+  },
+  "120248292004810353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne V2 | Aug 27 B",
+   "adset_id": "120248292004150353",
+   "adset_name": "FGC | Acne Patch | Leads | LB | 79018107",
+   "campaign_id": "120248292003920353",
+   "campaign_name": "FGC | Acne Patch | Leads | WhatsApp | LB",
+   "video_id": "1041802975299814",
+   "status": "ADSET_PAUSED"
+  },
+  "120248351034740353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC | Whitening | Aug 20 IGDM (proven)",
+   "adset_id": "120248262544030353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "28097846679865246",
+   "status": "ADSET_PAUSED"
+  },
+  "120248340988860353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Aug 31 Purple Apply",
+   "adset_id": "120248262544030353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1554457255782122",
+   "status": "PAUSED"
+  },
+  "120248262558980353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Aug 22 W1",
+   "adset_id": "120248262544030353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1049687757977981",
+   "status": "PAUSED"
+  },
+  "120248262554720353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | New Post 00:50",
+   "adset_id": "120248262544030353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1476888917580895",
+   "status": "PAUSED"
+  },
+  "120248334776290353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Aug 29 Strips Box",
+   "adset_id": "120248262544030353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1877670683204758",
+   "status": "PAUSED"
+  },
+  "120248350958830353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Migraine Cap | Aug 20 B (proven)",
+   "adset_id": "120248296189510353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 79018107",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "1070227595799562",
+   "status": "ADSET_PAUSED"
+  },
+  "120248300786710353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | Migraine Cap | Aug 19 A",
+   "adset_id": "120248296189510353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 79018107",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "1392005542882432",
+   "status": "PAUSED"
+  },
+  "120248300783720353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | Migraine Cap | Aug 22 B (French)",
+   "adset_id": "120248296189510353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 79018107",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "2077639676176490",
+   "status": "PAUSED"
+  },
+  "120248300785430353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | Migraine Cap | Aug 22 F (Freezer)",
+   "adset_id": "120248296189510353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 79018107",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "1535135231241091",
+   "status": "PAUSED"
+  },
+  "120248300785960353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | Migraine Cap | Aug 22 E (Faster than medicine)",
+   "adset_id": "120248296189510353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 79018107",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "1062596663172835",
+   "status": "PAUSED"
+  },
+  "120248300784540353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | Migraine Cap | Aug 22 C (Thermax outdoor)",
+   "adset_id": "120248296189510353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 79018107",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "1064774693112063",
+   "status": "PAUSED"
+  },
+  "120248300786100353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | Migraine Cap | Aug 19 B",
+   "adset_id": "120248296189510353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 79018107",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "1048033617996520",
+   "status": "PAUSED"
+  },
+  "120248300784740353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | Migraine Cap | Aug 22 A (POV hook)",
+   "adset_id": "120248296189510353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 79018107",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "2233607724095745",
+   "status": "PAUSED"
+  },
+  "120248347001530353": {
+   "product": "Whitening Toothpaste",
+   "how": "title",
+   "ad_name": "FGC | Toothpaste | Aug 23 Brush Demo",
+   "adset_id": "120248346999760353",
+   "adset_name": "FGC | Whitening Toothpaste | Leads | LB | 79018107",
+   "campaign_id": "120248346999360353",
+   "campaign_name": "FGC | Whitening Toothpaste | Leads | WhatsApp | LB",
+   "video_id": "1430453579195262",
+   "status": "ADSET_PAUSED"
+  },
+  "120248345130230353": {
+   "product": "Nasal Strips",
+   "how": "title",
+   "ad_name": "FGC | Nose Strips | Aug 31 A",
+   "adset_id": "120248345125610353",
+   "adset_name": "FGC | Nose Strips | Leads | LB | 79018107",
+   "campaign_id": "120248345125330353",
+   "campaign_name": "FGC | Nose Strips | Leads | WhatsApp | LB",
+   "video_id": "2203215803574863",
+   "status": "ADSET_PAUSED"
+  },
+  "120248347000710353": {
+   "product": "Whitening Toothpaste",
+   "how": "title",
+   "ad_name": "FGC | Toothpaste | Aug 23 Purple Demo",
+   "adset_id": "120248346999760353",
+   "adset_name": "FGC | Whitening Toothpaste | Leads | LB | 79018107",
+   "campaign_id": "120248346999360353",
+   "campaign_name": "FGC | Whitening Toothpaste | Leads | WhatsApp | LB",
+   "video_id": "1400038348746771",
+   "status": "ADSET_PAUSED"
+  },
+  "120248347002010353": {
+   "product": "Whitening Toothpaste",
+   "how": "title",
+   "ad_name": "FGC | Toothpaste | Aug 23 V34 Bottle",
+   "adset_id": "120248346999760353",
+   "adset_name": "FGC | Whitening Toothpaste | Leads | LB | 79018107",
+   "campaign_id": "120248346999360353",
+   "campaign_name": "FGC | Whitening Toothpaste | Leads | WhatsApp | LB",
+   "video_id": "1644129510718386",
+   "status": "ADSET_PAUSED"
+  },
+  "120248347000930353": {
+   "product": "Whitening Toothpaste",
+   "how": "title",
+   "ad_name": "FGC | Toothpaste | Aug 23 V34 Bottle B",
+   "adset_id": "120248346999760353",
+   "adset_name": "FGC | Whitening Toothpaste | Leads | LB | 79018107",
+   "campaign_id": "120248346999360353",
+   "campaign_name": "FGC | Whitening Toothpaste | Leads | WhatsApp | LB",
+   "video_id": "1071089075320797",
+   "status": "ADSET_PAUSED"
+  },
+  "120248345134870353": {
+   "product": "Nasal Strips",
+   "how": "title",
+   "ad_name": "FGC | Nose Strips | Aug 31 B",
+   "adset_id": "120248345125610353",
+   "adset_name": "FGC | Nose Strips | Leads | LB | 79018107",
+   "campaign_id": "120248345125330353",
+   "campaign_name": "FGC | Nose Strips | Leads | WhatsApp | LB",
+   "video_id": "2160777027848046",
+   "status": "ADSET_PAUSED"
+  },
+  "120248262556530353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | New Post 00:55",
+   "adset_id": "120248262544030353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "900275792810083",
+   "status": "PAUSED"
+  },
+  "120248262571710353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Whitening 2",
+   "adset_id": "120248262544030353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1043850705091726",
+   "status": "PAUSED"
+  },
+  "120248262574280353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Aug 22 W2",
+   "adset_id": "120248262544030353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1421479613233005",
+   "status": "PAUSED"
+  },
+  "120248262562330353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | New Post 11:33",
+   "adset_id": "120248262544030353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "4500699286853516",
+   "status": "PAUSED"
+  },
+  "120248262576370353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Whitening 6",
+   "adset_id": "120248262544030353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "2213566496167588",
+   "status": "PAUSED"
+  },
+  "120248262550110353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Aug 22 W3 (strip apply)",
+   "adset_id": "120248262544030353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "28160828300214455",
+   "status": "PAUSED"
+  },
+  "120248262567810353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Whitening 3",
+   "adset_id": "120248262544030353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "2025161391560564",
+   "status": "PAUSED"
+  },
+  "120248262578000353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Whitening 4",
+   "adset_id": "120248262544030353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1437731131555529",
+   "status": "PAUSED"
+  },
+  "120248262578930353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Aug 20 Strips Box",
+   "adset_id": "120248262544030353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1053179764278597",
+   "status": "PAUSED"
+  },
+  "120248300782590353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Migraine Cap | Migraine Cap | Aug 20 A",
+   "adset_id": "120248296189510353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 79018107",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "1750310216217563",
+   "status": "PAUSED"
+  },
+  "120248300783070353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Migraine Cap | Migraine Cap | Aug 20 B",
+   "adset_id": "120248296189510353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 79018107",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "3176647425877655",
+   "status": "PAUSED"
+  },
+  "120248300791100353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Aug 1 - 12:34 | V2",
+   "adset_id": "120248296189510353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 79018107",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "2261924424661560",
+   "status": "PAUSED"
+  },
+  "120248300789690353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Migraine Cap | Aug 19 C",
+   "adset_id": "120248296189510353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 79018107",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "2299337170814111",
+   "status": "ADSET_PAUSED"
+  },
+  "120248300790920353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Aug 13 Reel | V2",
+   "adset_id": "120248296189510353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 79018107",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "1602230774914181",
+   "status": "PAUSED"
+  },
+  "120248300790430353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 1 | V2",
+   "adset_id": "120248296189510353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 79018107",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "2012945559423205",
+   "status": "PAUSED"
+  },
+  "120248300788520353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Migraine Cap | Aug 22 D (Magic cap stack)",
+   "adset_id": "120248296189510353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 79018107",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "1608012287637605",
+   "status": "ADSET_PAUSED"
+  },
+  "120248300789050353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 2 | V2",
+   "adset_id": "120248296189510353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 79018107",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "2314197139449233",
+   "status": "PAUSED"
+  },
+  "120248300787840353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 5 | V2",
+   "adset_id": "120248296189510353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 79018107",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "2153697545577636",
+   "status": "PAUSED"
+  },
+  "120248300784060353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | WhatsApp | Post 7 | V2",
+   "adset_id": "120248296189510353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 79018107",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "1387192116097117",
+   "status": "ADSET_PAUSED"
+  },
+  "120248296191540353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Migraine Cap | Migraine Cap | Aug 20 A",
+   "adset_id": "120248296189510353",
+   "adset_name": "FGC | Migraine Cap | Leads | LB | 79018107",
+   "campaign_id": "120248296188790353",
+   "campaign_name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "video_id": "1750310216217563",
+   "status": "PAUSED"
+  },
+  "120248291954100353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne V2 | Aug 27 A",
+   "adset_id": "120248291946140353",
+   "adset_name": "FGC | Acne Patch V2 | WhatsApp | LB | 79018107",
+   "campaign_id": "120248291945840353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon | V2",
+   "video_id": "1336797278233362",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248292006990353": {
+   "product": "Pimple Patches",
+   "how": "frames",
+   "ad_name": "FGC | Acne V2 | Image 1 (proven)",
+   "adset_id": "120248292004150353",
+   "adset_name": "FGC | Acne Patch | Leads | LB | 79018107",
+   "campaign_id": "120248292003920353",
+   "campaign_name": "FGC | Acne Patch | Leads | WhatsApp | LB",
+   "video_id": null,
+   "status": "ADSET_PAUSED"
+  },
+  "120248291947770353": {
+   "product": "Pimple Patches",
+   "how": "frames",
+   "ad_name": "FGC | Acne V2 | Image 1 (proven)",
+   "adset_id": "120248291946140353",
+   "adset_name": "FGC | Acne Patch V2 | WhatsApp | LB | 79018107",
+   "campaign_id": "120248291945840353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon | V2",
+   "video_id": null,
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248291958140353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne V2 | Aug 27 B",
+   "adset_id": "120248291946140353",
+   "adset_name": "FGC | Acne Patch V2 | WhatsApp | LB | 79018107",
+   "campaign_id": "120248291945840353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon | V2",
+   "video_id": "1605946314447628",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248291947490353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne V2 | Aug 20 D (proven)",
+   "adset_id": "120248291946140353",
+   "adset_name": "FGC | Acne Patch V2 | WhatsApp | LB | 79018107",
+   "campaign_id": "120248291945840353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon | V2",
+   "video_id": "871515366042326",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248277119410353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Migraine Cap | Migraine Cap | Aug 20 A",
+   "adset_id": "120248277111660353",
+   "adset_name": "FGC | WhatsApp | Migraine Cap | LB | 79018107",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1630549008742265",
+   "status": "PAUSED"
+  },
+  "120248277112770353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Migraine Cap | Migraine Cap | Aug 20 B",
+   "adset_id": "120248277111660353",
+   "adset_name": "FGC | WhatsApp | Migraine Cap | LB | 79018107",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1726540265259884",
+   "status": "PAUSED"
+  },
+  "120248277117250353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Migraine Cap | Aug 22 B (French)",
+   "adset_id": "120248277111660353",
+   "adset_name": "FGC | WhatsApp | Migraine Cap | LB | 79018107",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1325381932780748",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248277112010353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | WhatsApp | Post 7 | V2",
+   "adset_id": "120248277111660353",
+   "adset_name": "FGC | WhatsApp | Migraine Cap | LB | 79018107",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1796903721681452",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248277116540353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Migraine Cap | Aug 22 C (Thermax outdoor)",
+   "adset_id": "120248277111660353",
+   "adset_name": "FGC | WhatsApp | Migraine Cap | LB | 79018107",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1356989513184198",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248277118460353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Migraine Cap | Aug 22 A (POV hook)",
+   "adset_id": "120248277111660353",
+   "adset_name": "FGC | WhatsApp | Migraine Cap | LB | 79018107",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1369263325360679",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248277118720353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Migraine Cap | Aug 22 F (Freezer)",
+   "adset_id": "120248277111660353",
+   "adset_name": "FGC | WhatsApp | Migraine Cap | LB | 79018107",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1833189017841653",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248277117950353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Migraine Cap | Aug 22 E (Faster than medicine)",
+   "adset_id": "120248277111660353",
+   "adset_name": "FGC | WhatsApp | Migraine Cap | LB | 79018107",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1603962607983483",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248277117440353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Migraine Cap | Aug 19 B",
+   "adset_id": "120248277111660353",
+   "adset_name": "FGC | WhatsApp | Migraine Cap | LB | 79018107",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "2082581349029266",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248277117710353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Migraine Cap | Aug 19 A",
+   "adset_id": "120248277111660353",
+   "adset_name": "FGC | WhatsApp | Migraine Cap | LB | 79018107",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1768253581111380",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248277115080353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 5 | V2",
+   "adset_id": "120248277111660353",
+   "adset_name": "FGC | WhatsApp | Migraine Cap | LB | 79018107",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "4201572116801461",
+   "status": "PAUSED"
+  },
+  "120248277116360353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Migraine Cap | Aug 22 D (Magic cap stack)",
+   "adset_id": "120248277111660353",
+   "adset_name": "FGC | WhatsApp | Migraine Cap | LB | 79018107",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1784699559647976",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248277116060353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 2 | V2",
+   "adset_id": "120248277111660353",
+   "adset_name": "FGC | WhatsApp | Migraine Cap | LB | 79018107",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1739446700726122",
+   "status": "PAUSED"
+  },
+  "120248277115500353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Migraine Cap | Aug 19 C",
+   "adset_id": "120248277111660353",
+   "adset_name": "FGC | WhatsApp | Migraine Cap | LB | 79018107",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1754662315582570",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248277115720353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 1 | V2",
+   "adset_id": "120248277111660353",
+   "adset_name": "FGC | WhatsApp | Migraine Cap | LB | 79018107",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1863284411747237",
+   "status": "PAUSED"
+  },
+  "120248277114700353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Aug 13 Reel | V2",
+   "adset_id": "120248277111660353",
+   "adset_name": "FGC | WhatsApp | Migraine Cap | LB | 79018107",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "944749321261165",
+   "status": "PAUSED"
+  },
+  "120248277113530353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Aug 1 - 12:34 | V2",
+   "adset_id": "120248277111660353",
+   "adset_name": "FGC | WhatsApp | Migraine Cap | LB | 79018107",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1814997426361068",
+   "status": "PAUSED"
+  },
+  "120248262688100353": {
+   "product": "Whitening Toothpaste",
+   "how": "title",
+   "ad_name": "FGC | Toothpaste | Aug 23 Purple Demo",
+   "adset_id": "120248262687640353",
+   "adset_name": "FGC | Whitening Toothpaste | WhatsApp | LB | 79018107",
+   "campaign_id": "120248233595000353",
+   "campaign_name": "FGC | Whitening Toothpaste | WhatsApp | Lebanon",
+   "video_id": "4620715104919268",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248262688450353": {
+   "product": "Whitening Toothpaste",
+   "how": "title",
+   "ad_name": "FGC | Toothpaste | Aug 23 V34 Bottle B",
+   "adset_id": "120248262687640353",
+   "adset_name": "FGC | Whitening Toothpaste | WhatsApp | LB | 79018107",
+   "campaign_id": "120248233595000353",
+   "campaign_name": "FGC | Whitening Toothpaste | WhatsApp | Lebanon",
+   "video_id": "2313399412532965",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248262688290353": {
+   "product": "Whitening Toothpaste",
+   "how": "title",
+   "ad_name": "FGC | Toothpaste | Aug 23 Brush Demo",
+   "adset_id": "120248262687640353",
+   "adset_name": "FGC | Whitening Toothpaste | WhatsApp | LB | 79018107",
+   "campaign_id": "120248233595000353",
+   "campaign_name": "FGC | Whitening Toothpaste | WhatsApp | Lebanon",
+   "video_id": "1283843397098947",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248262688380353": {
+   "product": "Whitening Toothpaste",
+   "how": "title",
+   "ad_name": "FGC | Toothpaste | Aug 23 V34 Bottle",
+   "adset_id": "120248262687640353",
+   "adset_name": "FGC | Whitening Toothpaste | WhatsApp | LB | 79018107",
+   "campaign_id": "120248233595000353",
+   "campaign_name": "FGC | Whitening Toothpaste | WhatsApp | Lebanon",
+   "video_id": "1086933577164044",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248262548610353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC | Whitening | Aug 20 Purple",
+   "adset_id": "120248262544030353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1736235734264256",
+   "status": "ADSET_PAUSED"
+  },
+  "120248262546450353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC | Whitening | Whitening 5",
+   "adset_id": "120248262544030353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "935631142914624",
+   "status": "ADSET_PAUSED"
+  },
+  "120248262555940353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Aug 22 W4 (Dr Dent box)",
+   "adset_id": "120248262544030353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "2166352428097503",
+   "status": "PAUSED"
+  },
+  "120248262551670353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC | Whitening | Whitening 1",
+   "adset_id": "120248262544030353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1066708745846181",
+   "status": "ADSET_PAUSED"
+  },
+  "120248262553090353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC | Whitening | Whitening | Aug 20",
+   "adset_id": "120248262544030353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1753527449022646",
+   "status": "ADSET_PAUSED"
+  },
+  "120248260655160353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC Website | Whitening Strips | Whitening 5 original",
+   "adset_id": "120248252355420353",
+   "adset_name": "Website | Whitening Strips | LAL Buyers",
+   "campaign_id": "120248252088090353",
+   "campaign_name": "FGC | WEBSITE Sales | CBO $10/day | 3 Products | V1",
+   "video_id": "808568208946206",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248260570220353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC Website | Pimple Patches | Aug 20 D original",
+   "adset_id": "120248252363870353",
+   "adset_name": "Website | Pimple Patches | LAL Buyers",
+   "campaign_id": "120248252088090353",
+   "campaign_name": "FGC | WEBSITE Sales | CBO $10/day | 3 Products | V1",
+   "video_id": "1062025586408659",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248260602620353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC Website | Migraine Cap | Post 7 original",
+   "adset_id": "120248252348610353",
+   "adset_name": "Website | Migraine Cap | LAL Buyers",
+   "campaign_id": "120248252088090353",
+   "campaign_name": "FGC | WEBSITE Sales | CBO $10/day | 3 Products | V1",
+   "video_id": "1749316486399023",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248250991510353": {
+   "product": "Whitening Toothpaste",
+   "how": "title",
+   "ad_name": "FGC | IG DM | Toothpaste | Aug 23 Purple Demo",
+   "adset_id": "120248250989170353",
+   "adset_name": "FGC | IG DM | Toothpaste | LB 18-65",
+   "campaign_id": "120247915378630353",
+   "campaign_name": "FGC | Instagram DM | Migraine Cap | V1",
+   "video_id": "2286089488814929",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248221726630353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC | Whitening | Aug 22 W1",
+   "adset_id": "120247759799840353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | Lebanon | 18-65",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "2912660819087953",
+   "status": "ADSET_PAUSED"
+  },
+  "120248233643660353": {
+   "product": "Whitening Toothpaste",
+   "how": "title",
+   "ad_name": "FGC | Toothpaste | Aug 23 V34 Bottle B",
+   "adset_id": "120248233596660353",
+   "adset_name": "FGC | Whitening Toothpaste | WhatsApp | Lebanon | 18-65",
+   "campaign_id": "120248233595000353",
+   "campaign_name": "FGC | Whitening Toothpaste | WhatsApp | Lebanon",
+   "video_id": "2340752633332718",
+   "status": "ADSET_PAUSED"
+  },
+  "120248233605220353": {
+   "product": "Whitening Toothpaste",
+   "how": "title",
+   "ad_name": "FGC | Toothpaste | Aug 23 Brush Demo",
+   "adset_id": "120248233596660353",
+   "adset_name": "FGC | Whitening Toothpaste | WhatsApp | Lebanon | 18-65",
+   "campaign_id": "120248233595000353",
+   "campaign_name": "FGC | Whitening Toothpaste | WhatsApp | Lebanon",
+   "video_id": "1355669283315847",
+   "status": "ADSET_PAUSED"
+  },
+  "120248233604980353": {
+   "product": "Whitening Toothpaste",
+   "how": "title",
+   "ad_name": "FGC | Toothpaste | Aug 23 V34 Bottle",
+   "adset_id": "120248233596660353",
+   "adset_name": "FGC | Whitening Toothpaste | WhatsApp | Lebanon | 18-65",
+   "campaign_id": "120248233595000353",
+   "campaign_name": "FGC | Whitening Toothpaste | WhatsApp | Lebanon",
+   "video_id": "1557488028872490",
+   "status": "ADSET_PAUSED"
+  },
+  "120248233603700353": {
+   "product": "Whitening Toothpaste",
+   "how": "title",
+   "ad_name": "FGC | Toothpaste | Aug 23 Purple Demo",
+   "adset_id": "120248233596660353",
+   "adset_name": "FGC | Whitening Toothpaste | WhatsApp | Lebanon | 18-65",
+   "campaign_id": "120248233595000353",
+   "campaign_name": "FGC | Whitening Toothpaste | WhatsApp | Lebanon",
+   "video_id": "4151726875126040",
+   "status": "ADSET_PAUSED"
+  },
+  "120248221728930353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC | Whitening | Aug 22 W3 (strip apply)",
+   "adset_id": "120247759799840353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | Lebanon | 18-65",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1800051187654030",
+   "status": "ADSET_PAUSED"
+  },
+  "120248221727840353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC | Whitening | Aug 22 W2",
+   "adset_id": "120247759799840353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | Lebanon | 18-65",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "923697203571990",
+   "status": "ADSET_PAUSED"
+  },
+  "120248220960950353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Migraine Cap | Aug 22 D (Magic cap stack)",
+   "adset_id": "120247809605310353",
+   "adset_name": "FGC | WhatsApp | Lebanon | Broad | FGC#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "4423410321258186",
+   "status": "ADSET_PAUSED"
+  },
+  "120248213121360353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC | Whitening | Aug 20 Purple",
+   "adset_id": "120247759799840353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | Lebanon | 18-65",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1574405201149314",
+   "status": "ADSET_PAUSED"
+  },
+  "120248213119480353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC | Whitening | Aug 20 Strips Box",
+   "adset_id": "120247759799840353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | Lebanon | 18-65",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "4637136226608826",
+   "status": "ADSET_PAUSED"
+  },
+  "120248187468500353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Migraine Cap | Migraine Cap | Aug 20 B",
+   "adset_id": "120247809605310353",
+   "adset_name": "FGC | WhatsApp | Lebanon | Broad | FGC#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1025699416894028",
+   "status": "ADSET_PAUSED"
+  },
+  "120248187419520353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC | Whitening | Whitening | Aug 20",
+   "adset_id": "120247759799840353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | Lebanon | 18-65",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1699383058523516",
+   "status": "ADSET_PAUSED"
+  },
+  "120248175882570353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Migraine Cap | Aug 19 C",
+   "adset_id": "120247809605310353",
+   "adset_name": "FGC | WhatsApp | Lebanon | Broad | FGC#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1809945513334234",
+   "status": "ADSET_PAUSED"
+  },
+  "120248175881140353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Migraine Cap | Aug 19 B",
+   "adset_id": "120247809605310353",
+   "adset_name": "FGC | WhatsApp | Lebanon | Broad | FGC#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1583914653188152",
+   "status": "ADSET_PAUSED"
+  },
+  "120248175880270353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Migraine Cap | Aug 19 A",
+   "adset_id": "120247809605310353",
+   "adset_name": "FGC | WhatsApp | Lebanon | Broad | FGC#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "4618588881751285",
+   "status": "ADSET_PAUSED"
+  },
+  "120247777214080353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC | Whitening | New Post 00:55",
+   "adset_id": "120247759799840353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | Lebanon | 18-65",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1521962053020238",
+   "status": "ADSET_PAUSED"
+  },
+  "120247777210780353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC | Whitening | New Post 00:50",
+   "adset_id": "120247759799840353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | Lebanon | 18-65",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1822589019150378",
+   "status": "ADSET_PAUSED"
+  },
+  "120247766910280353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC | Whitening | New Post 11:33",
+   "adset_id": "120247759799840353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | Lebanon | 18-65",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "888732603884260",
+   "status": "ADSET_PAUSED"
+  },
+  "120247760551000353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC | Whitening | Whitening 6",
+   "adset_id": "120247759799840353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | Lebanon | 18-65",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "2606931696428968",
+   "status": "ADSET_PAUSED"
+  },
+  "120247760529540353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC | Whitening | Whitening 5",
+   "adset_id": "120247759799840353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | Lebanon | 18-65",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "808568208946206",
+   "status": "ADSET_PAUSED"
+  },
+  "120247760510400353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC | Whitening | Whitening 4",
+   "adset_id": "120247759799840353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | Lebanon | 18-65",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1608696744170704",
+   "status": "ADSET_PAUSED"
+  },
+  "120247760491730353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC | Whitening | Whitening 3",
+   "adset_id": "120247759799840353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | Lebanon | 18-65",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1772347893958748",
+   "status": "ADSET_PAUSED"
+  },
+  "120247760469770353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC | Whitening | Whitening 2",
+   "adset_id": "120247759799840353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | Lebanon | 18-65",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1611511243977483",
+   "status": "ADSET_PAUSED"
+  },
+  "120247760447260353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC | Whitening | Whitening 1",
+   "adset_id": "120247759799840353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | Lebanon | 18-65",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1789635519134278",
+   "status": "ADSET_PAUSED"
+  },
+  "120248252438320353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC Website | Whitening Strips | Aug 20",
+   "adset_id": "120248252355420353",
+   "adset_name": "Website | Whitening Strips | LAL Buyers",
+   "campaign_id": "120248252088090353",
+   "campaign_name": "FGC | WEBSITE Sales | CBO $10/day | 3 Products | V1",
+   "video_id": "1685314896488119",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248252432530353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC Website | Whitening Strips | Whitening 6",
+   "adset_id": "120248252355420353",
+   "adset_name": "Website | Whitening Strips | LAL Buyers",
+   "campaign_id": "120248252088090353",
+   "campaign_name": "FGC | WEBSITE Sales | CBO $10/day | 3 Products | V1",
+   "video_id": "2153745698909897",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248252420960353": {
+   "product": "Teeth Whitening Strips",
+   "how": "title",
+   "ad_name": "FGC Website | Whitening Strips | Whitening 1",
+   "adset_id": "120248252355420353",
+   "adset_name": "Website | Whitening Strips | LAL Buyers",
+   "campaign_id": "120248252088090353",
+   "campaign_name": "FGC | WEBSITE Sales | CBO $10/day | 3 Products | V1",
+   "video_id": "992126753846362",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248252383330353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC Website | Migraine Cap | Aug 19 C",
+   "adset_id": "120248252348610353",
+   "adset_name": "Website | Migraine Cap | LAL Buyers",
+   "campaign_id": "120248252088090353",
+   "campaign_name": "FGC | WEBSITE Sales | CBO $10/day | 3 Products | V1",
+   "video_id": "1405193751578979",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248252371480353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC Website | Migraine Cap | Post 7",
+   "adset_id": "120248252348610353",
+   "adset_name": "Website | Migraine Cap | LAL Buyers",
+   "campaign_id": "120248252088090353",
+   "campaign_name": "FGC | WEBSITE Sales | CBO $10/day | 3 Products | V1",
+   "video_id": "939524329167756",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248250993140353": {
+   "product": "Whitening Toothpaste",
+   "how": "title",
+   "ad_name": "FGC | IG DM | Toothpaste | Aug 23 V34 Bottle B",
+   "adset_id": "120248250989170353",
+   "adset_name": "FGC | IG DM | Toothpaste | LB 18-65",
+   "campaign_id": "120247915378630353",
+   "campaign_name": "FGC | Instagram DM | Migraine Cap | V1",
+   "video_id": "1530224738855111",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248250990320353": {
+   "product": "Whitening Toothpaste",
+   "how": "title",
+   "ad_name": "FGC | IG DM | Toothpaste | Aug 23 Brush Demo",
+   "adset_id": "120248250989170353",
+   "adset_name": "FGC | IG DM | Toothpaste | LB 18-65",
+   "campaign_id": "120247915378630353",
+   "campaign_name": "FGC | Instagram DM | Migraine Cap | V1",
+   "video_id": "827041500431178",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248250992360353": {
+   "product": "Whitening Toothpaste",
+   "how": "title",
+   "ad_name": "FGC | IG DM | Toothpaste | Aug 23 V34 Bottle",
+   "adset_id": "120248250989170353",
+   "adset_name": "FGC | IG DM | Toothpaste | LB 18-65",
+   "campaign_id": "120247915378630353",
+   "campaign_name": "FGC | Instagram DM | Migraine Cap | V1",
+   "video_id": "1713501623040365",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248250987900353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | IG DM | Whitening | Whitening 1",
+   "adset_id": "120248250981930353",
+   "adset_name": "FGC | IG DM | Whitening | LB 18-65",
+   "campaign_id": "120247915378630353",
+   "campaign_name": "FGC | Instagram DM | Migraine Cap | V1",
+   "video_id": "992126753846362",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248250986900353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | IG DM | Whitening | New Post 11:33",
+   "adset_id": "120248250981930353",
+   "adset_name": "FGC | IG DM | Whitening | LB 18-65",
+   "campaign_id": "120247915378630353",
+   "campaign_name": "FGC | Instagram DM | Migraine Cap | V1",
+   "video_id": "3110238032506871",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248250988950353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | IG DM | Whitening | Aug 20",
+   "adset_id": "120248250981930353",
+   "adset_name": "FGC | IG DM | Whitening | LB 18-65",
+   "campaign_id": "120247915378630353",
+   "campaign_name": "FGC | Instagram DM | Migraine Cap | V1",
+   "video_id": "1685314896488119",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248250984940353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | IG DM | Whitening | Whitening 6",
+   "adset_id": "120248250981930353",
+   "adset_name": "FGC | IG DM | Whitening | LB 18-65",
+   "campaign_id": "120247915378630353",
+   "campaign_name": "FGC | Instagram DM | Migraine Cap | V1",
+   "video_id": "2153745698909897",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248250865510353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | IG DM | Aug 22 D",
+   "adset_id": "120247916599990353",
+   "adset_name": "FGC | Instagram DM | Lebanon | 18-65 | v2",
+   "campaign_id": "120247915378630353",
+   "campaign_name": "FGC | Instagram DM | Migraine Cap | V1",
+   "video_id": "1459796905977768",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248250864170353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | IG DM | Aug 19 C",
+   "adset_id": "120247916599990353",
+   "adset_name": "FGC | Instagram DM | Lebanon | 18-65 | v2",
+   "campaign_id": "120247915378630353",
+   "campaign_name": "FGC | Instagram DM | Migraine Cap | V1",
+   "video_id": "1405193751578979",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248219411730353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | Migraine Cap | Aug 22 B (French)",
+   "adset_id": "120247809605310353",
+   "adset_name": "FGC | WhatsApp | Lebanon | Broad | FGC#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "2811753949224591",
+   "status": "PAUSED"
+  },
+  "120248221731630353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Aug 22 W4 (Dr Dent box)",
+   "adset_id": "120247759799840353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | Lebanon | 18-65",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "video_id": "1531579171591074",
+   "status": "PAUSED"
+  },
+  "120248220968400353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | Migraine Cap | Aug 22 F (Freezer)",
+   "adset_id": "120247809605310353",
+   "adset_name": "FGC | WhatsApp | Lebanon | Broad | FGC#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1377035834613889",
+   "status": "PAUSED"
+  },
+  "120248220964950353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | Migraine Cap | Aug 22 E (Faster than medicine)",
+   "adset_id": "120247809605310353",
+   "adset_name": "FGC | WhatsApp | Lebanon | Broad | FGC#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1005647002510419",
+   "status": "PAUSED"
+  },
+  "120248219408830353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | Migraine Cap | Aug 22 A (POV hook)",
+   "adset_id": "120247809605310353",
+   "adset_name": "FGC | WhatsApp | Lebanon | Broad | FGC#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1395990869123290",
+   "status": "PAUSED"
+  },
+  "120248219504770353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | Migraine Cap | Aug 22 C (Thermax outdoor)",
+   "adset_id": "120247809605310353",
+   "adset_name": "FGC | WhatsApp | Lebanon | Broad | FGC#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1779947950006905",
+   "status": "PAUSED"
+  },
+  "120247809608580353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 7 | V2",
+   "adset_id": "120247809605310353",
+   "adset_name": "FGC | WhatsApp | Lebanon | Broad | FGC#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1749316486399023",
+   "status": "PAUSED"
+  },
+  "120248187452780353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Migraine Cap | Migraine Cap | Aug 20 A",
+   "adset_id": "120247809605310353",
+   "adset_name": "FGC | WhatsApp | Lebanon | Broad | FGC#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1372947828238795",
+   "status": "PAUSED"
+  },
+  "120248212919270353": {
+   "product": "Pimple Patches",
+   "how": "frames",
+   "ad_name": "FGC | Acne Patch | Image 1",
+   "adset_id": "120248212916200353",
+   "adset_name": "FGC | Acne Patch | WhatsApp | LB | 81873275",
+   "campaign_id": "120247923099400353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "video_id": null,
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247727381580353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | New Post Aug 1 - 12:34",
+   "adset_id": "120247617563300353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 18-65 KEEP OFF",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "2086763481918281",
+   "status": "PAUSED"
+  },
+  "120247809616890353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Aug 1 - 12:34 | V2",
+   "adset_id": "120247809605310353",
+   "adset_name": "FGC | WhatsApp | Lebanon | Broad | FGC#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "2086763481918281",
+   "status": "PAUSED"
+  },
+  "120248212918590353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne Patch | Reel 1",
+   "adset_id": "120248212916200353",
+   "adset_name": "FGC | Acne Patch | WhatsApp | LB | 81873275",
+   "campaign_id": "120247923099400353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "video_id": "1500897771795762",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248212917460353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne Patch | Aug 20 E",
+   "adset_id": "120248212916200353",
+   "adset_name": "FGC | Acne Patch | WhatsApp | LB | 81873275",
+   "campaign_id": "120247923099400353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "video_id": "982298707602319",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248212919830353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne Patch | Aug 20 D",
+   "adset_id": "120248212916200353",
+   "adset_name": "FGC | Acne Patch | WhatsApp | LB | 81873275",
+   "campaign_id": "120247923099400353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "video_id": "1062025586408659",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248212916890353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne Patch | Aug 20 A",
+   "adset_id": "120248212916200353",
+   "adset_name": "FGC | Acne Patch | WhatsApp | LB | 81873275",
+   "campaign_id": "120247923099400353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "video_id": "1067840112397560",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248212920130353": {
+   "product": "Pimple Patches",
+   "how": "frames",
+   "ad_name": "FGC | Acne Patch | Image 2",
+   "adset_id": "120248212916200353",
+   "adset_name": "FGC | Acne Patch | WhatsApp | LB | 81873275",
+   "campaign_id": "120247923099400353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "video_id": null,
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248212920530353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne Patch | Aug 20 C",
+   "adset_id": "120248212916200353",
+   "adset_name": "FGC | Acne Patch | WhatsApp | LB | 81873275",
+   "campaign_id": "120247923099400353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "video_id": "1361529419380459",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120248188178860353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne Patch | Aug 20 A",
+   "adset_id": "120248188174440353",
+   "adset_name": "FGC | Acne Patch | WhatsApp | LB | Auto Placements",
+   "campaign_id": "120247923099400353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "video_id": "1081198397786971",
+   "status": "ADSET_PAUSED"
+  },
+  "120248188176390353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne Patch | Aug 20 E",
+   "adset_id": "120248188174440353",
+   "adset_name": "FGC | Acne Patch | WhatsApp | LB | Auto Placements",
+   "campaign_id": "120247923099400353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "video_id": "1433943412208448",
+   "status": "ADSET_PAUSED"
+  },
+  "120248188079720353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne Patch | Aug 20 E",
+   "adset_id": "120247923099710353",
+   "adset_name": "FGC | Acne Patch | WhatsApp | LB | 18-65",
+   "campaign_id": "120247923099400353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "video_id": "1517676897072799",
+   "status": "ADSET_PAUSED"
+  },
+  "120248188180000353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne Patch | Reel 1",
+   "adset_id": "120248188174440353",
+   "adset_name": "FGC | Acne Patch | WhatsApp | LB | Auto Placements",
+   "campaign_id": "120247923099400353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "video_id": "1610623740741758",
+   "status": "ADSET_PAUSED"
+  },
+  "120248188180720353": {
+   "product": "Pimple Patches",
+   "how": "frames",
+   "ad_name": "FGC | Acne Patch | Image 1",
+   "adset_id": "120248188174440353",
+   "adset_name": "FGC | Acne Patch | WhatsApp | LB | Auto Placements",
+   "campaign_id": "120247923099400353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "video_id": null,
+   "status": "ADSET_PAUSED"
+  },
+  "120248188176800353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne Patch | Aug 20 D",
+   "adset_id": "120248188174440353",
+   "adset_name": "FGC | Acne Patch | WhatsApp | LB | Auto Placements",
+   "campaign_id": "120247923099400353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "video_id": "1370041398000759",
+   "status": "ADSET_PAUSED"
+  },
+  "120248188065750353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne Patch | Aug 20 D",
+   "adset_id": "120247923099710353",
+   "adset_name": "FGC | Acne Patch | WhatsApp | LB | 18-65",
+   "campaign_id": "120247923099400353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "video_id": "1350515603732436",
+   "status": "ADSET_PAUSED"
+  },
+  "120248188181680353": {
+   "product": "Pimple Patches",
+   "how": "frames",
+   "ad_name": "FGC | Acne Patch | Image 2",
+   "adset_id": "120248188174440353",
+   "adset_name": "FGC | Acne Patch | WhatsApp | LB | Auto Placements",
+   "campaign_id": "120247923099400353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "video_id": null,
+   "status": "ADSET_PAUSED"
+  },
+  "120247617616950353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 6",
+   "adset_id": "120247617563300353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 18-65 KEEP OFF",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "897047216793942",
+   "status": "PAUSED"
+  },
+  "120247916402510353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Aug 1 - 12:34 | V2",
+   "adset_id": "120247916402460353",
+   "adset_name": "FGC | WhatsApp | LB / MK7#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1043946171824894",
+   "status": "PAUSED"
+  },
+  "120247809614660353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 1 | V2",
+   "adset_id": "120247809605310353",
+   "adset_name": "FGC | WhatsApp | Lebanon | Broad | FGC#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1062724982896783",
+   "status": "PAUSED"
+  },
+  "120248085987940353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Aug 13 Reel | V2",
+   "adset_id": "120247809605310353",
+   "adset_name": "FGC | WhatsApp | Lebanon | Broad | FGC#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1024813513710811",
+   "status": "PAUSED"
+  },
+  "120248188177130353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne Patch | Aug 20 C",
+   "adset_id": "120248188174440353",
+   "adset_name": "FGC | Acne Patch | WhatsApp | LB | Auto Placements",
+   "campaign_id": "120247923099400353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "video_id": "1733789491173368",
+   "status": "ADSET_PAUSED"
+  },
+  "120248188043150353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne Patch | Aug 20 C",
+   "adset_id": "120247923099710353",
+   "adset_name": "FGC | Acne Patch | WhatsApp | LB | 18-65",
+   "campaign_id": "120247923099400353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "video_id": "1735347551063874",
+   "status": "ADSET_PAUSED"
+  },
+  "120248187980900353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne Patch | Aug 20 A",
+   "adset_id": "120247923099710353",
+   "adset_name": "FGC | Acne Patch | WhatsApp | LB | 18-65",
+   "campaign_id": "120247923099400353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "video_id": "1376872521178539",
+   "status": "ADSET_PAUSED"
+  },
+  "120247916402470353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 5 | V2",
+   "adset_id": "120247916402460353",
+   "adset_name": "FGC | WhatsApp | LB / MK7#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "4567715200142207",
+   "status": "PAUSED"
+  },
+  "120247809613040353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 2 | V2",
+   "adset_id": "120247809605310353",
+   "adset_name": "FGC | WhatsApp | Lebanon | Broad | FGC#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1056252577090724",
+   "status": "PAUSED"
+  },
+  "120247809610970353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 5 | V2",
+   "adset_id": "120247809605310353",
+   "adset_name": "FGC | WhatsApp | Lebanon | Broad | FGC#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "3001229920067124",
+   "status": "PAUSED"
+  },
+  "120247929903000353": {
+   "product": "Posture Corrector",
+   "how": "title",
+   "ad_name": "FGC | Posture Corrector | Reel 3",
+   "adset_id": "120247929897900353",
+   "adset_name": "FGC | Posture Corrector | WhatsApp | LB | Auto Placements",
+   "campaign_id": "120247928589740353",
+   "campaign_name": "FGC | Posture Corrector | WhatsApp | Lebanon",
+   "video_id": "1544170450883203",
+   "status": "ADSET_PAUSED"
+  },
+  "120247928616800353": {
+   "product": "Posture Corrector",
+   "how": "title",
+   "ad_name": "FGC | Posture Corrector | Reel 3",
+   "adset_id": "120247928590300353",
+   "adset_name": "FGC | Posture Corrector | WhatsApp | LB | 18-65",
+   "campaign_id": "120247928589740353",
+   "campaign_name": "FGC | Posture Corrector | WhatsApp | Lebanon",
+   "video_id": "1909525913338308",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247928600350353": {
+   "product": "Posture Corrector",
+   "how": "title",
+   "ad_name": "FGC | Posture Corrector | Reel 1",
+   "adset_id": "120247928590300353",
+   "adset_name": "FGC | Posture Corrector | WhatsApp | LB | 18-65",
+   "campaign_id": "120247928589740353",
+   "campaign_name": "FGC | Posture Corrector | WhatsApp | Lebanon",
+   "video_id": "28844400311814496",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247929901300353": {
+   "product": "Posture Corrector",
+   "how": "title",
+   "ad_name": "FGC | Posture Corrector | Reel 2",
+   "adset_id": "120247929897900353",
+   "adset_name": "FGC | Posture Corrector | WhatsApp | LB | Auto Placements",
+   "campaign_id": "120247928589740353",
+   "campaign_name": "FGC | Posture Corrector | WhatsApp | Lebanon",
+   "video_id": "1740072950357550",
+   "status": "ADSET_PAUSED"
+  },
+  "120247929900240353": {
+   "product": "Posture Corrector",
+   "how": "title",
+   "ad_name": "FGC | Posture Corrector | Reel 1",
+   "adset_id": "120247929897900353",
+   "adset_name": "FGC | Posture Corrector | WhatsApp | LB | Auto Placements",
+   "campaign_id": "120247928589740353",
+   "campaign_name": "FGC | Posture Corrector | WhatsApp | Lebanon",
+   "video_id": "2538338943274509",
+   "status": "ADSET_PAUSED"
+  },
+  "120247928609140353": {
+   "product": "Posture Corrector",
+   "how": "title",
+   "ad_name": "FGC | Posture Corrector | Reel 2",
+   "adset_id": "120247928590300353",
+   "adset_name": "FGC | Posture Corrector | WhatsApp | LB | 18-65",
+   "campaign_id": "120247928589740353",
+   "campaign_name": "FGC | Posture Corrector | WhatsApp | Lebanon",
+   "video_id": "1080571404396793",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247928488970353": {
+   "product": "Pimple Patches",
+   "how": "title",
+   "ad_name": "FGC | Acne Patch | Reel 1",
+   "adset_id": "120247923099710353",
+   "adset_name": "FGC | Acne Patch | WhatsApp | LB | 18-65",
+   "campaign_id": "120247923099400353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "video_id": "2170588770185601",
+   "status": "ADSET_PAUSED"
+  },
+  "120247923100170353": {
+   "product": "Pimple Patches",
+   "how": "frames",
+   "ad_name": "FGC | Acne Patch | Image 1",
+   "adset_id": "120247923099710353",
+   "adset_name": "FGC | Acne Patch | WhatsApp | LB | 18-65",
+   "campaign_id": "120247923099400353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "video_id": null,
+   "status": "ADSET_PAUSED"
+  },
+  "120247915476520353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Dubai | Post 15",
+   "adset_id": "120247915434010353",
+   "adset_name": "FGC | Sales | Dubai | 18-65",
+   "campaign_id": "120247915433860353",
+   "campaign_name": "FGC | Sales | Dubai | Migraine Cap | V1",
+   "video_id": "2053284948912650",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247915470840353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Dubai | Post 13",
+   "adset_id": "120247915434010353",
+   "adset_name": "FGC | Sales | Dubai | 18-65",
+   "campaign_id": "120247915433860353",
+   "campaign_name": "FGC | Sales | Dubai | Migraine Cap | V1",
+   "video_id": "1075872731533916",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247915479050353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Dubai | Post 16",
+   "adset_id": "120247915434010353",
+   "adset_name": "FGC | Sales | Dubai | 18-65",
+   "campaign_id": "120247915433860353",
+   "campaign_name": "FGC | Sales | Dubai | Migraine Cap | V1",
+   "video_id": "4412786638968840",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247915466410353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Dubai | Post 11",
+   "adset_id": "120247915434010353",
+   "adset_name": "FGC | Sales | Dubai | 18-65",
+   "campaign_id": "120247915433860353",
+   "campaign_name": "FGC | Sales | Dubai | Migraine Cap | V1",
+   "video_id": "28157059740650151",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247915472760353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Dubai | Post 14",
+   "adset_id": "120247915434010353",
+   "adset_name": "FGC | Sales | Dubai | 18-65",
+   "campaign_id": "120247915433860353",
+   "campaign_name": "FGC | Sales | Dubai | Migraine Cap | V1",
+   "video_id": "1789958492182217",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247915468200353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Dubai | Post 12",
+   "adset_id": "120247915434010353",
+   "adset_name": "FGC | Sales | Dubai | 18-65",
+   "campaign_id": "120247915433860353",
+   "campaign_name": "FGC | Sales | Dubai | Migraine Cap | V1",
+   "video_id": "4497203887223915",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247915462050353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Dubai | Post 9",
+   "adset_id": "120247915434010353",
+   "adset_name": "FGC | Sales | Dubai | 18-65",
+   "campaign_id": "120247915433860353",
+   "campaign_name": "FGC | Sales | Dubai | Migraine Cap | V1",
+   "video_id": "1073841228922179",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247915456650353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Dubai | Post 7",
+   "adset_id": "120247915434010353",
+   "adset_name": "FGC | Sales | Dubai | 18-65",
+   "campaign_id": "120247915433860353",
+   "campaign_name": "FGC | Sales | Dubai | Migraine Cap | V1",
+   "video_id": "1046472134640837",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247915464780353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Dubai | Post 10",
+   "adset_id": "120247915434010353",
+   "adset_name": "FGC | Sales | Dubai | 18-65",
+   "campaign_id": "120247915433860353",
+   "campaign_name": "FGC | Sales | Dubai | Migraine Cap | V1",
+   "video_id": "2250693522345896",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247915453090353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Dubai | Post 6",
+   "adset_id": "120247915434010353",
+   "adset_name": "FGC | Sales | Dubai | 18-65",
+   "campaign_id": "120247915433860353",
+   "campaign_name": "FGC | Sales | Dubai | Migraine Cap | V1",
+   "video_id": "1377873614504342",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247915458370353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Dubai | Post 8",
+   "adset_id": "120247915434010353",
+   "adset_name": "FGC | Sales | Dubai | 18-65",
+   "campaign_id": "120247915433860353",
+   "campaign_name": "FGC | Sales | Dubai | Migraine Cap | V1",
+   "video_id": "1822387675798227",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247915440220353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Dubai | Post 3",
+   "adset_id": "120247915434010353",
+   "adset_name": "FGC | Sales | Dubai | 18-65",
+   "campaign_id": "120247915433860353",
+   "campaign_name": "FGC | Sales | Dubai | Migraine Cap | V1",
+   "video_id": "1447140590805361",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247915442630353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Dubai | Post 4",
+   "adset_id": "120247915434010353",
+   "adset_name": "FGC | Sales | Dubai | 18-65",
+   "campaign_id": "120247915433860353",
+   "campaign_name": "FGC | Sales | Dubai | Migraine Cap | V1",
+   "video_id": "3100023723540056",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247915438110353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Dubai | Post 2",
+   "adset_id": "120247915434010353",
+   "adset_name": "FGC | Sales | Dubai | 18-65",
+   "campaign_id": "120247915433860353",
+   "campaign_name": "FGC | Sales | Dubai | Migraine Cap | V1",
+   "video_id": "1738592230519674",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247915436500353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | Dubai | Post 1",
+   "adset_id": "120247915434010353",
+   "adset_name": "FGC | Sales | Dubai | 18-65",
+   "campaign_id": "120247915433860353",
+   "campaign_name": "FGC | Sales | Dubai | Migraine Cap | V1",
+   "video_id": "1981092905744252",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247923100240353": {
+   "product": "Pimple Patches",
+   "how": "frames",
+   "ad_name": "FGC | Acne Patch | Image 2",
+   "adset_id": "120247923099710353",
+   "adset_name": "FGC | Acne Patch | WhatsApp | LB | 18-65",
+   "campaign_id": "120247923099400353",
+   "campaign_name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "video_id": null,
+   "status": "ADSET_PAUSED"
+  },
+  "120247916708900353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | IG DM | Post 2",
+   "adset_id": "120247916599990353",
+   "adset_name": "FGC | Instagram DM | Lebanon | 18-65 | v2",
+   "campaign_id": "120247915378630353",
+   "campaign_name": "FGC | Instagram DM | Migraine Cap | V1",
+   "video_id": "1398281195181899",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247916708100353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | IG DM | Post 5",
+   "adset_id": "120247916599990353",
+   "adset_name": "FGC | Instagram DM | Lebanon | 18-65 | v2",
+   "campaign_id": "120247915378630353",
+   "campaign_name": "FGC | Instagram DM | Migraine Cap | V1",
+   "video_id": "1044000298529441",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247916708420353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | IG DM | Post 7",
+   "adset_id": "120247916599990353",
+   "adset_name": "FGC | Instagram DM | Lebanon | 18-65 | v2",
+   "campaign_id": "120247915378630353",
+   "campaign_name": "FGC | Instagram DM | Migraine Cap | V1",
+   "video_id": "939524329167756",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247916402480353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | WhatsApp | Post 7 | V2",
+   "adset_id": "120247916402460353",
+   "adset_name": "FGC | WhatsApp | LB / MK7#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "2185133395394592",
+   "status": "ADSET_PAUSED"
+  },
+  "120247916402490353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | WhatsApp | Post 1 | V2",
+   "adset_id": "120247916402460353",
+   "adset_name": "FGC | WhatsApp | LB / MK7#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1423803869667893",
+   "status": "ADSET_PAUSED"
+  },
+  "120247916402500353": {
+   "product": "Migraine Relief Cap",
+   "how": "title",
+   "ad_name": "FGC | WhatsApp | Post 2 | V2",
+   "adset_id": "120247916402460353",
+   "adset_name": "FGC | WhatsApp | LB / MK7#",
+   "campaign_id": "120247809603120353",
+   "campaign_name": "FGC | WhatsApp | Migraine Cap | V2",
+   "video_id": "1072496568622559",
+   "status": "ADSET_PAUSED"
+  },
+  "120247743099020353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 1 | New #",
+   "adset_id": "120247742789350353",
+   "adset_name": "FGC | WhatsApp | Lebanon | New # - Copy",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "1062724982896783",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247743042680353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Aug 1 - 12:34 | New #",
+   "adset_id": "120247742789350353",
+   "adset_name": "FGC | WhatsApp | Lebanon | New # - Copy",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "2086763481918281",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247743041220353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 2 | New #",
+   "adset_id": "120247742789350353",
+   "adset_name": "FGC | WhatsApp | Lebanon | New # - Copy",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "1056252577090724",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247743039780353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 5 | New #",
+   "adset_id": "120247742789350353",
+   "adset_name": "FGC | WhatsApp | Lebanon | New # - Copy",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "3001229920067124",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247743038690353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 7 | New #",
+   "adset_id": "120247742789350353",
+   "adset_name": "FGC | WhatsApp | Lebanon | New # - Copy",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "1749316486399023",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247617598610353": {
+   "product": null,
+   "how": "title",
+   "ad_name": "FGC | WhatsApp | Post 3",
+   "adset_id": "120247617563300353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 18-65 KEEP OFF",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "1403222551680714",
+   "status": "ADSET_PAUSED"
+  },
+  "120247617647660353": {
+   "product": null,
+   "how": "title",
+   "ad_name": "FGC | WhatsApp | Post 11",
+   "adset_id": "120247617563300353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 18-65 KEEP OFF",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "2266539854191982",
+   "status": "ADSET_PAUSED"
+  },
+  "120247617633370353": {
+   "product": null,
+   "how": "title",
+   "ad_name": "FGC | WhatsApp | Post 9",
+   "adset_id": "120247617563300353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 18-65 KEEP OFF",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "3630404420445409",
+   "status": "ADSET_PAUSED"
+  },
+  "120247727368230353": {
+   "product": null,
+   "how": "title",
+   "ad_name": "FGC | WhatsApp | New Post Aug 1 - 12:38",
+   "adset_id": "120247617563300353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 18-65 KEEP OFF",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "1592554489185260",
+   "status": "ADSET_PAUSED"
+  },
+  "120247727373650353": {
+   "product": null,
+   "how": "title",
+   "ad_name": "FGC | WhatsApp | New Post Aug 1 - 12:36",
+   "adset_id": "120247617563300353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 18-65 KEEP OFF",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "2197149954556102",
+   "status": "ADSET_PAUSED"
+  },
+  "120247617609980353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 5",
+   "adset_id": "120247617563300353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 18-65 KEEP OFF",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "3001229920067124",
+   "status": "ADSET_PAUSED"
+  },
+  "120247617628530353": {
+   "product": null,
+   "how": "title",
+   "ad_name": "FGC | WhatsApp | Post 8",
+   "adset_id": "120247617563300353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 18-65 KEEP OFF",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "2093679088211018",
+   "status": "ADSET_PAUSED"
+  },
+  "120247617592910353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 2",
+   "adset_id": "120247617563300353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 18-65 KEEP OFF",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "1056252577090724",
+   "status": "ADSET_PAUSED"
+  },
+  "120247617641630353": {
+   "product": null,
+   "how": "title",
+   "ad_name": "FGC | WhatsApp | Post 10",
+   "adset_id": "120247617563300353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 18-65 KEEP OFF",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "2971490563212947",
+   "status": "ADSET_PAUSED"
+  },
+  "120247628272580353": {
+   "product": null,
+   "how": "title",
+   "ad_name": "FGC | WhatsApp | New Post July 28",
+   "adset_id": "120247617563300353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 18-65 KEEP OFF",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "1010998355107970",
+   "status": "PAUSED"
+  },
+  "120247617624720353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 7",
+   "adset_id": "120247617563300353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 18-65 KEEP OFF",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "1749316486399023",
+   "status": "ADSET_PAUSED"
+  },
+  "120247628427250353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | New Post 07:00",
+   "adset_id": "120247617563300353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 18-65 KEEP OFF",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "2545729775869981",
+   "status": "PAUSED"
+  },
+  "120247617605340353": {
+   "product": null,
+   "how": "title",
+   "ad_name": "FGC | WhatsApp | Post 4",
+   "adset_id": "120247617563300353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 18-65 KEEP OFF",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "990321927376005",
+   "status": "ADSET_PAUSED"
+  },
+  "120247617584950353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 1",
+   "adset_id": "120247617563300353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 18-65 KEEP OFF",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "1062724982896783",
+   "status": "ADSET_PAUSED"
+  },
+  "120247628417120353": {
+   "product": null,
+   "how": "title",
+   "ad_name": "FGC | WhatsApp | New Post 07:40",
+   "adset_id": "120247617563300353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 18-65 KEEP OFF",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "video_id": "1528975641822718",
+   "status": "PAUSED"
+  },
+  "120247595017330353": {
+   "product": null,
+   "how": "title",
+   "ad_name": "FGC | New Reel | July 2026",
+   "adset_id": "120247590883350353",
+   "adset_name": "Feels Good Club | Purchases | V1",
+   "campaign_id": "120247590883370353",
+   "campaign_name": "Feels Good Club | Purchases | V1",
+   "video_id": "3090899547776676",
+   "status": "CAMPAIGN_PAUSED"
+  },
+  "120247590883360353": {
+   "product": null,
+   "how": "title",
+   "ad_name": "Creative 3",
+   "adset_id": "120247590883350353",
+   "adset_name": "Feels Good Club | Purchases | V1",
+   "campaign_id": "120247590883370353",
+   "campaign_name": "Feels Good Club | Purchases | V1",
+   "video_id": "1442430407939286",
+   "status": "CAMPAIGN_PAUSED"
+  }
+ },
+ "videos": {
+  "3573895062759352": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "27854666117562216": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "4893416890885081": {
+   "product": "Nasal Strips",
+   "how": "frames"
+  },
+  "4306850662979094": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "3489780004530167": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1617475606721032": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1065867846326573": {
+   "product": "Nasal Strips",
+   "how": "frames"
+  },
+  "856065704165478": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "2927560280937401": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "4264460153852471": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "2067322700822793": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "2035591410408860": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1392005542882432": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "2077639676176490": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1535135231241091": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1062596663172835": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1064774693112063": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1048033617996520": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "2233607724095745": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1750310216217563": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "3176647425877655": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "2261924424661560": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1602230774914181": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "2012945559423205": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "2314197139449233": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "2153697545577636": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1043946171824894": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "4567715200142207": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "2086763481918281": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "897047216793942": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "2545729775869981": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "2811753949224591": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1377035834613889": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1005647002510419": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1395990869123290": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1779947950006905": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1372947828238795": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1062724982896783": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1024813513710811": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1056252577090724": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "3001229920067124": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1630549008742265": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1726540265259884": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "4201572116801461": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1739446700726122": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1863284411747237": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "944749321261165": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1814997426361068": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1554457255782122": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1049687757977981": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1476888917580895": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1877670683204758": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "900275792810083": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1043850705091726": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1421479613233005": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "4500699286853516": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "2213566496167588": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "28160828300214455": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "2025161391560564": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1437731131555529": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1053179764278597": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "2166352428097503": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "3182159751993257": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1090362316784388": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1531579171591074": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1749316486399023": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "a415862645a132c96996db7ff34f2775": {
+   "product": "Pimple Patches",
+   "how": "frames"
+  },
+  "1f41562b6e6d027b380bd54bb1645f87": {
+   "product": "Pimple Patches",
+   "how": "frames"
+  }
+ },
+ "adsets": {
+  "120248397325420353": {
+   "product": "Teeth Whitening Strips",
+   "name": "FGC | Whitening Strips | WhatsApp | LB | 81873275",
+   "how": "title"
+  },
+  "120248397322820353": {
+   "product": "Pimple Patches",
+   "name": "FGC | Acne Patch | Leads | LB | 81873275",
+   "how": "title"
+  },
+  "120248397318270353": {
+   "product": "Whitening Toothpaste",
+   "name": "FGC | Whitening Toothpaste | Leads | LB | 81873275",
+   "how": "title"
+  },
+  "120248397321080353": {
+   "product": "Migraine Relief Cap",
+   "name": "FGC | Migraine Cap | Leads | LB | 81873275",
+   "how": "title",
+   "mixed": [
+    "Migraine Relief Cap",
+    "Teeth Whitening Strips"
+   ]
+  },
+  "120248397319640353": {
+   "product": "Nasal Strips",
+   "name": "FGC | Nose Strips | Leads | LB | 81873275",
+   "how": "title"
+  },
+  "120248292004150353": {
+   "product": "Pimple Patches",
+   "name": "FGC | Acne Patch | Leads | LB | 79018107",
+   "how": "title"
+  },
+  "120248262544030353": {
+   "product": "Teeth Whitening Strips",
+   "name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "how": "title"
+  },
+  "120248296189510353": {
+   "product": "Migraine Relief Cap",
+   "name": "FGC | Migraine Cap | Leads | LB | 79018107",
+   "how": "title",
+   "mixed": [
+    "Migraine Relief Cap",
+    "Teeth Whitening Strips"
+   ]
+  },
+  "120248346999760353": {
+   "product": "Whitening Toothpaste",
+   "name": "FGC | Whitening Toothpaste | Leads | LB | 79018107",
+   "how": "title"
+  },
+  "120248345125610353": {
+   "product": "Nasal Strips",
+   "name": "FGC | Nose Strips | Leads | LB | 79018107",
+   "how": "title"
+  },
+  "120248291946140353": {
+   "product": "Pimple Patches",
+   "name": "FGC | Acne Patch V2 | WhatsApp | LB | 79018107",
+   "how": "title"
+  },
+  "120248277111660353": {
+   "product": "Migraine Relief Cap",
+   "name": "FGC | WhatsApp | Migraine Cap | LB | 79018107",
+   "how": "title",
+   "mixed": [
+    "Migraine Relief Cap",
+    "Teeth Whitening Strips"
+   ]
+  },
+  "120248262687640353": {
+   "product": "Whitening Toothpaste",
+   "name": "FGC | Whitening Toothpaste | WhatsApp | LB | 79018107",
+   "how": "title"
+  },
+  "120248252355420353": {
+   "product": "Teeth Whitening Strips",
+   "name": "Website | Whitening Strips | LAL Buyers",
+   "how": "title"
+  },
+  "120248252363870353": {
+   "product": "Pimple Patches",
+   "name": "Website | Pimple Patches | LAL Buyers",
+   "how": "title"
+  },
+  "120248252348610353": {
+   "product": "Migraine Relief Cap",
+   "name": "Website | Migraine Cap | LAL Buyers",
+   "how": "title"
+  },
+  "120248250989170353": {
+   "product": "Whitening Toothpaste",
+   "name": "FGC | IG DM | Toothpaste | LB 18-65",
+   "how": "title"
+  },
+  "120247759799840353": {
+   "product": "Teeth Whitening Strips",
+   "name": "FGC | Whitening Strips | WhatsApp | Lebanon | 18-65",
+   "how": "title"
+  },
+  "120248233596660353": {
+   "product": "Whitening Toothpaste",
+   "name": "FGC | Whitening Toothpaste | WhatsApp | Lebanon | 18-65",
+   "how": "title"
+  },
+  "120248250981930353": {
+   "product": "Teeth Whitening Strips",
+   "name": "FGC | IG DM | Whitening | LB 18-65",
+   "how": "title"
+  },
+  "120248212916200353": {
+   "product": "Pimple Patches",
+   "name": "FGC | Acne Patch | WhatsApp | LB | 81873275",
+   "how": "title"
+  },
+  "120248188174440353": {
+   "product": "Pimple Patches",
+   "name": "FGC | Acne Patch | WhatsApp | LB | Auto Placements",
+   "how": "title"
+  },
+  "120247923099710353": {
+   "product": "Pimple Patches",
+   "name": "FGC | Acne Patch | WhatsApp | LB | 18-65",
+   "how": "title"
+  },
+  "120247929897900353": {
+   "product": "Posture Corrector",
+   "name": "FGC | Posture Corrector | WhatsApp | LB | Auto Placements",
+   "how": "title"
+  },
+  "120247928590300353": {
+   "product": "Posture Corrector",
+   "name": "FGC | Posture Corrector | WhatsApp | LB | 18-65",
+   "how": "title"
+  }
+ },
+ "campaigns": {
+  "120247759799100353": {
+   "product": "Teeth Whitening Strips",
+   "name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "how": "title"
+  },
+  "120248292003920353": {
+   "product": "Pimple Patches",
+   "name": "FGC | Acne Patch | Leads | WhatsApp | LB",
+   "how": "title"
+  },
+  "120248346999360353": {
+   "product": "Whitening Toothpaste",
+   "name": "FGC | Whitening Toothpaste | Leads | WhatsApp | LB",
+   "how": "title"
+  },
+  "120248296188790353": {
+   "product": "Migraine Relief Cap",
+   "name": "FGC | Migraine Cap | Leads | WhatsApp | LB",
+   "how": "title"
+  },
+  "120248345125330353": {
+   "product": "Nasal Strips",
+   "name": "FGC | Nose Strips | Leads | WhatsApp | LB",
+   "how": "title"
+  },
+  "120248291945840353": {
+   "product": "Pimple Patches",
+   "name": "FGC | Acne Patch | WhatsApp | Lebanon | V2",
+   "how": "title"
+  },
+  "120247809603120353": {
+   "product": "Migraine Relief Cap",
+   "name": "FGC | WhatsApp | Migraine Cap | V2",
+   "how": "title"
+  },
+  "120248233595000353": {
+   "product": "Whitening Toothpaste",
+   "name": "FGC | Whitening Toothpaste | WhatsApp | Lebanon",
+   "how": "title"
+  },
+  "120247915378630353": {
+   "product": "Migraine Relief Cap",
+   "name": "FGC | Instagram DM | Migraine Cap | V1",
+   "how": "title"
+  },
+  "120247923099400353": {
+   "product": "Pimple Patches",
+   "name": "FGC | Acne Patch | WhatsApp | Lebanon",
+   "how": "title"
+  },
+  "120247928589740353": {
+   "product": "Posture Corrector",
+   "name": "FGC | Posture Corrector | WhatsApp | Lebanon",
+   "how": "title"
+  },
+  "120247915433860353": {
+   "product": "Migraine Relief Cap",
+   "name": "FGC | Sales | Dubai | Migraine Cap | V1",
+   "how": "title"
+  }
+ }
+}

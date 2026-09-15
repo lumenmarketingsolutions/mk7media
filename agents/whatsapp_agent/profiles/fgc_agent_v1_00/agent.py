@@ -686,6 +686,32 @@ PRODUCT_BY_CAMPAIGN = {
 PRODUCT_BY_AD = {
     "120248397391060353": "Teeth Whitening Strips",
 }
+
+# ── The verified product map (product_map.json, next to this file) ─────────────
+# Built 15.09.2026 by pulling EVERY ad on act_1337494034720023 with its ad set and
+# campaign, then looking at the frames of each ad's video / image and recording what
+# the creative actually sells. Titles are only the fallback: the live account had a
+# whitening video running inside the "Migraine Cap" ad set, so the name lied for
+# weeks. Regenerate with tools/fgc_ad_map.py (see that file), then re-verify frames.
+#   ads[ad_id]         -> product  (verified: "frames" or "title")
+#   videos[video_id]   -> product  (a NEW ad that reuses a known video resolves at once)
+#   adsets / campaigns -> product  (from titles; last resort before text parsing)
+_MAP_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "product_map.json")
+PRODUCT_MAP = {"ads": {}, "videos": {}, "adsets": {}, "campaigns": {}}
+try:
+    with open(_MAP_PATH, encoding="utf-8") as _f:
+        _pm = json.load(_f)
+    for _k in PRODUCT_MAP:
+        PRODUCT_MAP[_k] = {str(i): (v if isinstance(v, dict) else {"product": v})
+                           for i, v in (_pm.get(_k) or {}).items()}
+    print(f"[fgc-wa] product map loaded: {len(PRODUCT_MAP['ads'])} ads, "
+          f"{len(PRODUCT_MAP['videos'])} videos, {len(PRODUCT_MAP['adsets'])} ad sets, "
+          f"{len(PRODUCT_MAP['campaigns'])} campaigns")
+except Exception as _e:
+    print(f"[fgc-wa] product map NOT loaded ({_e}); falling back to code maps")
+for _ad, _v in PRODUCT_MAP["ads"].items():
+    if _v.get("product"):
+        PRODUCT_BY_AD.setdefault(_ad, _v["product"])
 PRODUCT_BY_ADSET = {
     # Mixed-product campaigns (Website Sales CBO, Instagram DM) — resolve at ad-set level.
     "120248252363870353": "Pimple Patches",
@@ -721,14 +747,89 @@ PRODUCT_FACTS = {
 
 
 def _product_from_lineage(lin):
-    """Product from the ad's OWN structure — ad set id, then campaign id, then the
-    ad-set/campaign name (self-describing, controlled by us). This beats anything the
-    customer typed or the ad headline claimed."""
+    """Product from the ad's OWN structure, most reliable first:
+    the creative's video/image (verified by looking at frames), then ad set id, then
+    campaign id, then the ad-set/campaign name. Returns (product, how)."""
     if not lin:
-        return None
-    return (PRODUCT_BY_ADSET.get(str(lin.get("adset_id") or ""))
-            or PRODUCT_BY_CAMPAIGN.get(str(lin.get("campaign_id") or ""))
-            or _product_from_text(f"{lin.get('adset_name') or ''} {lin.get('campaign_name') or ''}"))
+        return None, None
+    vid = str(lin.get("video_id") or "")
+    if vid and PRODUCT_MAP["videos"].get(vid, {}).get("product"):
+        return PRODUCT_MAP["videos"][vid]["product"], "video"
+    img = str(lin.get("image_hash") or "")
+    if img and PRODUCT_MAP["videos"].get(img, {}).get("product"):
+        return PRODUCT_MAP["videos"][img]["product"], "image"
+    aid = str(lin.get("adset_id") or "")
+    if aid and (PRODUCT_MAP["adsets"].get(aid, {}).get("product") or PRODUCT_BY_ADSET.get(aid)):
+        return (PRODUCT_MAP["adsets"].get(aid, {}).get("product") or PRODUCT_BY_ADSET.get(aid)), "adset"
+    cid = str(lin.get("campaign_id") or "")
+    if cid and (PRODUCT_MAP["campaigns"].get(cid, {}).get("product") or PRODUCT_BY_CAMPAIGN.get(cid)):
+        return (PRODUCT_MAP["campaigns"].get(cid, {}).get("product") or PRODUCT_BY_CAMPAIGN.get(cid)), "campaign"
+    p = _product_from_text(f"{lin.get('adset_name') or ''} {lin.get('campaign_name') or ''} {lin.get('ad_name') or ''}")
+    return (p, "title") if p else (None, None)
+
+
+def _register_ad(ad_id, product, how, lin):
+    """Every ad the webhook ever sees lands in wa_ad_registry with how its product was
+    decided. An ad resolved by anything weaker than the verified map ("video"/"ads")
+    is alerted ONCE so it gets looked at and added to product_map.json."""
+    if not ad_id:
+        return
+    conn = _conn()
+    try:
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS wa_ad_registry (ad_id TEXT PRIMARY KEY, product TEXT, "
+            "how TEXT, ad_name TEXT, adset_id TEXT, adset_name TEXT, campaign_id TEXT, "
+            "campaign_name TEXT, video_id TEXT, first_seen TEXT DEFAULT CURRENT_TIMESTAMP, "
+            "last_seen TEXT, hits INTEGER DEFAULT 0, alerted INTEGER DEFAULT 0)")
+        row = conn.execute("SELECT alerted, how FROM wa_ad_registry WHERE ad_id=?", (ad_id,)).fetchone()
+        lin = lin or {}
+        conn.execute(
+            "INSERT INTO wa_ad_registry (ad_id, product, how, ad_name, adset_id, adset_name, "
+            "campaign_id, campaign_name, video_id, last_seen, hits) VALUES (?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP,1) "
+            "ON CONFLICT(ad_id) DO UPDATE SET product=excluded.product, how=excluded.how, "
+            "ad_name=COALESCE(excluded.ad_name, ad_name), adset_id=COALESCE(excluded.adset_id, adset_id), "
+            "adset_name=COALESCE(excluded.adset_name, adset_name), campaign_id=COALESCE(excluded.campaign_id, campaign_id), "
+            "campaign_name=COALESCE(excluded.campaign_name, campaign_name), video_id=COALESCE(excluded.video_id, video_id), "
+            "last_seen=CURRENT_TIMESTAMP, hits=hits+1",
+            (ad_id, product, how, lin.get("ad_name"), lin.get("adset_id"), lin.get("adset_name"),
+             lin.get("campaign_id"), lin.get("campaign_name"), lin.get("video_id")))
+        conn.commit()
+        verified = how in ("verified", "video", "image")
+        if not verified and not (row and row["alerted"]):
+            conn.execute("UPDATE wa_ad_registry SET alerted=1 WHERE ad_id=?", (ad_id,))
+            conn.commit()
+            try:
+                _notify_team(
+                    f"FGC agent: NEW AD not in the verified product map — {ad_id}",
+                    f"<p>An ad the agent has never verified just sent a customer in.</p>"
+                    f"<p><b>Ad</b> {ad_id} — {lin.get('ad_name') or '?'}<br>"
+                    f"<b>Ad set</b> {lin.get('adset_id') or '?'} — {lin.get('adset_name') or '?'}<br>"
+                    f"<b>Campaign</b> {lin.get('campaign_id') or '?'} — {lin.get('campaign_name') or '?'}<br>"
+                    f"<b>Video</b> {lin.get('video_id') or '?'}</p>"
+                    f"<p>Product guessed from <b>{how or 'nothing'}</b>: <b>{product or 'UNKNOWN'}</b>. "
+                    f"Until it is verified from the frames and added to product_map.json the agent "
+                    f"{'uses that guess' if product else 'will not name any product on these threads'}.</p>")
+            except Exception as e:
+                print(f"[fgc-wa] ad registry alert failed: {e}")
+    except Exception as e:
+        print(f"[fgc-wa] ad registry error for {ad_id}: {e}")
+    finally:
+        conn.close()
+
+
+def ad_registry():
+    """Everything the webhook has seen, for the admin endpoint."""
+    conn = _conn()
+    try:
+        try:
+            rows = conn.execute("SELECT * FROM wa_ad_registry ORDER BY last_seen DESC").fetchall()
+        except Exception:
+            return {"ads": [], "verified_map": {k: len(v) for k, v in PRODUCT_MAP.items()}}
+        return {"ads": [dict(r) for r in rows],
+                "unverified": [dict(r) for r in rows if r["how"] not in ("verified", "video", "image")],
+                "verified_map": {k: len(v) for k, v in PRODUCT_MAP.items()}}
+    finally:
+        conn.close()
 
 
 def backfill_products(limit=500):
@@ -761,10 +862,10 @@ def backfill_products(limit=500):
             continue
         lin = {"adset_id": r["adset_id"], "campaign_id": r["campaign_id"],
                "adset_name": r["adset_name"], "campaign_name": r["campaign_name"]}
-        product = _product_from_lineage(lin)
+        product = PRODUCT_BY_AD.get(str(r["ad_id"])) or _product_from_lineage(lin)[0]
         if not product:  # lineage not stored yet — resolve it live
             lin = _resolve_ad_lineage(r["ad_id"]) or {}
-            product = _product_from_lineage(lin) or _refresh_ad_map().get(str(r["ad_id"]))
+            product = _product_from_lineage(lin)[0] or _refresh_ad_map().get(str(r["ad_id"]))
         if not product:
             continue
         c = _conn()
@@ -846,7 +947,8 @@ def _resolve_ad_lineage(ad_id, force=False):
     try:
         r = requests.get(
             f"{GRAPH_BASE}/{ad_id}",
-            params={"fields": "name,adset{id,name},campaign{id,name}",
+            params={"fields": "name,adset{id,name},campaign{id,name},"
+                              "creative{video_id,image_hash,object_story_spec{video_data{video_id}}}",
                     "access_token": FGC_ADS_TOKEN},
             timeout=15,
         )
@@ -855,12 +957,16 @@ def _resolve_ad_lineage(ad_id, force=False):
             print(f"[fgc-wa] lineage lookup failed for ad {ad_id}: "
                   f"{d['error'].get('message', '')[:120]}")
             return None
+        cr = d.get("creative") or {}
+        vd = ((cr.get("object_story_spec") or {}).get("video_data") or {})
         out = {
             "ad_name": d.get("name"),
             "adset_id": (d.get("adset") or {}).get("id"),
             "adset_name": (d.get("adset") or {}).get("name"),
             "campaign_id": (d.get("campaign") or {}).get("id"),
             "campaign_name": (d.get("campaign") or {}).get("name"),
+            "video_id": cr.get("video_id") or vd.get("video_id"),
+            "image_hash": cr.get("image_hash"),
         }
         _LINEAGE[ad_id] = out
         return out
@@ -975,16 +1081,23 @@ def _handle_referral(wa_id, msg):
 
     if not ad_id:
         return None
-    # 0) A known mismatched ad (creative sells a different product than its ad set).
-    # 1) The ad's OWN structure decides the product — ad set id / campaign id /
-    #    ad-set name. This is the reliable signal; reference it over the click text.
-    product = PRODUCT_BY_AD.get(ad_id) or _product_from_lineage(lin)
+    # 0) The verified map: this exact ad, checked from its frames.
+    # 1) The ad's OWN structure: its video/image (verified), ad set id, campaign id,
+    #    then titles. Reference this over anything the click text claims.
+    how = None
+    product = PRODUCT_BY_AD.get(ad_id)
+    if product:
+        how = "verified"
+    else:
+        product, how = _product_from_lineage(lin)
     # 2) Ad-name map (also structural), then 3) the ad copy Meta shipped, last.
     if not product:
-        product = _refresh_ad_map().get(ad_id)
+        product = _refresh_ad_map().get(ad_id); how = "ad_name" if product else None
     if not product:
         product = _product_from_text(
             f"{ref.get('headline') or ''} {ref.get('body') or ''} {ref.get('source_url') or ''}")
+        how = "ad_copy" if product else None
+    threading.Thread(target=_register_ad, args=(ad_id, product, how, lin), daemon=True).start()
     if not product:
         print(f"[fgc-wa] referral ad {ad_id}: product UNKNOWN "
               f"(adset={lin.get('adset_id')} camp={lin.get('campaign_id')} "
@@ -998,7 +1111,7 @@ def _handle_referral(wa_id, msg):
                  (product, wa_id))
     conn.commit()
     conn.close()
-    print(f"[fgc-wa] referral ad {ad_id} -> product {product} for {wa_id}")
+    print(f"[fgc-wa] referral ad {ad_id} -> product {product} ({how}) for {wa_id}")
     return product
 
 
