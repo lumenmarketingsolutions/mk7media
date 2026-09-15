@@ -104,6 +104,33 @@ except Exception:
 
 HUMAN_SNOOZE_HOURS = float(os.environ.get("FGC_HUMAN_SNOOZE_HOURS", "4"))
 
+# Burst window: a customer who sends three messages in a row gets ONE answer, to the
+# latest one. This used to be a hard 25s DROP ("standing down"), which silently lost
+# real orders: "Location please" -> "Aley" -> nothing, because "Aley" landed 20s after
+# our reply. Now the follow-up waits out the window and is answered.
+try:
+    DEBOUNCE_SECONDS = max(0.0, float(os.environ.get("FGC_DEBOUNCE_SECONDS", "8")))
+except Exception:
+    DEBOUNCE_SECONDS = 8.0
+
+# A customer who comes back to a thread that already reached an order (location on
+# file, a "Confirmed"/"تم", or the classifier's COMMITTED) after this many hours is
+# asking about an EXISTING order. MK owns those; the agent must never say "Confirmed"
+# a second time (seen live: "hii" six days after the address -> "Confirmed").
+try:
+    STALE_ORDER_HOURS = max(1.0, float(os.environ.get("FGC_STALE_ORDER_HOURS", "36")))
+except Exception:
+    STALE_ORDER_HOURS = 36.0
+
+# When the customer's FIRST message carries a real question on top of the ad's canned
+# opener ("Hello! Can I get more info on this? how many in a pack, delivery to Tripoli?"),
+# the greeting alone leaves them hanging ("لم تجبني ع سؤالي" — you did not answer my
+# question, seen live). With this on, the greeting still goes out first and the agent
+# then answers the question as a reply to THEIR message. A bare "price?" / "hi" opener
+# is still answered by the greeting alone.
+ANSWER_OPENER = os.environ.get("FGC_ANSWER_OPENER", "1") not in ("0", "false", "False", "")
+OPENER_MIN_WORDS = 4
+
 # Server-owned greeting (added 04.09.2026). The WhatsApp Business app's automated
 # greeting only fires while MK's phone is on and online, and the agent used to wait
 # for it. Every offline minute silenced the agent on every new lead. Now the server
@@ -165,6 +192,21 @@ HANDOFF_MEDIA_TYPES = {"audio", "voice", "video", "image", "document"}
 # replying to a months-old thread get no reply — we never saw that history, so
 # any answer would be guesswork. MK handles those in her app as she always has.
 AD_PREFILL_MARKERS = ("more info on this", "مزيد من المعلومات", "المعلومات حول هذا")
+# The exact canned openers Meta prepends for the click-to-WhatsApp button, so we can
+# strip them and see what the customer typed on top.
+AD_PREFILL_SENTENCES = (
+    "Hello! Can I get more info on this?",
+    "مرحبًا! هل يمكنني الحصول على مزيد من المعلومات حول هذا؟",
+    "مرحبا! هل يمكنني الحصول على مزيد من المعلومات حول هذا؟",
+)
+
+
+def _opener_question(text):
+    """What the customer typed beyond the ad's canned opener, if it is substantive
+    enough to deserve an answer of its own (a real question, not "hi" or "price?")."""
+    rest = _strip_prefill(text)
+    words = re.findall(r"[\w\u0600-\u06FF$]+", rest)
+    return rest if len(words) >= OPENER_MIN_WORDS else ""
 # The WhatsApp Business app fires an automated greeting ("Hello this item is for
 # $12 / Would you like to order?"). It arrives as an app echo, identical in shape
 # to MK typing by hand. If we snooze on it, the agent silences itself on EVERY
@@ -277,26 +319,45 @@ THE PRODUCTS (every pack $12)
 - Whitening Toothpaste: one bottle of purple whitening toothpaste, use it like
   normal toothpaste to whiten teeth.
 
-KNOW WHICH PRODUCT — from the conversation, not just the ad
-Read what the customer types; what they SAY overrides the ad they came from.
-- "teeth", "dental", "whitening strips", or just "strips" -> Teeth Whitening Strips
-- "nasal", "nose", "breathe" -> Nasal Strips
-- "toothpaste" -> Whitening Toothpaste
-- "migraine", "headache", "cap" -> Migraine Cap
-- "pimple", "acne", "patch", "blemish" -> Acne Patch
-"How many strips?" is the teeth strips unless they mention nose/breathing.
-The note at the very end of these instructions tells you which product this
-customer is on. Trust it. If it says the product is unknown, do NOT name or
-describe ANY product (never default to the migraine cap or anything else) and
-do NOT ask which product — answer price/delivery only and let them reveal it.
-Naming the wrong product is the worst mistake you can make here.
+KNOW WHICH PRODUCT — the note at the end decides, not your guess
+The note at the very end of these instructions names the product this customer
+is on and gives its facts. Quote ONLY that product's numbers. Switch products
+only when the customer clearly NAMES a different one ("teeth", "nose", "cap",
+"toothpaste", "pimples"). Generic words are not a signal: Arabic لزقة / لصقة /
+لزقات means "strip or patch" for ANY of our products, حبة means "a piece", and
+"how many come in it" is asked about every product. So "كم لزقة" on a teeth
+thread is 14, on a nose thread is 150, on a pimple thread is 360, and on a cap
+thread the answer is "one cap, reusable". If the note says the product is
+unknown, do NOT name or describe ANY product and do NOT ask which one — answer
+price/delivery only and let them reveal it. Quoting another product's count
+is the worst mistake you can make here: a customer was told 360, then 150,
+then received the pack and called it fraud.
+
+NEVER INVENT A FACT
+If a fact is not in these instructions or in the product note, you do not have
+it. Never make up an age range, a medical claim, an ingredient, a certification,
+or a country of origin. For "is it safe for kids / what age / pregnant /
+breastfeeding / I have a condition": say it is best to check with their doctor
+first (in their language), then keep going. Never promise money back or a
+refund; the returns line below is the whole answer.
+
+AN ORDER THAT ALREADY EXISTS
+If this thread already reached "Confirmed" / "تم" / "Done", or MK already took
+an address and said Ok, the order exists. Anything they say after that ("hi",
+"where is it", "it didn't arrive") is about that order: output ONLY [[HANDOFF]].
+Never say "Confirmed" a second time on the same thread.
 
 REASSURANCE — answer these, never hand off
 - "Is it real / genuine / original?" -> "Yes, 100% genuine."
 - "Does it work? / proof?" -> we use the same industry-standard ingredients as
   the top brands, so it works just as well. Keep it one short line.
-- "Guaranteed? Will you take it back?" -> "Yes, just tell us if there's any
-  issue." Warm and short. Do not give returns policy details.
+- "Guaranteed? Will you take it back? What if it doesn't work?" -> the WHOLE
+  answer is one of these three, matching their language:
+    English: "Yes, just tell us if there's any issue."
+    Arabic:  "اي، بس خبرينا اذا في اي مشكلة"
+    Arabizi: "Eh, bas khabrina iza fi ayya mshkle"
+  Never promise money back, a return, or a replacement in any language
+  (never "منرجعك", "mnerja3lak", "nrej3lak", "refund", "we'll return it").
 
 WHEN TO HAND OFF — only these, end your reply with [[HANDOFF]]
 - They gave a location or full address: the order is ready. Reply "Confirmed"
@@ -499,29 +560,103 @@ def _product_from_name(name):
     return None
 
 
-# What the CUSTOMER types beats the ad they came from. Ordered: check for the
-# nose/breathing signals before defaulting a bare "strip(s)" to teeth, and the
-# Arabic terms customers actually use. Used to correct the product per-message so
-# "how many strips" on an old cap thread answers about the strips, not the cap.
+# What the CUSTOMER types beats the ad they came from — but only when they actually
+# NAME a product. The previous version was plain substring matching and it is why the
+# agent quoted "360 patches" on teeth threads and "150 nasal strips" on strips threads:
+# the Arabic needle "حب" (pimple) is inside "مرحبا" (hello, i.e. EVERY Arabic ad opener),
+# "حبة" (a piece) and "بتحبي" (would you like); "نفس" (breath) is inside "نفس شي" (same
+# thing); "cap" is inside half the English dictionary. Now: Latin needles match whole
+# words, Arabic needles match whole tokens after stripping the usual prefixes/suffixes,
+# and the generic words (لزقة/لصقة strip-or-patch, حبة piece, breath) are not signals.
+# Ordered: nose/breathing signals before a bare "strip(s)" falls through to teeth.
 _TEXT_PRODUCT_RULES = (
-    (("nasal", "nose", "breathe", "breath", "breathing", "منخار", "نفس", "تنفس", "خيشوم"), "Nasal Strips"),
-    (("toothpaste", "معجون", "معجون اسنان"), "Whitening Toothpaste"),
-    (("migraine", "headache", "cap", "راس", "صداع", "الراس"), "Migraine Relief Cap"),
-    (("pimple", "acne", "blemish", "patch", "patches", "حب", "حبوب", "بثور"), "Pimple Patches"),
-    (("teeth", "dental", "tooth", "whitening strip", "whitening", "strip", "strips",
-      "سنان", "اسنان", "الاسنان", "تبييض", "ستريبس"), "Teeth Whitening Strips"),
+    (("nasal", "nose", "nose strip", "nose strips",
+      "منخار", "خشم", "انف", "الانف", "تنفس", "اتنفس", "بتنفس", "التنفس", "يتنفس", "نتنفس"),
+     "Nasal Strips"),
+    (("toothpaste", "معجون"), "Whitening Toothpaste"),
+    (("migraine", "migraines", "headache", "headaches", "cap", "ice cap", "cold cap",
+      "صداع", "الصداع", "شقيقة", "راس", "الراس", "راسي"),
+     "Migraine Relief Cap"),
+    (("pimple", "pimples", "acne", "blemish", "blemishes", "patch", "patches",
+      "حبوب", "الحبوب", "بثور", "البثور", "حب الشباب"),
+     "Pimple Patches"),
+    (("teeth", "tooth", "dental", "whitening", "whitening strip", "whitening strips",
+      "strip", "strips",
+      "سنان", "اسنان", "الاسنان", "سناني", "سنانك", "تبييض", "التبييض", "ستريبس", "سترايبس"),
+     "Teeth Whitening Strips"),
 )
+
+_AR_PREFIXES = ("وبال", "وال", "فال", "بال", "عال", "لل", "ال", "و", "ف", "ب", "ل", "ك", "ع")
+_AR_SUFFIXES = ("هم", "هن", "كم", "كن", "نا", "ها", "ي", "ك", "و", "ه", "ن")
+_AR_DIACRITICS = re.compile("[\u064B-\u0652\u0670\u0640]")
+
+
+def _ar_norm(tok):
+    t = _AR_DIACRITICS.sub("", tok)
+    return (t.replace("أ", "ا").replace("إ", "ا").replace("آ", "ا")
+             .replace("ة", "ه").replace("ى", "ي"))
+
+
+def _ar_stems(tok):
+    """A token plus its de-prefixed / de-suffixed forms, all alef-normalised."""
+    t = _ar_norm(tok)
+    out = {t}
+    bases = {t}
+    for pre in _AR_PREFIXES:
+        if t.startswith(pre) and len(t) - len(pre) >= 2:
+            bases.add(t[len(pre):])
+    for b in list(bases):
+        out.add(b)
+        for suf in _AR_SUFFIXES:
+            if b.endswith(suf) and len(b) - len(suf) >= 2:
+                out.add(b[:-len(suf)])
+    return out
+
+
+_LATIN_WORD = re.compile(r"[a-z0-9]+")
+_AR_WORD = re.compile(r"[\u0600-\u06FF]+")
+
+
+def _strip_prefill(text):
+    """Remove Meta's canned ad opener from a message and return what the customer
+    actually typed (possibly nothing)."""
+    t = text or ""
+    for canned in AD_PREFILL_SENTENCES:
+        t = t.replace(canned, " ")
+    low = t.lower()
+    if any(mk in low for mk in AD_PREFILL_MARKERS):
+        # A variant we do not have verbatim: drop the sentence that carries the marker.
+        parts = re.split(r"(?<=[?؟!.\n])", t)
+        t = " ".join(p for p in parts if not any(mk in p.lower() for mk in AD_PREFILL_MARKERS))
+    return t.strip()
 
 
 def _product_from_text(text):
     """Detect the product the customer is talking about from their message.
     Returns None when nothing is clearly named."""
-    t = (text or "").lower()
+    t = _strip_prefill(text).lower()
     if not t:
         return None
+    latin_tokens = set(_LATIN_WORD.findall(t))
+    ar_tokens = set()
+    for tok in _AR_WORD.findall(t):
+        ar_tokens |= _ar_stems(tok)
+    t_norm = _ar_norm(t)
     for needles, product in _TEXT_PRODUCT_RULES:
-        if any(n in t for n in needles):
-            return product
+        for n in needles:
+            if _AR_WORD.search(n):
+                nn = _ar_norm(n)
+                if " " in nn:
+                    if nn in t_norm:
+                        return product
+                elif nn in ar_tokens:
+                    return product
+            else:
+                if " " in n:
+                    if re.search(r"(?<![a-z0-9])" + re.escape(n) + r"(?![a-z0-9])", t):
+                        return product
+                elif n in latin_tokens:
+                    return product
     return None
 
 
@@ -542,6 +677,15 @@ PRODUCT_BY_CAMPAIGN = {
     "120248346999360353": "Whitening Toothpaste",
     "120248233595000353": "Whitening Toothpaste",
 }
+# Ad-level overrides, checked BEFORE ad set / campaign. Only for ads whose creative sells
+# a different product than the ad set they sit in. 120248397391060353 sits in the
+# "Migraine Cap | Leads" ad set but runs the purple teeth-whitening video (video
+# 18140058307544571, the same file as the Whitening Strips ad) — verified 15.09.2026
+# after MK corrected four "cap" threads to "14 strips". Fixing the ad is Kendall/MK's
+# call; this keeps the agent honest meanwhile.
+PRODUCT_BY_AD = {
+    "120248397391060353": "Teeth Whitening Strips",
+}
 PRODUCT_BY_ADSET = {
     # Mixed-product campaigns (Website Sales CBO, Instagram DM) — resolve at ad-set level.
     "120248252363870353": "Pimple Patches",
@@ -549,6 +693,30 @@ PRODUCT_BY_ADSET = {
     "120248252348610353": "Migraine Relief Cap",
     "120248250989170353": "Whitening Toothpaste",
     "120248250981930353": "Teeth Whitening Strips",
+}
+
+
+# One block per product, injected on its own when we know the product, so the model
+# answers "how many in the pack" from THIS product's line and never from a neighbour's.
+PRODUCT_FACTS = {
+    "Teeth Whitening Strips":
+        "14 strips per pack. One strip per session, about 20 minutes, one-time use. "
+        "They notice a difference after the first use, best after finishing the pack. "
+        "Standard whitening gel, fine for most people. Works on crooked / crowded teeth "
+        "(mlabasin) too, the answer there is simply yes. 'How many in the pack?' -> 14.",
+    "Nasal Strips":
+        "150 strips per pack, one-time use. An adhesive fabric strip across the nose to "
+        "breathe better. No special ingredient, just the strip. 'How many in the pack?' -> 150.",
+    "Migraine Relief Cap":
+        "ONE reusable cap per pack. Keep it in the freezer, about 45 minutes of cold relief "
+        "per use, stays cold 2 to 3 hours out, about 0C, gel inside (not water), one size "
+        "stretchable, hand wash and air dry. 'How many in the pack?' -> one cap, reusable.",
+    "Pimple Patches":
+        "360 patches per pack, one size, one-time use. Stick one on a pimple, best overnight "
+        "or 4 to 6 hours. 'How many in the pack?' -> 360.",
+    "Whitening Toothpaste":
+        "One bottle of purple whitening toothpaste, used like normal toothpaste. "
+        "'How many in the pack?' -> one bottle.",
 }
 
 
@@ -574,6 +742,19 @@ def backfill_products(limit=500):
         "ORDER BY k.seen_at DESC LIMIT ?", (limit,)).fetchall()
     conn.close()
     fixed = {}
+    # Known mismatched ads first: contacts already labelled from the ad set get the
+    # product the creative actually sells.
+    for ad_id, product in PRODUCT_BY_AD.items():
+        c = _conn()
+        rows_o = c.execute("SELECT wa_id FROM wa_contacts WHERE product_ad_id=? AND "
+                           "COALESCE(product,'') != ?", (ad_id, product)).fetchall()
+        for r in rows_o:
+            fixed[r["wa_id"]] = product
+        c.execute("UPDATE wa_contacts SET product=? WHERE product_ad_id=? AND "
+                  "COALESCE(product,'') != ?", (product, ad_id, product))
+        c.execute("UPDATE wa_ctwa_clicks SET product=? WHERE ad_id=? AND "
+                  "COALESCE(product,'') != ?", (product, ad_id, product))
+        c.commit(); c.close()
     for r in rows:
         wa_id = r["wa_id"]
         if wa_id in fixed:
@@ -794,9 +975,10 @@ def _handle_referral(wa_id, msg):
 
     if not ad_id:
         return None
+    # 0) A known mismatched ad (creative sells a different product than its ad set).
     # 1) The ad's OWN structure decides the product — ad set id / campaign id /
     #    ad-set name. This is the reliable signal; reference it over the click text.
-    product = _product_from_lineage(lin)
+    product = PRODUCT_BY_AD.get(ad_id) or _product_from_lineage(lin)
     # 2) Ad-name map (also structural), then 3) the ad copy Meta shipped, last.
     if not product:
         product = _refresh_ad_map().get(ad_id)
@@ -1736,21 +1918,30 @@ def _handle_inbound_message(msg, profiles, via_phone_id=None):
     if status == "opted_out":
         return
 
+    opener_q = _opener_question(text) if (text and ANSWER_OPENER and AUTO_REPLY) else ""
+
     if text and any(mk in text.lower() for mk in AD_PREFILL_MARKERS):
         # This is the ad's canned opener. The greeting answers it: the app's if the
-        # phone is on, ours otherwise (see _schedule_greeting).
+        # phone is on, ours otherwise (see _schedule_greeting). If they typed a real
+        # question on top of it, that question is answered right after the greeting.
         scheduled = _schedule_greeting(wa_id)
-        print(f"[fgc-wa] inbound {wa_id}: ad prefill — greeting handles this, agent silent"
-              + (" (server greeting scheduled)" if scheduled else ""))
+        print(f"[fgc-wa] inbound {wa_id}: ad prefill — greeting handles this"
+              + (" (server greeting scheduled)" if scheduled else "")
+              + (f", then answering their question {opener_q[:50]!r}" if opener_q else ", agent silent"))
+        if opener_q and contact.get("agent_ok"):
+            threading.Thread(target=_answer_opener_async, args=(wa_id, wamid), daemon=True).start()
         return
 
     if not contact.get("greeted"):
-        # Greeting has not gone out yet. The agent only ever answers a REPLY to
-        # the greeting, never the opening message. On an ad-started thread the
-        # server now guarantees that greeting goes out; we speak again on their reply.
+        # Greeting has not gone out yet. On an ad-started thread the server now
+        # guarantees that greeting goes out. A bare "hi"/"price?" is answered by the
+        # greeting itself; a real question typed before it gets answered after it.
         scheduled = _schedule_greeting(wa_id)
-        print(f"[fgc-wa] inbound {wa_id}: no greeting sent yet, agent silent"
-              + (" (server greeting scheduled)" if scheduled else ""))
+        print(f"[fgc-wa] inbound {wa_id}: no greeting sent yet"
+              + (" (server greeting scheduled)" if scheduled else "")
+              + (f", then answering their question {opener_q[:50]!r}" if opener_q else ", agent silent"))
+        if opener_q and contact.get("agent_ok"):
+            threading.Thread(target=_answer_opener_async, args=(wa_id, wamid), daemon=True).start()
         return
 
     if not contact.get("agent_ok"):
@@ -1795,6 +1986,49 @@ def _handle_inbound_message(msg, profiles, via_phone_id=None):
 
     print(f"[fgc-wa] inbound {wa_id}: {body[:60]!r} (status={status}) — spawning reply")
     threading.Thread(target=_reply_async, args=(wa_id, wamid), daemon=True).start()
+
+
+_SETTLED_WORDS = ("confirmed", "confirm", "done", "تم", "تمام", "تم التأكيد")
+
+
+def _returning_on_settled_thread(wa_id):
+    """True when the latest inbound arrived STALE_ORDER_HOURS+ after the previous one
+    AND the thread had already reached an order: a location on file, a
+    Confirmed/Done/تم from us or MK, or the classifier's COMMITTED."""
+    conn = _conn()
+    try:
+        rows = conn.execute(
+            "SELECT direction, body, created_at FROM wa_messages WHERE wa_id = ? "
+            "ORDER BY created_at DESC, id DESC LIMIT 60", (wa_id,)).fetchall()
+    finally:
+        conn.close()
+    inbound = [r for r in rows if r["direction"] == "in"]
+    if len(inbound) < 2:
+        return False
+    try:
+        fmt = "%Y-%m-%d %H:%M:%S"
+        latest = time.mktime(time.strptime(inbound[0]["created_at"][:19], fmt))
+        previous = time.mktime(time.strptime(inbound[1]["created_at"][:19], fmt))
+    except Exception:
+        return False
+    if latest - previous < STALE_ORDER_HOURS * 3600:
+        return False
+    contact = get_contact(wa_id) or {}
+    if contact.get("last_lat") is not None or contact.get("last_location_text"):
+        return True
+    for r in rows[1:]:
+        if r["direction"] in ("out", "out_app"):
+            b = (r["body"] or "").strip().lower()
+            if b and any(w == b or b.startswith(w) for w in _SETTLED_WORDS):
+                return True
+    try:
+        from . import intent
+        res = intent.classify_wa(wa_id, DB_PATH)  # (state, evidence, needs_human, ...)
+        if str(res[0]).upper() == "COMMITTED":
+            return True
+    except Exception:
+        pass
+    return False
 
 
 _reply_locks = {}
@@ -1857,6 +2091,27 @@ def _schedule_greeting(wa_id):
     return True
 
 
+def _answer_opener_async(wa_id, wamid):
+    """Wait for the greeting to land, then answer the question the customer typed
+    on top of the ad opener, as a reply to THEIR message (never unprompted)."""
+    try:
+        deadline = time.time() + GREETING_WAIT + 20
+        while time.time() < deadline:
+            contact = get_contact(wa_id) or {}
+            if contact.get("greeted"):
+                break
+            if _is_snoozed(contact) or contact.get("status") in ("handed_off", "opted_out"):
+                return
+            time.sleep(1)
+        else:
+            print(f"[fgc-wa] opener {wa_id}: greeting never landed, not answering the opener")
+            return
+        time.sleep(3)
+        _reply_async(wa_id, trigger_wamid=wamid, answer_opener=True)
+    except Exception as e:
+        print(f"[fgc-wa] opener answer error for {wa_id}: {repr(e)}")
+
+
 def _greet_async(wa_id):
     try:
         if GREETING_MODE == "fallback" and GREETING_WAIT > 0:
@@ -1892,18 +2147,24 @@ def _greet_async(wa_id):
             _greeting_pending.discard(wa_id)
 
 
-def _reply_async(wa_id, trigger_wamid=None):
+def _reply_async(wa_id, trigger_wamid=None, answer_opener=False):
     lock = _reply_lock(wa_id)
-    if not lock.acquire(blocking=False):
-        print(f"[fgc-wa] _reply_async {wa_id}: a reply is already in flight, dropping this one")
+    # Wait for an in-flight reply instead of dropping this one. The reply already
+    # running read the thread before this message existed; once it finishes, the
+    # newer-inbound check below decides which thread answers, so a follow-up sent
+    # while we were typing is answered instead of lost.
+    if not lock.acquire(timeout=90):
+        print(f"[fgc-wa] _reply_async {wa_id}: reply lock busy for 90s, giving up on this one")
         return
     try:
-        # Debounce: never fire two replies to the same person within 25s. People
-        # send three messages in a row; they get ONE answer.
+        # Burst window: three messages in a row get ONE answer, to the latest. Wait
+        # the window out rather than dropping (see DEBOUNCE_SECONDS).
         since = time.time() - _last_reply_at.get(wa_id, 0)
-        if since < 25:
-            print(f"[fgc-wa] _reply_async {wa_id}: replied {since:.0f}s ago, standing down")
-            return
+        if since < DEBOUNCE_SECONDS:
+            wait = DEBOUNCE_SECONDS - since
+            print(f"[fgc-wa] _reply_async {wa_id}: replied {since:.0f}s ago, waiting "
+                  f"{wait:.0f}s then answering the latest message")
+            time.sleep(wait)
         # Humanized pacing: wait, then re-check that MK hasn't jumped in and the
         # customer hasn't sent something newer (people often send 3 messages in
         # a row — reply once to the latest, not three times).
@@ -1925,7 +2186,17 @@ def _reply_async(wa_id, trigger_wamid=None):
                 return
 
         last_in = _last_inbound_body(wa_id)
-        reply, wants_handoff = generate_reply(wa_id)
+        if _returning_on_settled_thread(wa_id):
+            # An old thread that already reached an order. Whatever they say now is
+            # about that order (late, missing, changing it) — MK's, and never a second
+            # "Confirmed".
+            print(f"[fgc-wa] _reply_async {wa_id}: returning customer on a settled thread, handing to MK")
+            set_contact_status(wa_id, "handed_off")
+            _alert_handoff(wa_id, reason="returning customer on a thread that already reached an order")
+            _admin_monitor(wa_id, last_in, None, handoff=True,
+                           note="Settled thread (order already reached) — existing-order question, agent silent")
+            return
+        reply, wants_handoff = generate_reply(wa_id, answer_opener=answer_opener)
         reply, leaked = _sanitize_reply(reply)
         if leaked:
             # Model misbehaved. Say nothing, give it to MK.
@@ -1991,7 +2262,7 @@ def _maybe_log_agent_order(wa_id, reply):
         print(f"[fgc-wa] agent order error {wa_id}: {e}")
 
 
-def generate_reply(wa_id):
+def generate_reply(wa_id, answer_opener=False):
     if not ANTHROPIC_API_KEY:
         print("[fgc-wa] ANTHROPIC_API_KEY not set — cannot generate replies")
         return None, False
@@ -2027,9 +2298,10 @@ def generate_reply(wa_id):
     said_product = None
     for m in reversed(messages):
         if m["role"] == "user":
-            said_product = _product_from_text(m["content"])
+            said_product = _product_from_text(m["content"])  # ad opener is stripped inside
             if said_product:
                 break
+    facts_for = said_product or ad_product
     if said_product and said_product != ad_product:
         bits.append(f"They came from the ad for {ad_product or 'an unknown product'}, but in "
                     f"the conversation they are now asking about: {said_product}. Answer about "
@@ -2054,6 +2326,16 @@ def generate_reply(wa_id):
                         "them which product. Keep it to price ($12 + $4 delivery), delivery and "
                         "payment. Let them reveal the product; the moment they name or hint at "
                         "one, answer about that. Naming the wrong product loses the sale.")
+    if facts_for and facts_for in PRODUCT_FACTS:
+        bits.append(f"PRODUCT FACTS for {facts_for}: {PRODUCT_FACTS[facts_for]} Quote ONLY "
+                    f"these numbers. Never quote another product's count or description. "
+                    f"Arabic لزقة / لصقة / لزقات means 'strip or patch' for ANY of our products "
+                    f"and حبة means 'a piece' — neither tells you which product; the note "
+                    f"above does.")
+    if answer_opener:
+        bits.append("Their first message carried a real question on top of the ad's canned "
+                    "opener, and our greeting has already gone out. Answer THAT question now, "
+                    "in one short line, then keep closing.")
     if contact.get("last_lat") is not None:
         bits.append(f"They already sent a location pin ({contact['last_lat']},{contact['last_lng']}"
                     f"{' - ' + contact['last_location_text'] if contact.get('last_location_text') else ''}).")
@@ -2063,6 +2345,12 @@ def generate_reply(wa_id):
         # Model requires a user turn first. Use a neutral placeholder — never the
         # meta context, which taught the model that narration is normal here.
         messages.insert(0, {"role": "user", "content": "..."})
+
+    if (answer_opener and len(messages) >= 2 and messages[-1]["role"] == "assistant"
+            and messages[-1]["content"].strip() == GREETING_TEXT.strip()):
+        # The greeting went out AFTER their question. The system prompt already tells
+        # the model the greeting was received, so drop it here and answer the question.
+        messages.pop()
 
     if messages and messages[-1]["role"] == "assistant":
         # The thread already ends with one of our turns, so somebody has answered and
