@@ -191,7 +191,12 @@ HANDOFF_MEDIA_TYPES = {"audio", "voice", "video", "image", "document"}
 # The agent ONLY works conversations it watched start from an ad. Old leads
 # replying to a months-old thread get no reply — we never saw that history, so
 # any answer would be guesswork. MK handles those in her app as she always has.
-AD_PREFILL_MARKERS = ("more info on this", "مزيد من المعلومات", "المعلومات حول هذا")
+# Meta's default click-to-WhatsApp opener, plus the product-naming openers Kendall
+# sets per ad set ("Hi, I want to know more about the Migraine Cap"). A prefill that
+# names the product is the strongest product signal there is: it is what THEY tapped.
+AD_PREFILL_MARKERS = ("more info on this", "مزيد من المعلومات", "المعلومات حول هذا",
+                      "want to know more about", "know more about the",
+                      "بدي أعرف أكتر عن", "بدي اعرف اكتر عن", "أريد معرفة المزيد عن", "اريد معرفة المزيد عن")
 # The exact canned openers Meta prepends for the click-to-WhatsApp button, so we can
 # strip them and see what the customer typed on top.
 AD_PREFILL_SENTENCES = (
@@ -199,6 +204,14 @@ AD_PREFILL_SENTENCES = (
     "مرحبًا! هل يمكنني الحصول على مزيد من المعلومات حول هذا؟",
     "مرحبا! هل يمكنني الحصول على مزيد من المعلومات حول هذا؟",
 )
+
+
+def _prefill_product(text):
+    """Product named inside a CTA prefill (NOT stripped), or None."""
+    low = (text or "").lower()
+    if not any(mk in low for mk in AD_PREFILL_MARKERS):
+        return None
+    return _product_from_text(text, keep_prefill=True)
 
 
 def _opener_question(text):
@@ -575,7 +588,7 @@ _TEXT_PRODUCT_RULES = (
      "Nasal Strips"),
     (("toothpaste", "معجون"), "Whitening Toothpaste"),
     (("migraine", "migraines", "headache", "headaches", "cap", "ice cap", "cold cap",
-      "صداع", "الصداع", "شقيقة", "راس", "الراس", "راسي"),
+      "صداع", "الصداع", "شقيقة", "الشقيقة", "قبعة", "كاب", "راس", "الراس", "راسي"),
      "Migraine Relief Cap"),
     (("pimple", "pimples", "acne", "blemish", "blemishes", "patch", "patches",
       "حبوب", "الحبوب", "بثور", "البثور", "حب الشباب"),
@@ -631,10 +644,10 @@ def _strip_prefill(text):
     return t.strip()
 
 
-def _product_from_text(text):
+def _product_from_text(text, keep_prefill=False):
     """Detect the product the customer is talking about from their message.
     Returns None when nothing is clearly named."""
-    t = _strip_prefill(text).lower()
+    t = ((text or "") if keep_prefill else _strip_prefill(text)).lower()
     if not t:
         return None
     latin_tokens = set(_LATIN_WORD.findall(t))
@@ -794,7 +807,7 @@ def _register_ad(ad_id, product, how, lin):
             (ad_id, product, how, lin.get("ad_name"), lin.get("adset_id"), lin.get("adset_name"),
              lin.get("campaign_id"), lin.get("campaign_name"), lin.get("video_id")))
         conn.commit()
-        verified = how in ("verified", "video", "image")
+        verified = how in ("verified", "video", "image", "prefill")
         if not verified and not (row and row["alerted"]):
             conn.execute("UPDATE wa_ad_registry SET alerted=1 WHERE ad_id=?", (ad_id,))
             conn.commit()
@@ -826,7 +839,7 @@ def ad_registry():
         except Exception:
             return {"ads": [], "verified_map": {k: len(v) for k, v in PRODUCT_MAP.items()}}
         return {"ads": [dict(r) for r in rows],
-                "unverified": [dict(r) for r in rows if r["how"] not in ("verified", "video", "image")],
+                "unverified": [dict(r) for r in rows if r["how"] not in ("verified", "video", "image", "prefill")],
                 "verified_map": {k: len(v) for k, v in PRODUCT_MAP.items()}}
     finally:
         conn.close()
@@ -1998,6 +2011,17 @@ def _handle_inbound_message(msg, profiles, via_phone_id=None):
         _mark_agent_eligible(wa_id, "ad referral")
     if text and any(mk in text.lower() for mk in AD_PREFILL_MARKERS):
         _mark_agent_eligible(wa_id, "ad prefill greeting")
+
+    pf_product = _prefill_product(text) if text else None
+    if pf_product:
+        # The CTA they tapped names the product. Overrides the ad/creative lookup.
+        conn = _conn()
+        conn.execute("UPDATE wa_contacts SET product = ? WHERE wa_id = ?", (pf_product, wa_id))
+        conn.commit(); conn.close()
+        ref_ad = str(((msg.get("referral") or {}).get("source_id")) or "")
+        if ref_ad:
+            threading.Thread(target=_register_ad, args=(ref_ad, pf_product, "prefill", None), daemon=True).start()
+        print(f"[fgc-wa] inbound {wa_id}: CTA prefill names the product -> {pf_product}")
 
     if msg_type == "location":
         loc = msg.get("location") or {}
