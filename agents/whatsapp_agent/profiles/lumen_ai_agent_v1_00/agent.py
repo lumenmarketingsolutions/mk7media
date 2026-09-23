@@ -47,6 +47,8 @@ import threading
 
 import requests
 
+from . import gcal
+
 # ── Config ──────────────────────────────────────────────────────────────────
 GRAPH_API_VERSION = "v25.0"
 GRAPH_BASE = f"https://graph.facebook.com/{GRAPH_API_VERSION}"
@@ -500,9 +502,32 @@ NEVER PROMISE
 No guarantees of results, revenue, or a number of sales. Never quote a setup time
 or a go-live date. Never negotiate the price.
 
+ACTUALLY BOOKING IT — this is real, not pretend
+When you have a DAY, a TIME and an EMAIL, you book it for real by putting this
+token on your confirming message:
+
+  [[BOOK: YYYY-MM-DD HH:MM | their@email.com]]
+
+That creates the event on Kendall's calendar and Google emails them the invite
+with the video link. Rules:
+- 24-hour time. 4pm is 16:00.
+- Resolve the day against the current date given at the end of these
+  instructions. "Thursday" means the NEXT Thursday from today. Never a past date.
+- Beirut time, always. Do not convert anything and do not ask them where they are.
+- ONE booking token per conversation. Never send it twice.
+- Only when you have all three. Never guess an email, never invent a time they
+  did not agree to.
+- Put it on the same message as your confirmation, then [[HANDOFF]].
+
+Example, if today is Monday 29 September 2026 and they said Thursday 4pm:
+  "Done. Thursday 4pm, the invite is on its way to reza@clinic.com."
+  [[BOOK: 2026-10-02 16:00 | reza@clinic.com]] [[HANDOFF]]
+
+Never say it is booked without the token. The token is what books it; a message
+alone is a promise nobody kept.
+
 WHEN TO HAND OFF — end your reply with [[HANDOFF]]
-- You have a DAY, a TIME and an EMAIL: confirm in one line, then [[HANDOFF]].
-  Example: "Done. Thursday 4pm, invite is on its way to that email." [[HANDOFF]]
+- You booked the call (token above): confirm in one line, then [[HANDOFF]].
 - They ask for Kendall by name or ask to speak to a person.
 - An existing client with a problem, a complaint, or a billing question.
 - A voice note, photo, video or document you cannot read.
@@ -1519,6 +1544,23 @@ def send_buttons(to_wa_id, body, buttons):
                     wamid=wamid, status="sent")
     print(f"[lumen-ai] send_buttons {to_wa_id}: {titles} body={body[:50]!r}")
     return data
+
+
+BOOK_RE = re.compile(r"\[\[BOOK:\s*([0-9]{4}-[0-9]{2}-[0-9]{2}\s+[0-9]{1,2}:[0-9]{2})\s*\|\s*([^\]|]+?)\s*\]\]")
+
+
+def _extract_booking(text):
+    """Pull [[BOOK: YYYY-MM-DD HH:MM | email]] out of the model's reply.
+
+    A structured token beats re-reading the thread with a parser. The agent
+    already resolved "Thursday" against today's date when it spoke to them, so
+    asking it to state the date it meant removes every ambiguity about which
+    Thursday, and leaves no second place for the logic to disagree with itself."""
+    m = BOOK_RE.search(text or "")
+    if not m:
+        return None, None, text
+    when, email = m.group(1).strip(), m.group(2).strip()
+    return when, email, BOOK_RE.sub("", text).strip()
 
 
 def _parse_burst(text):
@@ -2543,6 +2585,27 @@ def _reply_async(wa_id, trigger_wamid=None, answer_opener=False):
         # A burst is several messages, so the word cap has to apply per message,
         # not to the whole thing — otherwise a legitimate 3-part demo trips a
         # guard built for single one-liners.
+        # Booking token comes out BEFORE the burst split, so it can sit on the
+        # confirming message without being mistaken for text.
+        book_when, book_email, reply = _extract_booking(reply)
+        booked_ev = None
+        if book_when and book_email:
+            start = gcal.parse_when(book_when)
+            if not start:
+                print(f"[lumen-ai] booking token unparseable: {book_when!r}")
+            elif start <= gcal.now_beirut():
+                print(f"[lumen-ai] booking refused, time is in the past: {book_when}")
+            else:
+                booked_ev, berr = gcal.book(
+                    start, book_email,
+                    attendee_name=(contact.get("profile_name") or None), phone=wa_id)
+                if not booked_ev:
+                    # Never tell them it is booked when it is not. Say nothing
+                    # about the calendar, hand to a human, and the thread is
+                    # still warm enough for Kendall to finish it himself.
+                    print(f"[lumen-ai] booking failed ({berr}) — handing to a human")
+                    reply = ""
+                    wants_handoff = True
         parts = _parse_burst(reply)
         clean = []
         for body, btns in parts:
@@ -2635,6 +2698,15 @@ def generate_reply(wa_id, answer_opener=False):
     if not bits:
         bits.append("No ad context. Treat them as a business owner who just saw an ad about "
                     "WhatsApp agents. Ask what their business is.")
+    # The agent has to turn "Thursday" into a real date, so it needs to know what
+    # day it is. Without this it invents one and books the wrong week.
+    try:
+        from . import gcal as _gcal
+        _now = _gcal.now_beirut()
+        bits.append(f"RIGHT NOW it is {_now:%A %d %B %Y, %H:%M} in Beirut. Resolve any day "
+                    f"they name against this, and never offer a time in the past.")
+    except Exception:
+        pass
     context_line = "(" + " ".join(bits) + ")"
 
     if messages and messages[0]["role"] == "assistant":
