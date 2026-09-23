@@ -164,6 +164,10 @@ GREETING_TEXT = os.environ.get(
 
 MAX_HISTORY = 40
 MAX_OUTBOUND_CHARS = 4000
+# FGC capped replies at 20 words because a shop answers in "12$ + 4$ delivery".
+# This agent names one concrete thing about the prospect's business and asks for
+# a time, so it needs room. The prompt asks for ~30; this is the backstop.
+MAX_REPLY_WORDS = int(os.environ.get("LUMENAI_MAX_REPLY_WORDS", "45"))
 HANDOFF_TOKEN = "[[HANDOFF]]"
 # If the model narrates its own thinking, that text must NEVER reach a customer.
 # Seen in production: "Wait - let me reconsider. They just said hi in Arabic..."
@@ -192,10 +196,58 @@ def _sanitize_reply(text):
             return tail, False
         print(f"[lumen-ai] reasoning leak, unsalvageable — suppressing: {t[:80]!r}")
         return "", True
-    if len(t.split()) > 20:
-        print(f"[lumen-ai] reply too long ({len(t.split())} words) — suppressing: {t[:80]!r}")
-        return "", True
+    if len(t.split()) > MAX_REPLY_WORDS:
+        # Long is NOT a leak. The content is fine, the model just ran on, and the
+        # FGC cap of 20 words belongs to a shop that answers in "12$ + 4$ delivery".
+        # This agent shows a prospect one concrete line about their business and
+        # then asks for a time, which is legitimately longer.
+        #
+        # Critically: over-length must not hand off. It used to return
+        # ("", True), so a wordy-but-correct reply went out as a HANDOFF instead
+        # of a message. Kendall said "I run an ecom store and sell clothing" and
+        # was handed to a human on message two, because the perfectly good reply
+        # was 30 words. Trim instead and keep the conversation alive.
+        trimmed = _trim_reply(t, MAX_REPLY_WORDS)
+        if len(trimmed.split()) < len(t.split()):
+            print(f"[lumen-ai] reply long ({len(t.split())} words) — trimmed to "
+                  f"{len(trimmed.split())}: {trimmed[:80]!r}")
+        else:
+            # One long sentence with nothing to cut at. Send it whole: a sentence
+            # chopped mid-clause reads like a broken bot, which is worse than a
+            # wordy one, and this agent exists to prove the opposite.
+            print(f"[lumen-ai] reply long ({len(t.split())} words) but unsplittable "
+                  f"— sending whole: {t[:80]!r}")
+        return trimmed, False
     return t, False
+
+
+def _trim_reply(t, max_words):
+    """Cut an over-long reply down without mangling it.
+
+    Prefer whole blocks, then whole sentences, and only fall back to a hard word
+    cut if a single sentence is itself too long. Never leave a dangling half
+    sentence — a truncated message reads like a broken bot, which is the exact
+    impression this agent exists to disprove."""
+    blocks = [b.strip() for b in t.split("\n\n") if b.strip()]
+    if len(blocks) > 1:
+        kept, n = [], 0
+        for b in blocks:
+            w = len(b.split())
+            if kept and n + w > max_words:
+                break
+            kept.append(b); n += w
+        if kept:
+            return "\n\n".join(kept)
+    parts = re.split(r"(?<=[.!?؟])\s+", t)
+    kept, n = [], 0
+    for p in parts:
+        w = len(p.split())
+        if kept and n + w > max_words:
+            break
+        kept.append(p); n += w
+    if kept:
+        return " ".join(kept).strip()
+    return " ".join(t.split()[:max_words]).rstrip(",;:").strip()
 # Media the agent cannot interpret -> straight to MK, no reply attempted.
 HANDOFF_MEDIA_TYPES = {"audio", "voice", "video", "image", "document"}
 # The agent ONLY works conversations it watched start from an ad. Old leads
