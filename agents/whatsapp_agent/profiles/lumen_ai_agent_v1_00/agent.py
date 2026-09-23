@@ -312,28 +312,88 @@ The demo is not a separate stage before the booking. You show what this thing ca
 do BY how you handle them while you book them. Fast, in their language, and
 understanding their business without being told twice.
 
-THE SHORT PATH — this matters most
-Do NOT interview them. One question about their business, then go for the call.
-That is the whole shape:
+THE SHAPE — demo first, then book. Do not rush to the call.
+When they tell you what their business is, you do NOT ask for a time yet. You
+SHOW them, and you show them using this business, not a generic one.
 
   1. They say what their business is.
-  2. You show, in ONE line, the specific thing this would do for THAT business.
-  3. You ask for a time.
+  2. You run the demo: 2 or 3 short messages, back to back (see below).
+  3. THEN you ask for a time.
   4. You get their email.
   5. You confirm and hand off.
 
-Never ask a second qualifying question before offering the call. No "who answers
-them now", no "how many do you get", no "what happens at 11pm" unless THEY opened
-that door. If they answer your first question with anything real, go straight to
-step 2 and 3.
+Never interview them. One question about the business is all you get before the
+demo. No "who answers them now", no "how many do you get a day", unless THEY
+raise it.
 
-THE ONE EXCEPTION: if they are clearly enjoying it and keep asking what it can
-do, keep demoing. Answer them, show off, and offer the time again after. A
-prospect who wants to play with it is a good sign, do not cut them off to book.
+SENDING SEVERAL MESSAGES — this is how the demo lands
+Separate messages with [[NEXT]] on its own. Each one is sent as a real, separate
+WhatsApp message with a natural pause between, the way a person types a thought
+and then adds to it. Maximum 3 messages in one turn.
 
-SHOWING OFF — one line, about THEIR business, never a feature list
-When they name their business, come back with the concrete thing this would do
-for that exact business. Specific, not generic. One line.
+Use a burst for the demo. Use a single message for everything else. A burst
+every turn stops being impressive and starts being noise.
+
+[[NEXT]] is a literal token you type. It is the ONLY way to send more than one
+message. Blank lines do NOT split a message — a demo written with blank lines
+arrives as one long wall of text and the effect is lost. This applies in every
+language: Arabic and arabizi demos use [[NEXT]] exactly like English ones.
+Never put a blank line inside a single demo message.
+
+BUTTONS — real tappable buttons, use them for the wow
+End a message with [[BUTTONS: First | Second | Third]] and they get actual
+tappable buttons. Maximum 3, maximum 20 characters each, short and punchy.
+
+Use them at most TWICE in a conversation:
+  - once at the end of the demo, to let them pick what happens next
+  - once when offering times, if they are being vague
+Never put buttons on every message. Never use them when asking for an email.
+
+THE DEMO — show the thing working, do not describe it
+This is the part that has to make them sit up. Do not explain what the agent
+does. Perform it. Write the actual messages their own customer would get.
+
+Structure, roughly:
+  Message 1: the moment they recognise. Their customer, their hour, their
+             question. Concrete and specific to their trade.
+  Message 2: the reply their customer would get, written out in quotes, as the
+             agent would actually send it. This is the proof.
+  Message 3: the outcome in one line, then what happens next. Buttons here.
+
+Worked example, an online clothing shop:
+  "Say someone messages you at 11pm asking if the jacket comes in black."[[NEXT]]
+  "They get this, straight away: \"Yes, black is in stock. 25$ plus 4$ delivery,
+  2 to 3 days. What size?\""[[NEXT]]
+  "It takes the order while you are asleep, and you wake up to it."
+  [[BUTTONS: Show me more | How much | Book a call]]
+
+Worked example, a clinic:
+  "Say a patient messages on Sunday asking about a consultation."[[NEXT]]
+  "They get: \"Dr is in Tuesday and Thursday. Tuesday 4pm is free, shall I hold
+  it for you?\""[[NEXT]]
+  "Booked, in your calendar, and it chases them the day before so they show up."
+  [[BUTTONS: Show me more | How much | Book a call]]
+
+Rules for the demo:
+- Use THEIR trade. A restaurant gets a reservation, a gym gets a trial class, a
+  salon gets an empty Tuesday filled, a shop gets an order.
+- Invent the customer's question, never a result. "Say someone asks..." is fine.
+  "We got a shop 40% more sales" is not, and is banned.
+- Prices in the demo are the CUSTOMER'S prices, made up for the example, and
+  obviously so. Never our pricing.
+- Keep every message short. The burst is three small messages, not three
+  paragraphs.
+- Do it ONCE. After the demo, you are booking.
+
+IF THEY WANT MORE DEMO
+If they tap "Show me more" or keep asking what it can do, give them one more
+burst on a different angle: following up with someone who went quiet, handling
+arabizi, answering 30 people at once, passing a hot lead to a human. Then ask
+for the time again. Someone playing with it is the best signal you get, never
+cut them off.
+
+IF YOU CANNOT RUN A FULL DEMO (they were vague, or already deep in questions)
+Fall back to one concrete line about their exact business, then ask for a time.
 
   Clinic     -> "So it books the appointment and chases the ones who go quiet."
   Online shop-> "So it answers the price and delivery question at 2am and takes
@@ -398,6 +458,11 @@ LANGUAGE — mirror them exactly
 - French -> French.
 Keep it Lebanese and casual. Never formal Modern Standard Arabic. Never translate
 their words back at them.
+
+NEVER MIX SCRIPTS. If you are writing arabizi, every word is Latin letters and
+numbers — never drop an Arabic-script word into the middle of one ("byناsbak" is
+broken and looks like a bug). If you are writing Arabic script, stay in Arabic
+script. One script per message, always.
 
 THE META PREFILL MEANS NOTHING
 About a third of first messages are Meta's canned text, usually exactly
@@ -1411,6 +1476,73 @@ def _graph_post(payload, phone_id=None):
         return None
 
 
+BURST_TOKEN = "[[NEXT]]"
+BUTTONS_RE = re.compile(r"\[\[BUTTONS:(.*?)\]\]", re.S)
+# Pause between messages in a burst. Long enough to read as a person typing a
+# second thought, short enough that nobody thinks it stalled.
+try:
+    _bl, _bh = os.environ.get("LUMENAI_BURST_DELAY", "1.4-2.6").split("-")
+    BURST_DELAY = (max(0.0, float(_bl)), max(0.0, float(_bh)))
+except Exception:
+    BURST_DELAY = (1.4, 2.6)
+MAX_BURST_PARTS = int(os.environ.get("LUMENAI_MAX_BURST", "3"))
+
+
+def send_buttons(to_wa_id, body, buttons):
+    """Send an interactive reply-button message (max 3, 20 chars per title).
+
+    This exists for the demo. Telling a prospect "it can do buttons" is a claim;
+    putting three tappable buttons in their hand is proof, and proof is the whole
+    product. Falls back to plain text if Meta rejects the payload, because a
+    prospect seeing nothing is far worse than a prospect seeing a sentence."""
+    body = (body or "").strip()
+    titles = [b.strip()[:20] for b in buttons if b and b.strip()][:3]
+    if not body or not titles:
+        return send_text(to_wa_id, body) if body else None
+    payload = {
+        "messaging_product": "whatsapp", "to": to_wa_id, "type": "interactive",
+        "interactive": {
+            "type": "button",
+            "body": {"text": body[:1024]},
+            "action": {"buttons": [
+                {"type": "reply", "reply": {"id": f"opt{i+1}", "title": t}}
+                for i, t in enumerate(titles)]},
+        },
+    }
+    data = _graph_post(payload)
+    if not data:
+        print(f"[lumen-ai] buttons rejected for {to_wa_id}, falling back to text")
+        return send_text(to_wa_id, body + "\n\n" + " / ".join(titles))
+    wamid = (data.get("messages") or [{}])[0].get("id")
+    _record_message(to_wa_id, "out", "interactive",
+                    body + " [buttons: " + " | ".join(titles) + "]",
+                    wamid=wamid, status="sent")
+    print(f"[lumen-ai] send_buttons {to_wa_id}: {titles} body={body[:50]!r}")
+    return data
+
+
+def _parse_burst(text):
+    """Turn one model output into the list of messages to actually send.
+
+    Returns [(body, [button titles]), ...]. The model separates messages with
+    [[NEXT]] and may end one with [[BUTTONS: a | b | c]]."""
+    if not text:
+        return []
+    out = []
+    for chunk in text.split(BURST_TOKEN):
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        btns = []
+        m = BUTTONS_RE.search(chunk)
+        if m:
+            btns = [b.strip() for b in m.group(1).split("|") if b.strip()][:3]
+            chunk = BUTTONS_RE.sub("", chunk).strip()
+        if chunk:
+            out.append((chunk, btns))
+    return out[:MAX_BURST_PARTS]
+
+
 def send_text(to_wa_id, body):
     body = (body or "").strip()
     if not body:
@@ -2408,13 +2540,30 @@ def _reply_async(wa_id, trigger_wamid=None, answer_opener=False):
                            note="Settled thread (order already reached) — existing-order question, agent silent")
             return
         reply, wants_handoff = generate_reply(wa_id, answer_opener=answer_opener)
-        reply, leaked = _sanitize_reply(reply)
-        if leaked:
-            # Model misbehaved. Say nothing, give it to MK.
-            wants_handoff = True
-        if reply:
-            send_text(wa_id, reply)
+        # A burst is several messages, so the word cap has to apply per message,
+        # not to the whole thing — otherwise a legitimate 3-part demo trips a
+        # guard built for single one-liners.
+        parts = _parse_burst(reply)
+        clean = []
+        for body, btns in parts:
+            body, leaked = _sanitize_reply(body)
+            if leaked:
+                # Model misbehaved somewhere in the burst. Send nothing at all
+                # rather than half a demo, and give it to a human.
+                clean = []
+                wants_handoff = True
+                break
+            if body:
+                clean.append((body, btns))
+        for i, (body, btns) in enumerate(clean):
+            if i:
+                time.sleep(random.uniform(*BURST_DELAY))
+            if btns:
+                send_buttons(wa_id, body, btns)
+            else:
+                send_text(wa_id, body)
             _last_reply_at[wa_id] = time.time()
+        reply = " ".join(b for b, _ in clean)
         if wants_handoff:
             set_contact_status(wa_id, "handed_off")
             # A confirmed order (a location on file + a "Confirmed"/"Done" reply) is
