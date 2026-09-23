@@ -72,6 +72,13 @@ LUMENAI_TEST_BUSINESS_NUMBER = "".join(
 # Only these wa_ids may run the in-chat test commands. Without an allow-list a real
 # customer who happens to type "reset" would wipe their own order history, which is a
 # far worse outcome than a slightly awkward test flow.
+# This profile answers EVERYONE. FGC gated replies on ad-started threads because a
+# human owned that app inbox and any non-ad thread was hers to handle. Here the
+# number is ours: it goes in ads, on the website's "message it yourself" button,
+# and to anyone Kendall hands it to. A demo number that sits silent because the
+# sender did not arrive via an ad is worse than having no demo number at all.
+ANSWER_ALL = os.environ.get("LUMENAI_ANSWER_ALL", "1") not in ("0", "false", "False", "")
+
 LUMENAI_TESTERS = {"".join(c for c in n if c.isdigit())
                for n in os.environ.get("LUMENAI_TESTERS", "").split(",") if n.strip()}
 
@@ -2091,12 +2098,16 @@ def _handle_inbound_message(msg, profiles, via_phone_id=None):
         return
 
     if not contact.get("agent_ok"):
-        # Old lead replying to an ancient thread, or a conversation that did not
-        # start from one of our ads. No reply, no alert — MK owns it in the app.
-        print(f"[lumen-ai] inbound {wa_id}: {body[:60]!r} — not an ad-started thread, agent silent")
-        _admin_monitor(wa_id, body, None,
-                       note="Old/non-ad thread — agent deliberately silent, MK owns it")
-        return
+        if ANSWER_ALL or wa_id in LUMENAI_TESTERS:
+            _mark_agent_eligible(wa_id, "answer-all" if ANSWER_ALL else "tester")
+            contact = get_contact(wa_id) or contact
+        else:
+            # Only reachable with LUMENAI_ANSWER_ALL=0: a thread that did not start
+            # from one of our ads, deliberately left for a human.
+            print(f"[lumen-ai] inbound {wa_id}: {body[:60]!r} — not an ad-started thread, agent silent")
+            _admin_monitor(wa_id, body, None,
+                           note="Non-ad thread — agent silent (LUMENAI_ANSWER_ALL=0)")
+            return
 
     if _is_snoozed(contact) or status == "handed_off":
         # MK owns this thread (she replied from the app recently, or the agent
@@ -2225,7 +2236,9 @@ def _schedule_greeting(wa_id):
     if GREETING_MODE == "off":
         return False
     contact = get_contact(wa_id) or {}
-    if contact.get("greeted") or not contact.get("agent_ok"):
+    if contact.get("greeted"):
+        return False
+    if not contact.get("agent_ok") and not (ANSWER_ALL or wa_id in LUMENAI_TESTERS):
         return False
     if contact.get("status") in ("handed_off", "opted_out"):
         return False
@@ -2269,7 +2282,7 @@ def _greet_async(wa_id):
         if _is_snoozed(contact) or contact.get("status") in ("handed_off", "opted_out"):
             print(f"[lumen-ai] greeting {wa_id}: MK already in this thread, not greeting")
             return
-        if _mk_has_spoken(wa_id):
+        if _mk_has_spoken(wa_id) and not (ANSWER_ALL or wa_id in LUMENAI_TESTERS):
             # An older thread MK has already handled from her phone. A "$12, would
             # you like to order?" opener there would be nonsense. She keeps it.
             print(f"[lumen-ai] greeting {wa_id}: MK has spoken in this thread before, not greeting")
