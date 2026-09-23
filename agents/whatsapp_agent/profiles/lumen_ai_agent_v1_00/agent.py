@@ -160,8 +160,13 @@ except Exception:
     GREETING_WAIT = 30.0
 GREETING_TEXT = os.environ.get(
     "LUMENAI_GREETING_TEXT",
-    "Hey, you are actually talking to it right now.\n\n"
-    "This is the agent we set up for businesses here. What do you do?"
+    # This is the single most important message we send and it has to land as a
+    # product, not a side project. "The agent we set up" discredited it before it
+    # said anything: it named a hobby. Naming it, stating the claim, then turning
+    # straight to them does the opposite in the same three seconds.
+    "Hey. You are talking to Lumen right now, not a person.\n\n"
+    "This is what your customers would get, any hour, in your voice. "
+    "What is your business?"
 ).replace("\\n", "\n").strip()
 
 MAX_HISTORY = 40

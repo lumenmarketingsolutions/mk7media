@@ -93,11 +93,25 @@ def book(start, attendee_email, attendee_name=None, phone=None, minutes=None):
     minutes = minutes or DURATION_MIN
     end = start + _dt.timedelta(minutes=minutes)
     who = attendee_name or attendee_email.split("@")[0]
-    desc = ["Booked by the Lumen WhatsApp agent."]
+    # The prospect reads this in the invite, so it is the agenda, not a machine
+    # signature. "Booked by the agent" as a footer reads like a bot left a note;
+    # the same fact placed last, as the proof, reads like the product working.
+    desc = [
+        "15 minutes.",
+        "",
+        "We look at how your messages get handled today, and what changes when "
+        "nobody has to wait for a reply.",
+        "",
+        "The video link is in this invite. If the time stops working, just reply "
+        "to this email and we will move it.",
+        "",
+        "Booked over WhatsApp in under two minutes, by the thing we are going to "
+        "talk about.",
+    ]
     if phone:
-        desc.append(f"WhatsApp: +{phone}")
+        desc += ["", f"WhatsApp: +{phone}"]
     body = {
-        "summary": f"Lumen intro call - {who}",
+        "summary": f"Lumen x {who}",
         "description": "\n".join(desc),
         "start": {"dateTime": start.isoformat(), "timeZone": TZ},
         "end": {"dateTime": end.isoformat(), "timeZone": TZ},
