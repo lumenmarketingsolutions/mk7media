@@ -19,6 +19,10 @@ CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 REFRESH_TOKEN = os.environ.get("GOOGLE_REFRESH_TOKEN", "")
 DURATION_MIN = int(os.environ.get("LUMENAI_CALL_MINUTES", "15"))
+# Beirut working hours. Without these the agent happily books 3am because the
+# prospect said "3" and nobody asked which 3.
+WORK_START = int(os.environ.get("LUMENAI_WORK_START", "9"))
+WORK_END = int(os.environ.get("LUMENAI_WORK_END", "19"))
 
 try:
     from zoneinfo import ZoneInfo
@@ -79,6 +83,50 @@ def is_free(start, minutes=None):
         return True
 
 
+def in_hours(start):
+    """Inside Kendall's working day, Beirut time."""
+    return WORK_START <= start.hour < WORK_END
+
+
+def busy_windows(day_from, days=7):
+    """All busy blocks over the next N days, so we can propose real openings."""
+    try:
+        svc = _service()
+        end = day_from + _dt.timedelta(days=days)
+        r = svc.freebusy().query(body={
+            "timeMin": day_from.isoformat(), "timeMax": end.isoformat(),
+            "timeZone": TZ, "items": [{"id": CAL_ID}]}).execute()
+        out = []
+        for b in r.get("calendars", {}).get(CAL_ID, {}).get("busy", []):
+            out.append((_dt.datetime.fromisoformat(b["start"]),
+                        _dt.datetime.fromisoformat(b["end"])))
+        return out
+    except Exception as e:
+        print(f"[lumen-ai][gcal] busy_windows failed ({e})")
+        return []
+
+
+def next_free_slots(after=None, want=2, minutes=None):
+    """The next few genuinely open slots, on the hour, inside working hours.
+
+    Used when a prospect asks for a time that is already taken. Offering two real
+    alternatives keeps the booking alive in the same breath as the refusal --
+    "that one is gone" with nothing after it is where a conversation dies."""
+    minutes = minutes or DURATION_MIN
+    start = (after or now_beirut()) + _dt.timedelta(hours=1)
+    start = start.replace(minute=0, second=0, microsecond=0)
+    busy = busy_windows(start, days=7)
+    out, cur, guard = [], start, 0
+    while len(out) < want and guard < 24 * 7:
+        guard += 1
+        if in_hours(cur):
+            end = cur + _dt.timedelta(minutes=minutes)
+            if not any(bs < end and cur < be for bs, be in busy):
+                out.append(cur)
+        cur += _dt.timedelta(hours=1)
+    return out
+
+
 def book(start, attendee_email, attendee_name=None, phone=None, minutes=None):
     """Create the event and let Google email the invite.
 
@@ -116,7 +164,13 @@ def book(start, attendee_email, attendee_name=None, phone=None, minutes=None):
         "start": {"dateTime": start.isoformat(), "timeZone": TZ},
         "end": {"dateTime": end.isoformat(), "timeZone": TZ},
         "attendees": [{"email": attendee_email}],
-        "reminders": {"useDefault": True},
+        # Explicit, not useDefault. Google's reminder is the BACKSTOP for anyone
+        # the WhatsApp reminder cannot legally reach (outside the 24h window), so
+        # it must not depend on whatever default that account happens to carry.
+        "reminders": {"useDefault": False, "overrides": [
+            {"method": "email", "minutes": 24 * 60},
+            {"method": "popup", "minutes": 30},
+        ]},
         "conferenceData": {"createRequest": {
             "requestId": f"lumen-{int(start.timestamp())}-{abs(hash(attendee_email)) % 10**6}",
             "conferenceSolutionKey": {"type": "hangoutsMeet"}}},

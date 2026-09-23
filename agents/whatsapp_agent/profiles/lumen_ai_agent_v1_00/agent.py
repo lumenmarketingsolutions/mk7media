@@ -45,6 +45,7 @@ import hashlib
 import sqlite3
 import threading
 
+import datetime as _dt
 import requests
 
 from . import gcal
@@ -670,7 +671,11 @@ def init_db():
                      ("via_phone_id", "TEXT"),
                      # Recovery sweep: one re-engagement message per contact, inside
                      # the 24h window. reengaged_at is the atomic dedup claim.
-                     ("reengaged_at", "TIMESTAMP"), ("reengage_kind", "TEXT")):
+                     ("reengaged_at", "TIMESTAMP"), ("reengage_kind", "TEXT"),
+                     # The booked call. Stored so the reminder sweep knows who to
+                     # remind and when, and so a thread can never be booked twice.
+                     ("booked_start", "TIMESTAMP"), ("booked_email", "TEXT"),
+                     ("booked_event_id", "TEXT"), ("reminded_at", "TIMESTAMP")):
         try:
             conn.execute(f"ALTER TABLE wa_contacts ADD COLUMN {col} {ddl}")
         except Exception:
@@ -1838,6 +1843,132 @@ def _claim_sweep():
     return cur.rowcount == 1
 
 
+# ── Call reminders ───────────────────────────────────────────────────────────
+# WhatsApp only allows a free-form message within 24h of the customer's LAST
+# message. That is the whole constraint here. Someone who books for tomorrow
+# afternoon is usually still inside the window an hour before the call, so the
+# reminder is free and lands in the thread they already trust. Someone who books
+# a week out is not, and no amount of wanting it changes that: outside the window
+# Meta requires an APPROVED TEMPLATE, which we do not have yet.
+#
+# So this sends when it legitimately can, and says so in the logs when it cannot,
+# rather than firing into a 24h error and looking like it worked. Google's own
+# calendar reminder is the backstop for the ones we cannot reach.
+REMIND_ON = os.environ.get("LUMENAI_REMIND", "1") not in ("0", "false", "False", "")
+REMIND_MIN_BEFORE = int(os.environ.get("LUMENAI_REMIND_MIN_BEFORE", "60"))
+REMIND_INTERVAL = int(os.environ.get("LUMENAI_REMIND_INTERVAL", "600"))  # 10 min
+
+REMIND_MSG = {
+    "en": "Quick reminder, your call with Kendall is at {t} today. The video link is in your email invite.",
+    "ar": "تذكير سريع، مكالمتك مع Kendall اليوم الساعة {t}. لينك الفيديو بالإيميل.",
+}
+
+
+def _remind_lang(wa_id):
+    try:
+        conn = _conn()
+        row = conn.execute("SELECT body FROM wa_messages WHERE wa_id=? AND direction='in' "
+                           "AND body IS NOT NULL ORDER BY id DESC LIMIT 1", (wa_id,)).fetchone()
+        conn.close()
+        return "ar" if row and _ARABIC_RE.search(row["body"] or "") else "en"
+    except Exception:
+        return "en"
+
+
+def reminder_sweep():
+    """One reminder per booked call, ~REMIND_MIN_BEFORE minutes ahead."""
+    now = gcal.now_beirut()
+    sent = skipped = 0
+    try:
+        conn = _conn()
+        rows = conn.execute(
+            "SELECT wa_id, booked_start, last_inbound_at FROM wa_contacts "
+            "WHERE booked_start IS NOT NULL AND reminded_at IS NULL").fetchall()
+        conn.close()
+    except Exception as e:
+        print(f"[lumen-ai-remind] could not read bookings: {e}")
+        return 0, 0
+    for r in rows:
+        try:
+            start = _dt.datetime.fromisoformat(r["booked_start"])
+        except Exception:
+            continue
+        mins = (start - now).total_seconds() / 60.0
+        if mins <= 0 or mins > REMIND_MIN_BEFORE:
+            continue
+        wa_id = r["wa_id"]
+        # Atomic claim first: two workers must never both remind.
+        try:
+            conn = _conn()
+            claimed = conn.execute(
+                "UPDATE wa_contacts SET reminded_at=? WHERE wa_id=? AND reminded_at IS NULL",
+                (now.isoformat(), wa_id)).rowcount
+            conn.commit(); conn.close()
+        except Exception:
+            continue
+        if not claimed:
+            continue
+        if not _within_24h_window(r["last_inbound_at"]):
+            skipped += 1
+            print(f"[lumen-ai-remind] {wa_id}: call at {start:%H:%M} but the 24h window is "
+                  f"CLOSED — not sent. Needs an approved template; Google's calendar "
+                  f"reminder is the only one they get.")
+            continue
+        lang = _remind_lang(wa_id)
+        send_text(wa_id, REMIND_MSG[lang].format(t=f"{start:%H:%M}"))
+        sent += 1
+        print(f"[lumen-ai-remind] {wa_id}: reminded for {start:%H:%M} ({lang})")
+    return sent, skipped
+
+
+def _within_24h_window(last_inbound_at):
+    """True if they messaged us in the last 24h, so a free-form send is allowed.
+
+    Uses the contact's own last_inbound_at rather than re-querying messages: it
+    is the same fact, already maintained on every inbound, and one source beats
+    two that can disagree."""
+    if not last_inbound_at:
+        return False
+    try:
+        last = _dt.datetime.fromisoformat(str(last_inbound_at).replace("Z", "+00:00"))
+    except Exception as e:
+        print(f"[lumen-ai-remind] unreadable last_inbound_at {last_inbound_at!r}: {e}")
+        return False
+    if last.tzinfo is None:
+        last = last.replace(tzinfo=_dt.timezone.utc)
+    # 23.5h not 24h: a message that squeaks in at 23h59m is a race with Meta's
+    # own clock, and losing it costs a rejected send instead of a reminder.
+    return (_dt.datetime.now(_dt.timezone.utc) - last).total_seconds() < 23.5 * 3600
+
+
+_remind_started = False
+_remind_guard = threading.Lock()
+
+
+def ensure_reminder_loop():
+    global _remind_started
+    if _remind_started or not REMIND_ON:
+        return
+    with _remind_guard:
+        if _remind_started:
+            return
+        _remind_started = True
+
+    def _loop():
+        import time as _t
+        while True:
+            try:
+                s, k = reminder_sweep()
+                if s or k:
+                    print(f"[lumen-ai-remind] sent {s}, blocked by 24h window {k}")
+            except Exception as e:
+                print(f"[lumen-ai-remind] sweep error: {e}")
+            _t.sleep(REMIND_INTERVAL)
+
+    threading.Thread(target=_loop, daemon=True).start()
+    print("[lumen-ai-remind] reminder loop started")
+
+
 _sweeper_started = False
 _sweeper_guard = threading.Lock()
 
@@ -2118,6 +2249,7 @@ def is_lumen_ai_event(value):
 def handle_webhook(payload):
     """Handle a webhook payload (only FGC-number changes; app.py routes us)."""
     ensure_sweeper()  # lazy-start the recovery loop once per worker (no scheduler exists)
+    ensure_reminder_loop()
     for entry in payload.get("entry", []) or []:
         for change in entry.get("changes", []) or []:
             value = change.get("value", {}) or {}
@@ -2600,6 +2732,32 @@ def _reply_async(wa_id, trigger_wamid=None, answer_opener=False):
                 print(f"[lumen-ai] booking token unparseable: {book_when!r}")
             elif start <= gcal.now_beirut():
                 print(f"[lumen-ai] booking refused, time is in the past: {book_when}")
+            elif contact.get("booked_start"):
+                # Already has a call. A second booking token on the same thread is
+                # the model re-confirming, not a new meeting.
+                print(f"[lumen-ai] booking skipped, {wa_id} already booked "
+                      f"{contact.get('booked_start')}")
+            elif not gcal.is_free(start):
+                # THE SLOT IS TAKEN. Do not book over it, and do not just refuse:
+                # "that one is gone" with nothing after it is where the booking
+                # dies. Regenerate the reply holding two real openings.
+                alts = gcal.next_free_slots(after=start, want=2)
+                alt_txt = " or ".join(f"{a:%A %d %B at %H:%M}" for a in alts) or "another time"
+                print(f"[lumen-ai] {wa_id}: {book_when} is BUSY — offering {alt_txt}")
+                reply, wants_handoff = generate_reply(
+                    wa_id, answer_opener=answer_opener,
+                    extra_note=(f"IMPORTANT: {start:%A %d %B at %H:%M} is NOT available, it is "
+                                f"already booked. Do NOT confirm it and do NOT use a booking "
+                                f"token for it. Tell them that slot just went, in one line, and "
+                                f"offer exactly these two instead: {alt_txt}. All Beirut time."))
+                book_when, book_email, reply = _extract_booking(reply)
+                if book_when and book_email:
+                    s2 = gcal.parse_when(book_when)
+                    if s2 and s2 > gcal.now_beirut() and gcal.is_free(s2):
+                        booked_ev, _ = gcal.book(
+                            s2, book_email,
+                            attendee_name=(contact.get("profile_name") or None), phone=wa_id)
+                        start, book_email = s2, book_email
             else:
                 booked_ev, berr = gcal.book(
                     start, book_email,
@@ -2611,6 +2769,15 @@ def _reply_async(wa_id, trigger_wamid=None, answer_opener=False):
                     print(f"[lumen-ai] booking failed ({berr}) — handing to a human")
                     reply = ""
                     wants_handoff = True
+        if booked_ev:
+            try:
+                conn = _conn()
+                conn.execute("UPDATE wa_contacts SET booked_start=?, booked_email=?, "
+                             "booked_event_id=? WHERE wa_id=?",
+                             (start.isoformat(), book_email, booked_ev.get("id"), wa_id))
+                conn.commit(); conn.close()
+            except Exception as e:
+                print(f"[lumen-ai] could not store booking for {wa_id}: {e}")
         parts = _parse_burst(reply)
         clean = []
         for body, btns in parts:
@@ -2662,7 +2829,7 @@ def _maybe_log_agent_order(wa_id, reply):
     return
 
 
-def generate_reply(wa_id, answer_opener=False):
+def generate_reply(wa_id, answer_opener=False, extra_note=None):
     if not ANTHROPIC_API_KEY:
         print("[lumen-ai] ANTHROPIC_API_KEY not set — cannot generate replies")
         return None, False
@@ -2712,6 +2879,8 @@ def generate_reply(wa_id, answer_opener=False):
                     f"they name against this, and never offer a time in the past.")
     except Exception:
         pass
+    if extra_note:
+        bits.append(extra_note)
     context_line = "(" + " ".join(bits) + ")"
 
     if messages and messages[0]["role"] == "assistant":
