@@ -30,14 +30,14 @@ import time
 import urllib.error
 import urllib.request
 
-GRAPH_VERSION = os.environ.get("FGC_GRAPH_VERSION", "v21.0")
+GRAPH_VERSION = os.environ.get("LUMENAI_GRAPH_VERSION", "v21.0")
 
-DATASET_ID = os.environ.get("FGC_CAPI_DATASET_ID", "")
-ACCESS_TOKEN = os.environ.get("FGC_CAPI_TOKEN", "")
-TEST_EVENT_CODE = os.environ.get("FGC_CAPI_TEST_EVENT_CODE", "")
+DATASET_ID = os.environ.get("LUMENAI_CAPI_DATASET_ID", "1552802522839666")
+ACCESS_TOKEN = os.environ.get("LUMENAI_CAPI_TOKEN", "") or os.environ.get("WHATSAPP_ACCESS_TOKEN", "")
+TEST_EVENT_CODE = os.environ.get("LUMENAI_CAPI_TEST_EVENT_CODE", "")
 
 # Default ON. An operator has to set this to "0" deliberately.
-DRY_RUN = os.environ.get("FGC_CAPI_DRY_RUN", "1") != "0"
+DRY_RUN = os.environ.get("LUMENAI_CAPI_DRY_RUN", "1") != "0"
 
 # Meta rejects the ENTIRE request if any event_time is more than 7 days old, so a
 # single stale event would take a whole batch down with it. We check per event and
@@ -48,16 +48,16 @@ MAX_EVENT_AGE_S = 7 * 24 * 3600 - 3600      # an hour of headroom for clock skew
 # gave an address, heard the delivery fee, said "la2 shukran", and re-committed two
 # turns later — inside five minutes. Firing on the address would have reported a sale
 # that did not exist yet; firing on the walk-away would have lost one that did.
-SETTLE_SECONDS = int(os.environ.get("FGC_CAPI_SETTLE_SECONDS", str(30 * 60)))
+SETTLE_SECONDS = int(os.environ.get("LUMENAI_CAPI_SETTLE_SECONDS", str(30 * 60)))
 
-CURRENCY = os.environ.get("FGC_CAPI_CURRENCY", "USD")
+CURRENCY = os.environ.get("LUMENAI_CAPI_CURRENCY", "USD")
 
 # Purchase value per product. A Purchase with no value is close to useless to Meta's
 # optimiser, and guessing one is worse than a sensible default, so this is explicit
 # and overridable per deployment.
-DEFAULT_VALUE = float(os.environ.get("FGC_CAPI_DEFAULT_VALUE", "12"))
+DEFAULT_VALUE = float(os.environ.get("LUMENAI_CAPI_DEFAULT_VALUE", "250"))
 PRODUCT_VALUES = {}
-for _pair in os.environ.get("FGC_CAPI_PRODUCT_VALUES", "").split(","):
+for _pair in os.environ.get("LUMENAI_CAPI_PRODUCT_VALUES", "").split(","):
     if ":" in _pair:
         _k, _v = _pair.rsplit(":", 1)
         try:
