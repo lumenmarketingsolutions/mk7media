@@ -1604,9 +1604,10 @@ def api_lumen_ai_events():
         out["recent"] = [
             {"wa": (r["wa_id"] or "")[-4:], "event": r["event_name"],
              "status": r["status"], "state": r["state"], "value": r["value"],
-             "at": r["created_at"], "detail": (r["detail"] or "")[:120]}
+             "fire_after": r["fire_after"], "fired_at": r["fired_at"],
+             "detail": (r["detail"] or "")[:120]}
             for r in conn.execute(
-                "SELECT wa_id, event_name, status, state, value, created_at, detail "
+                "SELECT wa_id, event_name, status, state, value, fire_after, fired_at, detail "
                 "FROM wa_capi_events ORDER BY id DESC LIMIT 40")]
         out["funnel"] = {
             "contacts": conn.execute("SELECT COUNT(*) n FROM wa_contacts").fetchone()["n"],
