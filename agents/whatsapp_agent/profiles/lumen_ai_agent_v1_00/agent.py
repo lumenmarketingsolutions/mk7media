@@ -2418,6 +2418,7 @@ def _handle_inbound_message(msg, profiles, via_phone_id=None):
         try:
             from . import intent, capi_bm
             intent.on_conversation_update(wa_id)
+            _maybe_fire_lead(wa_id)
             capi_bm.sweep_pending()
         except Exception as e:
             print(f"[lumen-ai-intent] pass failed for {wa_id}: {e}")
@@ -2818,6 +2819,52 @@ def _reply_async(wa_id, trigger_wamid=None, answer_opener=False):
 
 AGENT_ORDERS_ON = os.environ.get("LUMENAI_AGENT_ORDERS", "0") not in ("0", "false", "False", "")
 _CONFIRM_WORDS = ("confirm", "done", "تم", "تمام", "confirmed")
+
+
+def _maybe_fire_lead(wa_id):
+    """Fire LeadSubmitted the first time someone genuinely replies to our greeting.
+
+    Why this event and not a stricter one: Meta needs roughly 50 conversions a week
+    per ad set to leave the learning phase. Booked calls will not reach that for a
+    long time, so optimising on them would mean the ad set never stabilises and we
+    would conclude the campaign failed when Meta simply never got enough signal.
+
+    Why not "any inbound": a third of first messages are Meta's canned ad prefill,
+    which is a button press carrying no intent. Counting those would train the ads
+    to find people who tap buttons, which is exactly the problem we sell against.
+
+    So the bar is: they typed something themselves, after our greeting went out.
+    Not the prefill, not a reaction, not an unreadable media placeholder. That is
+    a real human answering a real question, and there are enough of them to learn
+    from."""
+    from . import capi_bm
+    conn = _conn()
+    try:
+        rows = conn.execute(
+            "SELECT body, msg_type FROM wa_messages WHERE wa_id=? AND direction='in' "
+            "ORDER BY id", (wa_id,)).fetchall()
+    finally:
+        conn.close()
+    genuine = 0
+    for r in rows:
+        b = (r["body"] or "").strip()
+        if r["msg_type"] in ("reaction", "system", "unsupported", "ephemeral"):
+            continue
+        if b.startswith("[") and b.endswith("]"):      # media placeholder
+            continue
+        if any(mk in b.lower() for mk in AD_PREFILL_MARKERS):
+            continue
+        if b in AD_PREFILL_SENTENCES:
+            continue
+        if len(b) < 2:                                  # a lone emoji or punctuation
+            continue
+        genuine += 1
+    if genuine < 1:
+        return
+    res = capi_bm.queue(wa_id, "LeadSubmitted", state="ENQUIRY",
+                        evidence=f"{genuine} genuine inbound message(s) after greeting")
+    if res and not str(res).startswith(("skipped", "already")):
+        print(f"[lumen-ai-capi] LeadSubmitted queued for {wa_id} ({genuine} real replies)")
 
 
 def _maybe_log_agent_order(wa_id, reply):

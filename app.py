@@ -1583,6 +1583,44 @@ def admin_whatsapp_reset():
     return redirect(url_for("admin_whatsapp"))
 
 
+@app.route("/api/lumen-ai/events")
+def api_lumen_ai_events():
+    """What the Lumen Ai agent has fired, queued and skipped.
+
+    Exists because "is the pixel working" is otherwise unanswerable without SSH.
+    Shape only -- counts, states, event names, timestamps. Never a message body:
+    this is the endpoint most likely to end up on a screen in a meeting."""
+    import hmac as _hmac
+    want = os.environ.get("WA_STATS_KEY", "")
+    got = request.headers.get("X-Stats-Key") or request.args.get("key") or ""
+    if not want or not _hmac.compare_digest(str(want), str(got)):
+        return jsonify({"error": "not found"}), 404
+    from agents.whatsapp_agent.profiles.lumen_ai_agent_v1_00 import capi_bm, agent as la
+    import sqlite3 as _sq
+    out = {"config": capi_bm.status()}
+    try:
+        conn = _sq.connect(la.DB_PATH)
+        conn.row_factory = _sq.Row
+        out["recent"] = [
+            {"wa": (r["wa_id"] or "")[-4:], "event": r["event_name"],
+             "status": r["status"], "state": r["state"], "value": r["value"],
+             "at": r["created_at"], "detail": (r["detail"] or "")[:120]}
+            for r in conn.execute(
+                "SELECT wa_id, event_name, status, state, value, created_at, detail "
+                "FROM wa_capi_events ORDER BY id DESC LIMIT 40")]
+        out["funnel"] = {
+            "contacts": conn.execute("SELECT COUNT(*) n FROM wa_contacts").fetchone()["n"],
+            "replied": conn.execute(
+                "SELECT COUNT(DISTINCT wa_id) n FROM wa_messages WHERE direction='in'").fetchone()["n"],
+            "booked": conn.execute(
+                "SELECT COUNT(*) n FROM wa_contacts WHERE booked_start IS NOT NULL").fetchone()["n"],
+        }
+        conn.close()
+    except Exception as e:
+        out["error"] = str(e)[:200]
+    return jsonify(out)
+
+
 @app.route("/api/health")
 def health():
     return jsonify({"status": "ok"})
