@@ -1400,6 +1400,74 @@ def fgc_orders_health():
     return jsonify(fgc_orders.health())
 
 
+@app.route("/mk-coexistence")
+@admin_required
+def mk_coexistence_launcher():
+    """Coexistence launcher for Marykate's +961 79 018 107, with the signup config and
+    the Graph API version selectable. The Meta-hosted link failed twice at the history
+    step (#4563039, on the v26 dialog), so this lets us retry on an older version / other
+    config and see every event Meta posts back, including the error detail."""
+    return """<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>MK WhatsApp Coexistence</title>
+<style>
+  body { font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif; max-width: 760px;
+         margin: 48px auto; padding: 0 24px; color: #1a1a1a; line-height: 1.6; }
+  h1 { font-size: 22px; }
+  label { display: block; font-weight: 600; margin: 14px 0 4px; }
+  select { font-size: 15px; padding: 8px; border-radius: 6px; width: 100%; }
+  button { margin-top: 20px; background: #1877f2; color: #fff; border: none; border-radius: 8px;
+           font-size: 16px; font-weight: 600; padding: 14px 28px; cursor: pointer; }
+  #log { margin-top: 24px; background: #f5f5f5; border-radius: 8px; padding: 16px;
+         font-family: Menlo, monospace; font-size: 12px; white-space: pre-wrap; word-break: break-all; }
+  .warn { background: #fff6e0; border-left: 4px solid #e0a800; padding: 10px 14px;
+          border-radius: 0 8px 8px 0; font-size: 14px; margin: 16px 0; }
+</style></head><body>
+<h1>Connect +961 79 018 107 (Marykate) to Cloud API</h1>
+<div class="warn">In the Meta window: choose the <strong>Mk ghazarian</strong> business, pick
+<strong>connect your existing WhatsApp Business app</strong>, choose <strong>+961 79 018 107</strong>
+from the list, MK scans the QR in her WhatsApp Business app. Chat history sharing: <strong>NO</strong>.
+<br>Try attempt 1 first. If it fails, reload the page and try the next one.</div>
+<label>Attempt</label>
+<select id="preset">
+  <option value="3590341451114523|v21.0">1. Same config as FGC, API v21.0</option>
+  <option value="3590341451114523|v23.0">2. Same config as FGC, API v23.0</option>
+  <option value="1044616451645063|v21.0">3. Config 1044616451645063, API v21.0</option>
+  <option value="2402975783516746|v21.0">4. Config 2402975783516746 (the April one), API v21.0</option>
+  <option value="3590341451114523|v25.0">5. Same config as FGC, API v25.0</option>
+</select>
+<button onclick="launch()">Launch Meta signup flow</button>
+<div id="log">Ready. Copy everything that appears here to Jarvis when done.</div>
+<script>
+  const APP_ID = "2107067100091646";
+  let CONFIG_ID = null, inited = false;
+  function log(m){ document.getElementById("log").textContent += "\\n" + m; console.log("[mk]", m); }
+  window.addEventListener("message", (event) => {
+    if (!String(event.origin).endsWith("facebook.com")) return;
+    try {
+      const d = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+      if (d && d.type === "WA_EMBEDDED_SIGNUP") log("EVENT: " + JSON.stringify(d, null, 2));
+    } catch (e) {}
+  });
+  function launch() {
+    const [cfg, ver] = document.getElementById("preset").value.split("|");
+    if (typeof FB === "undefined") { log("SDK not loaded yet, wait 2s and click again."); return; }
+    if (inited && ver !== window._ver) { log("Reload the page to switch API version."); return; }
+    if (!inited) { FB.init({ appId: APP_ID, autoLogAppEvents: true, xfbml: true, version: ver });
+                   inited = true; window._ver = ver; }
+    CONFIG_ID = cfg;
+    log("Launching: config " + cfg + ", API " + ver);
+    FB.login((r) => { log("Login response: " + JSON.stringify(r, null, 2)); }, {
+      config_id: CONFIG_ID,
+      response_type: "code",
+      override_default_response_type: true,
+      extras: { setup: {}, featureType: "whatsapp_business_app_onboarding", sessionInfoVersion: "3" },
+    });
+  }
+</script>
+<script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
+</body></html>"""
+
+
 @app.route("/fgc-coexistence")
 @admin_required
 def fgc_coexistence_launcher():
