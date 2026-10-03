@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-15",
+ "generated": "2026-09-15, extended 2026-10-03 (FGC + FGC V2 ads pointing at 96179018107)",
  "account": "act_1337494034720023",
  "products": [
   "Teeth Whitening Strips",
@@ -7,7 +7,9 @@
   "Migraine Relief Cap",
   "Pimple Patches",
   "Whitening Toothpaste",
-  "Posture Corrector"
+  "Posture Corrector",
+  "LED Lights",
+  "Toothbrush Sterilizer"
  ],
  "ads": {
   "120248551380560353": {
@@ -2473,6 +2475,383 @@
    "campaign_name": "Feels Good Club | Purchases | V1",
    "video_id": "1442430407939286",
    "status": "CAMPAIGN_PAUSED"
+  },
+  "120248571070870353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Aug 20 Purple",
+   "adset_id": "120248571066470353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "account": "act_1337494034720023",
+   "video_id": "1682118420012766",
+   "status": "ACTIVE",
+   "verified": "2026-10-03"
+  },
+  "120248571069850353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Whitening 5",
+   "adset_id": "120248571066470353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "account": "act_1337494034720023",
+   "video_id": "1614912896764903",
+   "status": "ACTIVE",
+   "verified": "2026-10-03"
+  },
+  "120250614612910239": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGCv2 | Whitening 5 (top seller)",
+   "adset_id": "120250614609980239",
+   "adset_name": "FGCv2 | Whitening TOP | LB | 79018107",
+   "campaign_id": "120250614609030239",
+   "campaign_name": "FGCv2 | Whitening Strips | TOP SELLER | LB",
+   "account": "act_27966118969737517",
+   "video_id": "1685971692974441",
+   "status": "ACTIVE",
+   "verified": "2026-10-03"
+  },
+  "120250925557680239": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGCv2 | Whitening | Aug 20 Purple",
+   "adset_id": "120250614609980239",
+   "adset_name": "FGCv2 | Whitening TOP | LB | 79018107",
+   "campaign_id": "120250614609030239",
+   "campaign_name": "FGCv2 | Whitening Strips | TOP SELLER | LB",
+   "account": "act_27966118969737517",
+   "video_id": "3008912189441540",
+   "status": "ACTIVE",
+   "verified": "2026-10-03"
+  },
+  "120248571073330353": {
+   "product": "Nasal Strips",
+   "how": "frames",
+   "ad_name": "FGC | Nose Strips | Aug 31 B",
+   "adset_id": "120248571072440353",
+   "adset_name": "FGC | Nose Strips | Leads | LB | 79018107",
+   "campaign_id": "120248345125330353",
+   "campaign_name": "FGC | Nose Strips | Leads | WhatsApp | LB",
+   "account": "act_1337494034720023",
+   "video_id": "1122262393796189",
+   "status": "CAMPAIGN_PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120248711213450353": {
+   "product": "Nasal Strips",
+   "how": "frames",
+   "ad_name": "FGC | Nose Strips | Sep 23 Sleep Like A Baby",
+   "adset_id": "120248571072440353",
+   "adset_name": "FGC | Nose Strips | Leads | LB | 79018107",
+   "campaign_id": "120248345125330353",
+   "campaign_name": "FGC | Nose Strips | Leads | WhatsApp | LB",
+   "account": "act_1337494034720023",
+   "video_id": "2052597615393845",
+   "status": "CAMPAIGN_PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120248614561120353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Aug 1 - 12:34 | New #",
+   "adset_id": "120248614558470353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 79018107",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "account": "act_1337494034720023",
+   "video_id": "2029833977509809",
+   "status": "CAMPAIGN_PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120248614559920353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 1 | New #",
+   "adset_id": "120248614558470353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 79018107",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "account": "act_1337494034720023",
+   "video_id": "4296114743973933",
+   "status": "CAMPAIGN_PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120248614562260353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 2 | New #",
+   "adset_id": "120248614558470353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 79018107",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "account": "act_1337494034720023",
+   "video_id": "1515441313936703",
+   "status": "CAMPAIGN_PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120248614566070353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 5 | New #",
+   "adset_id": "120248614558470353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 79018107",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "account": "act_1337494034720023",
+   "video_id": "1104694788731759",
+   "status": "CAMPAIGN_PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120248614567770353": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGC | WhatsApp | Post 7 | New #",
+   "adset_id": "120248614558470353",
+   "adset_name": "FGC | WhatsApp | Lebanon | 79018107",
+   "campaign_id": "120247616894910353",
+   "campaign_name": "FGC | WhatsApp | Lebanon | V1",
+   "account": "act_1337494034720023",
+   "video_id": "1611733630392259",
+   "status": "CAMPAIGN_PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120248571068070353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Aug 20 IGDM (proven)",
+   "adset_id": "120248571066470353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "account": "act_1337494034720023",
+   "video_id": "1803641614311260",
+   "status": "PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120248571063630353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Sep 13 A",
+   "adset_id": "120248571062170353",
+   "adset_name": "FGC | Whitening TEST | LB | 79018107",
+   "campaign_id": "120248568889340353",
+   "campaign_name": "FGC | Whitening Strips | NEW CREATIVE TEST | LB",
+   "account": "act_1337494034720023",
+   "video_id": "1407701514661531",
+   "status": "CAMPAIGN_PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120248571064620353": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Sep 13 B",
+   "adset_id": "120248571062170353",
+   "adset_name": "FGC | Whitening TEST | LB | 79018107",
+   "campaign_id": "120248568889340353",
+   "campaign_name": "FGC | Whitening Strips | NEW CREATIVE TEST | LB",
+   "account": "act_1337494034720023",
+   "video_id": "4518465288472762",
+   "status": "CAMPAIGN_PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120248772659360353": {
+   "product": "Teeth Whitening Strips",
+   "how": "ad copy ('white teeth') + title, no product in frames",
+   "ad_name": "FGC | Whitening | Sep28 Reel (yarakreidly collab)",
+   "adset_id": "120248571066470353",
+   "adset_name": "FGC | Whitening Strips | WhatsApp | LB | 79018107",
+   "campaign_id": "120247759799100353",
+   "campaign_name": "FGC | Whitening Strips | WhatsApp | Lebanon",
+   "account": "act_1337494034720023",
+   "video_id": "1424820353069898",
+   "status": "PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120250745915510239": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGCv2 | Beirut | Whitening 5",
+   "adset_id": "120250745911980239",
+   "adset_name": "FGCv2 | Whitening | Beirut | 79018107",
+   "campaign_id": "120250745902240239",
+   "campaign_name": "FGCv2 | Whitening Strips | BEIRUT ONLY | LB",
+   "account": "act_27966118969737517",
+   "video_id": "1421002409972867",
+   "status": "CAMPAIGN_PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120250578340430239": {
+   "product": "LED Lights",
+   "how": "image",
+   "ad_name": "FGCv2 | LED | 44-Key RGB Product",
+   "adset_id": "120250578315690239",
+   "adset_name": "FGCv2 | LED Lights | LB | 79018107",
+   "campaign_id": "120250578312840239",
+   "campaign_name": "FGCv2 | LED Lights | Leads | WhatsApp | LB",
+   "account": "act_27966118969737517",
+   "video_id": null,
+   "status": "CAMPAIGN_PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120250578319700239": {
+   "product": "LED Lights",
+   "how": "frames",
+   "ad_name": "FGCv2 | LED | RGB Strip + App Demo",
+   "adset_id": "120250578315690239",
+   "adset_name": "FGCv2 | LED Lights | LB | 79018107",
+   "campaign_id": "120250578312840239",
+   "campaign_name": "FGCv2 | LED Lights | Leads | WhatsApp | LB",
+   "account": "act_27966118969737517",
+   "video_id": "2243526559774869",
+   "status": "CAMPAIGN_PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120250568516050239": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGCv2 | Migraine Cap | Aug 20 B (proven)",
+   "adset_id": "120250568512610239",
+   "adset_name": "FGCv2 | Migraine Cap | LB | 79018107",
+   "campaign_id": "120250568511960239",
+   "campaign_name": "FGCv2 | Migraine Cap | Leads | WhatsApp | LB",
+   "account": "act_27966118969737517",
+   "video_id": "1611566517242801",
+   "status": "PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120250568520160239": {
+   "product": "Migraine Relief Cap",
+   "how": "frames",
+   "ad_name": "FGCv2 | Migraine Cap | Post 7",
+   "adset_id": "120250568512610239",
+   "adset_name": "FGCv2 | Migraine Cap | LB | 79018107",
+   "campaign_id": "120250568511960239",
+   "campaign_name": "FGCv2 | Migraine Cap | Leads | WhatsApp | LB",
+   "account": "act_27966118969737517",
+   "video_id": "1059195630284401",
+   "status": "CAMPAIGN_PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120250755810660239": {
+   "product": "Toothbrush Sterilizer",
+   "how": "frames",
+   "ad_name": "FGCv2 | Sterilizer | Bathroom Hack Parents",
+   "adset_id": "120250755796670239",
+   "adset_name": "FGCv2 | Toothbrush Sterilizer | LB | 79018107",
+   "campaign_id": "120250755785170239",
+   "campaign_name": "FGCv2 | Toothbrush Sterilizer | Leads | WhatsApp | LB",
+   "account": "act_27966118969737517",
+   "video_id": "1132241409326874",
+   "status": "CAMPAIGN_PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120250760696290239": {
+   "product": "Toothbrush Sterilizer",
+   "how": "frames",
+   "ad_name": "FGCv2 | Sterilizer | UV Light Demo",
+   "adset_id": "120250755796670239",
+   "adset_name": "FGCv2 | Toothbrush Sterilizer | LB | 79018107",
+   "campaign_id": "120250755785170239",
+   "campaign_name": "FGCv2 | Toothbrush Sterilizer | Leads | WhatsApp | LB",
+   "account": "act_27966118969737517",
+   "video_id": "1647380190367281",
+   "status": "CAMPAIGN_PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120250755825550239": {
+   "product": "Toothbrush Sterilizer",
+   "how": "frames",
+   "ad_name": "FGCv2 | Sterilizer | Wall Mount Demo",
+   "adset_id": "120250755796670239",
+   "adset_name": "FGCv2 | Toothbrush Sterilizer | LB | 79018107",
+   "campaign_id": "120250755785170239",
+   "campaign_name": "FGCv2 | Toothbrush Sterilizer | Leads | WhatsApp | LB",
+   "account": "act_27966118969737517",
+   "video_id": "4569783466626015",
+   "status": "CAMPAIGN_PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120250654268930239": {
+   "product": "Whitening Toothpaste",
+   "how": "frames",
+   "ad_name": "FGCv2 | Toothpaste | Aug 23 Purple Demo",
+   "adset_id": "120250654258220239",
+   "adset_name": "FGCv2 | Toothpaste | LB | 79018107",
+   "campaign_id": "120250654257740239",
+   "campaign_name": "FGCv2 | Purple Whitening Toothpaste | Leads | LB",
+   "account": "act_27966118969737517",
+   "video_id": "1097058559536912",
+   "status": "CAMPAIGN_PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120250654263650239": {
+   "product": "Whitening Toothpaste",
+   "how": "frames",
+   "ad_name": "FGCv2 | Toothpaste | Aug 23 V34 Bottle",
+   "adset_id": "120250654258220239",
+   "adset_name": "FGCv2 | Toothpaste | LB | 79018107",
+   "campaign_id": "120250654257740239",
+   "campaign_name": "FGCv2 | Purple Whitening Toothpaste | Leads | LB",
+   "account": "act_27966118969737517",
+   "video_id": "1032132679877704",
+   "status": "CAMPAIGN_PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120250870150080239": {
+   "product": "Teeth Whitening Strips",
+   "how": "image",
+   "ad_name": "FGCv2 | Whitening Strips | Buy 2 Get 1 $20",
+   "adset_id": "120250614609980239",
+   "adset_name": "FGCv2 | Whitening TOP | LB | 79018107",
+   "campaign_id": "120250614609030239",
+   "campaign_name": "FGCv2 | Whitening Strips | TOP SELLER | LB",
+   "account": "act_27966118969737517",
+   "video_id": null,
+   "status": "PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120250569333620239": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGCv2 | Whitening | Purple Strip Demo (Yellow to White)",
+   "adset_id": "120250569332010239",
+   "adset_name": "FGCv2 | Whitening Strips | LB | 79018107",
+   "campaign_id": "120250569331800239",
+   "campaign_name": "FGCv2 | Whitening Strips | Leads | WhatsApp | LB",
+   "account": "act_27966118969737517",
+   "video_id": "957973646640489",
+   "status": "CAMPAIGN_PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120250569337220239": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGCv2 | Whitening | Strip Apply (male)",
+   "adset_id": "120250569332010239",
+   "adset_name": "FGCv2 | Whitening Strips | LB | 79018107",
+   "campaign_id": "120250569331800239",
+   "campaign_name": "FGCv2 | Whitening Strips | Leads | WhatsApp | LB",
+   "account": "act_27966118969737517",
+   "video_id": "2165263521058919",
+   "status": "CAMPAIGN_PAUSED",
+   "verified": "2026-10-03"
+  },
+  "120250569334550239": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGCv2 | Whitening | Whitening 5",
+   "adset_id": "120250569332010239",
+   "adset_name": "FGCv2 | Whitening Strips | LB | 79018107",
+   "campaign_id": "120250569331800239",
+   "campaign_name": "FGCv2 | Whitening Strips | Leads | WhatsApp | LB",
+   "account": "act_27966118969737517",
+   "video_id": "2390542195018589",
+   "status": "CAMPAIGN_PAUSED",
+   "verified": "2026-10-03"
   }
  },
  "videos": {
@@ -3267,6 +3646,306 @@
   "1f41562b6e6d027b380bd54bb1645f87": {
    "product": "Pimple Patches",
    "how": "frames"
+  },
+  "1682118420012766": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1025849590447580": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "6fec966f2dd25bc7bb745645e6756e2b": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1614912896764903": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1684243499503400": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "33bf1febf66f857ea78f88f3304c166c": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1685971692974441": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1773110327240595": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "92b97608b43d7e01747db597743ea9f6": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "3008912189441540": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1826869015115947": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "335f5a6c3f3b29938c458866c09f119f": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1122262393796189": {
+   "product": "Nasal Strips",
+   "how": "frames"
+  },
+  "1068409195968243": {
+   "product": "Nasal Strips",
+   "how": "frames"
+  },
+  "180b346ca5869ce563521d13629f5bc9": {
+   "product": "Nasal Strips",
+   "how": "frames"
+  },
+  "2052597615393845": {
+   "product": "Nasal Strips",
+   "how": "frames"
+  },
+  "1600218085116959": {
+   "product": "Nasal Strips",
+   "how": "frames"
+  },
+  "173b74fb831149109a2b7ac9ccfa2763": {
+   "product": "Nasal Strips",
+   "how": "frames"
+  },
+  "2029833977509809": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1015185508049121": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "23d98210b810b7f36f30817b78d7efee": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "4296114743973933": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1326884836182215": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "5cc402b6e57d633046922fd5d116f0bf": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1515441313936703": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "4374540126101971": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "209ae8ee1df40c954eff6f28606db158": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1104694788731759": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1872710750812852": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "c1b3e068d0a6ce94d9258889e8ee9c95": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1611733630392259": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1034867485598432": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "a5117e29d4473bce9afcbed7f182347b": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1803641614311260": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1773530963832202": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "f47fbd491d777ad87d35f5524c53eb3f": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1407701514661531": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "2494439021066978": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "0202061fce483b6568a4df47be807883": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "4518465288472762": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "3030852050583028": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "dc0583d16d88bf65e7fe0aaff4427fb8": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1421002409972867": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "8a374bd7917b4cd00c54f66e9cea866b": {
+   "product": "LED Lights",
+   "how": "image"
+  },
+  "2243526559774869": {
+   "product": "LED Lights",
+   "how": "frames"
+  },
+  "1804677373873965": {
+   "product": "LED Lights",
+   "how": "frames"
+  },
+  "200e0d4609143b799c81b4ecc6c76248": {
+   "product": "LED Lights",
+   "how": "frames"
+  },
+  "1611566517242801": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1358680612691731": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "8dea7d0299e57fcadeeeeacae2b50388": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1059195630284401": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1815860259583940": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "2a8639ca9c272e6f837dff32ae3bcc7a": {
+   "product": "Migraine Relief Cap",
+   "how": "frames"
+  },
+  "1132241409326874": {
+   "product": "Toothbrush Sterilizer",
+   "how": "frames"
+  },
+  "1425694922861326": {
+   "product": "Toothbrush Sterilizer",
+   "how": "frames"
+  },
+  "00f1ef7b4bb2585da33a5fc3731c5653": {
+   "product": "Toothbrush Sterilizer",
+   "how": "frames"
+  },
+  "1647380190367281": {
+   "product": "Toothbrush Sterilizer",
+   "how": "frames"
+  },
+  "4293195960935793": {
+   "product": "Toothbrush Sterilizer",
+   "how": "frames"
+  },
+  "a2432d309d6f6079bacb844d2e587b4f": {
+   "product": "Toothbrush Sterilizer",
+   "how": "frames"
+  },
+  "4569783466626015": {
+   "product": "Toothbrush Sterilizer",
+   "how": "frames"
+  },
+  "2002712023596249": {
+   "product": "Toothbrush Sterilizer",
+   "how": "frames"
+  },
+  "15a01e5ac97bacb231c58019edd01531": {
+   "product": "Toothbrush Sterilizer",
+   "how": "frames"
+  },
+  "1097058559536912": {
+   "product": "Whitening Toothpaste",
+   "how": "frames"
+  },
+  "2556948014783220": {
+   "product": "Whitening Toothpaste",
+   "how": "frames"
+  },
+  "5b329d023aa53d7c3e19a61eed22b36f": {
+   "product": "Whitening Toothpaste",
+   "how": "frames"
+  },
+  "1032132679877704": {
+   "product": "Whitening Toothpaste",
+   "how": "frames"
+  },
+  "1084916567363268": {
+   "product": "Whitening Toothpaste",
+   "how": "frames"
+  },
+  "1a3fa7805ea5943338f477538b859595": {
+   "product": "Whitening Toothpaste",
+   "how": "frames"
+  },
+  "e8cc239134391a28686662164f8120e3": {
+   "product": "Teeth Whitening Strips",
+   "how": "image"
+  },
+  "957973646640489": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "1820575185929911": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "2165263521058919": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "3717861671703327": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "25c76317345a39f23e414e5cb83736ec": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
+  },
+  "2390542195018589": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames"
   }
  },
  "adsets": {
@@ -3469,5 +4148,9 @@
    "name": "FGC | Sales | Dubai | Migraine Cap | V1",
    "how": "title"
   }
- }
+ },
+ "accounts": [
+  "act_1337494034720023",
+  "act_27966118969737517"
+ ]
 }

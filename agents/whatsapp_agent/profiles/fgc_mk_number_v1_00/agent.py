@@ -981,12 +981,22 @@ def _resolve_ad_lineage(ad_id, force=False):
 # Club ad. One rule, fail-closed: the customer's ad click must be an FGC ad, proven
 # by its ID. Anything unproven (no ad click, Meta's generic opener, an unknown ad,
 # a lookup that failed) is treated as NOT FGC and dropped before it is stored.
-_FGC_ACCOUNT_DIGITS = "".join(ch for ch in FGC_AD_ACCOUNT if ch.isdigit())
+# Every ad account that runs Feels Good Club ads. Feels Good Club + Feels Good Club V2
+# (verified 03.10.2026: both run only "FGC |" / "FGCv2 |" campaigns). A third FGC
+# account Kendall is adding goes here once the Lumen token can see it.
+_FGC_ACCOUNTS = {"".join(ch for ch in a if ch.isdigit()) for a in os.environ.get(
+    "FGCMK_AD_ACCOUNTS", "act_1337494034720023,act_27966118969737517").split(",") if a.strip()}
 # Extra FGC campaign / ad set IDs Kendall approves by hand (comma-separated).
 FGC_ALLOWED_CAMPAIGNS = {x.strip() for x in os.environ.get("FGCMK_ALLOWED_CAMPAIGNS", "").split(",") if x.strip()}
 FGC_ALLOWED_ADSETS = {x.strip() for x in os.environ.get("FGCMK_ALLOWED_ADSETS", "").split(",") if x.strip()}
 _GATE_ALERTED = set()
 
+
+# How a product may be decided on this number. Anything weaker = unknown = MK handles it.
+STRICT_HOW = {"verified", "video", "image", "prefill"}
+# The products the agent has facts for. Anything else (LED lights, toothbrush sterilizer,
+# a product nobody has briefed it on) goes to MK without the agent saying a word.
+SELLABLE = set(PRODUCT_FACTS)
 
 def fgc_gate_for_referral(ad_id):
     """(is_fgc, why) for the ad a customer clicked. Never raises; any doubt is False."""
@@ -1005,7 +1015,7 @@ def fgc_gate_for_referral(ad_id):
         if sid and (sid in FGC_ALLOWED_ADSETS or sid in PRODUCT_MAP["adsets"]):
             return True, f"FGC ad set {sid}"
         acct = lin.get("account_id") or ""
-        if acct and _FGC_ACCOUNT_DIGITS and acct == _FGC_ACCOUNT_DIGITS:
+        if acct and acct in _FGC_ACCOUNTS:
             return True, f"FGC ad account act_{acct}"
         return False, f"not an FGC ad (account act_{acct or '?'}, campaign {cid or '?'})"
     except Exception as e:
@@ -1183,10 +1193,22 @@ def _handle_referral(wa_id, msg):
             f"{ref.get('headline') or ''} {ref.get('body') or ''} {ref.get('source_url') or ''}")
         how = "ad_copy" if product else None
     threading.Thread(target=_register_ad, args=(ad_id, product, how, lin), daemon=True).start()
+    if product and how not in STRICT_HOW:
+        # Ad set / campaign titles and ad copy have been WRONG on these accounts (whitening
+        # videos inside "Migraine Cap" ad sets). On this number we only trust the ad or its
+        # creative verified from frames, or the product the CTA prefill names.
+        print(f"[fgcmk-wa] referral ad {ad_id}: {product!r} only by {how}, NOT trusted -> unknown")
+        product = None
     if not product:
         print(f"[fgcmk-wa] referral ad {ad_id}: product UNKNOWN "
               f"(adset={lin.get('adset_id')} camp={lin.get('campaign_id')} "
               f"name={lin.get('adset_name')!r})")
+        # Never carry an older product into a click we cannot verify: clear it so the
+        # thread goes to MK instead of being answered about the previous product.
+        conn = _conn()
+        conn.execute("UPDATE wa_contacts SET product = NULL, product_ad_id = ?, greeted = 0 "
+                     "WHERE wa_id = ?", (ad_id, wa_id))
+        conn.commit(); conn.close()
         return None
 
     conn = _conn()
@@ -2114,6 +2136,18 @@ def _handle_inbound_message(msg, profiles, via_phone_id=None):
 
     is_new = _record_message(wa_id, "in", msg_type, body, wamid=wamid)
     if not is_new:
+        return
+
+    _c = get_contact(wa_id) or {}
+    if (wa_id not in FGC_TESTERS and _c.get("agent_ok") and not _c.get("greeted")
+            and _c.get("product") not in SELLABLE and _c.get("status") == "active"):
+        # First contact and we are not CERTAIN what they clicked on (or it is a product the
+        # agent is not briefed on). Say nothing; MK takes it in her app.
+        why = (f"product '{_c.get('product')}' is not one the agent sells" if _c.get("product")
+               else "could not verify which product the ad was for")
+        print(f"[fgcmk-wa] inbound {wa_id}: {why} -> silent handoff to MK")
+        set_contact_status(wa_id, "handed_off")
+        _alert_handoff(wa_id, reason=why)
         return
 
     # Re-read intent and dispatch conversion events. On its own thread and wrapped,
