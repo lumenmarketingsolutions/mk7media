@@ -11,6 +11,8 @@ from flask import Flask, render_template, request, jsonify, session, redirect, u
 
 from agents.whatsapp_agent import agent as wa  # which profile is live: see ACTIVE_PROFILE in agents/whatsapp_agent/__init__.py
 from agents.whatsapp_agent.profiles.fgc_agent_v1_00 import agent as fgc_wa
+# FGC agent on Marykate's +961 79 018 107: a separate instance, FGC-ads-only gate.
+from agents.whatsapp_agent.profiles.fgc_mk_number_v1_00 import agent as fgcmk_wa
 from agents.whatsapp_agent.profiles.lumen_ai_agent_v1_00 import agent as lumenai_wa
 from agents.whatsapp_observer import observer as wa_observer, config as observer_config  # no-reply attribution clients
 from agents.whatsapp_observer.api import bp as observer_api_bp
@@ -971,6 +973,12 @@ def _notify_lumen_cold_start(wa_id):
         print(f"[lumen-cold-notify] error for {wa_id}: {e}")
 
 
+def _is_main_number(value):
+    """True when a webhook change belongs to the active profile's own number."""
+    pid = str((value.get("metadata") or {}).get("phone_number_id") or "")
+    return not pid or pid == str(getattr(wa, "WHATSAPP_PHONE_NUMBER_ID", "") or "")
+
+
 @app.route("/webhooks/whatsapp", methods=["POST"])
 def whatsapp_receive():
     """Inbound WhatsApp events. Always 200s quickly so Meta doesn't retry-storm."""
@@ -980,6 +988,7 @@ def whatsapp_receive():
     # Lumen Master Connect (FGC coexistence number) — each signs with its own
     # app secret, so accept a payload that verifies against either.
     if not (wa.verify_signature(raw, _sig) or fgc_wa.verify_signature(raw, _sig)
+            or fgcmk_wa.verify_signature(raw, _sig)
             or lumenai_wa.verify_signature(raw, _sig)):
         return "Forbidden", 403
     payload = request.get_json(silent=True) or {}
@@ -990,19 +999,36 @@ def whatsapp_receive():
     # agent, everything else goes ONLY to the active profile. Without the split
     # the active profile would answer FGC customers from the wrong number.
     fgc_entries, main_entries, observer_entries, lumenai_entries = [], [], [], []
+    fgcmk_entries = []
     for entry in payload.get("entry", []) or []:
         changes = entry.get("changes", []) or []
         fgc_ch = [c for c in changes if fgc_wa.is_fgc_event(c.get("value", {}) or {})]
+        # Marykate's number (+961 79 018 107): its own FGC instance only. It must never
+        # fall through to the main profile, the observer, or the original FGC agent.
+        fgcmk_ch = [c for c in changes if c not in fgc_ch
+                    and fgcmk_wa.is_fgc_event(c.get("value", {}) or {})]
+        taken = fgc_ch + fgcmk_ch
         # Lumen's OWN number (+961 70 836 908). It must be split out before the
         # fallthrough below, or ACTIVE_PROFILE would answer our prospects from the
         # wrong number with the wrong agent.
-        lumenai_ch = [c for c in changes if c not in fgc_ch
+        lumenai_ch = [c for c in changes if c not in taken
                       and lumenai_wa.is_lumen_ai_event(c.get("value", {}) or {})]
         # Observer clients: numbers listed in agents/whatsapp_observer/clients/. Watched
         # for attribution only, never answered, so they must never reach either agent.
-        obs_ch = [c for c in changes if c not in fgc_ch and c not in lumenai_ch
+        obs_ch = [c for c in changes if c not in taken and c not in lumenai_ch
                   and wa_observer.is_observer_event(c.get("value", {}) or {})]
-        main_ch = [c for c in changes if c not in fgc_ch and c not in lumenai_ch and c not in obs_ch]
+        rest = [c for c in changes if c not in taken
+                and c not in lumenai_ch and c not in obs_ch]
+        # The main profile answers ONLY its own number. Any other number subscribed to
+        # the app (e.g. a client number mid-onboarding) is dropped here rather than
+        # being answered by the wrong agent from the wrong number.
+        main_ch = [c for c in rest if _is_main_number(c.get("value", {}) or {})]
+        for c in rest:
+            if c not in main_ch:
+                print("[whatsapp] dropped event for unrouted number "
+                      f"{((c.get('value') or {}).get('metadata') or {}).get('phone_number_id')}")
+        if fgcmk_ch:
+            fgcmk_entries.append({**entry, "changes": fgcmk_ch})
         if fgc_ch:
             fgc_entries.append({**entry, "changes": fgc_ch})
         if lumenai_ch:
@@ -1056,6 +1082,12 @@ def whatsapp_receive():
             fgc_wa.handle_webhook({**payload, "entry": fgc_entries})
         except Exception as e:
             print(f"[fgc-wa] webhook handler error: {e}")
+
+    if fgcmk_entries:
+        try:
+            fgcmk_wa.handle_webhook({**payload, "entry": fgcmk_entries})
+        except Exception as e:
+            print(f"[fgcmk-wa] webhook handler error: {e}")
 
     if lumenai_entries:
         try:
