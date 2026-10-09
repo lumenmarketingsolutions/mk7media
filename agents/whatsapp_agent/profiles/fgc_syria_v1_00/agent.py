@@ -229,7 +229,29 @@ def _opener_question(text):
 # $12 / Would you like to order?"). It arrives as an app echo, identical in shape
 # to MK typing by hand. If we snooze on it, the agent silences itself on EVERY
 # new lead. These markers identify the canned greeting so we ignore it.
-GREETING_MARKERS = ("would you like to order", "this item is for")
+GREETING_MARKERS = ("would you like to order", "this item is for", "بدك تطلب", "badak totlob")
+
+# Syria (Kendall 09.10.2026): the greeting matches how the customer wrote. Arabic script
+# gets Arabic script, Arabic in Latin letters gets the same, everything else English.
+GREETING_AR = "أهلين، السعر ١٢$\n\nبدك تطلب؟"
+GREETING_ARABIZI = "Ahlein, se3ro 12$\n\nBadak totlob?"
+_ARABIZI_WORDS = {"marhaba", "mar7aba", "ahla", "ahlan", "ahlein", "shu", "shou", "chou", "sho",
+                  "addesh", "adesh", "adde", "addeh", "2adesh", "2addesh", "ade", "kam", "kif", "keef",
+                  "bade", "baddi", "badde", "badi", "biddi", "bdi", "fi", "tawseel", "tawsil", "se3r",
+                  "se3ra", "se3ro", "salam", "yalla", "w", "3am", "3a", "la2", "eh", "ma3", "mni7",
+                  "bas", "kteer", "ktir", "wen", "wein", "lesh", "hay", "hayda", "hada", "hadi", "3ndkon",
+                  "3andkon", "btwaslo", "betwaslo", "mawjood", "mawjoud", "arjook", "3afak"}
+
+
+def greeting_for(text):
+    t = (text or "").strip()
+    if re.search(r"[\u0600-\u06FF]", t):
+        return GREETING_AR
+    words = re.findall(r"[a-z0-9']+", t.lower())
+    if words and (any(w in _ARABIZI_WORDS for w in words)
+                  or any(re.search(r"[a-z][2375][a-z]|[a-z][2375]$|^[2375][a-z]", w) for w in words)):
+        return GREETING_ARABIZI
+    return GREETING_TEXT
 # Where handoff pings go: the FGC number itself, so the alert lands in the
 # WhatsApp Business app MK already works in. Sent FROM the Lumen Cloud API number.
 LUMEN_NOTIFY_PHONE_ID = os.environ.get("LUMEN_NOTIFY_PHONE_ID", "1082296231636502")
@@ -245,7 +267,9 @@ SYSTEM_PROMPT = """\
 You are answering WhatsApp messages for Feels Good Club (FGC) in SYRIA, a small
 online shop. Customers arrive by clicking an Instagram or Facebook ad, so they
 already saw the product. They have ALREADY received our opening message:
-"Hello this item is for $12 / Would you like to order?" — never repeat it.
+"Hello this item is for $12 / Would you like to order?" (or the same in the
+customer's script: "أهلين، السعر ١٢$ / بدك تطلب؟" or "Ahlein, se3ro 12$ /
+Badak totlob?") — never repeat it.
 
 WHO YOU SOUND LIKE
 You are the FGC shop account in Syria, the same person who sent that opening
@@ -2322,7 +2346,8 @@ def _greet_async(wa_id):
             return
         if not _claim_greeting(wa_id):
             return
-        data = send_text(wa_id, GREETING_TEXT)
+        greeting = greeting_for(_last_inbound_body(wa_id) or "")
+        data = send_text(wa_id, greeting)
         if not data:
             # Send failed. Give the claim back so a later app greeting can still arm us.
             _unclaim_greeting(wa_id)
@@ -2550,7 +2575,7 @@ def generate_reply(wa_id, answer_opener=False):
         messages.insert(0, {"role": "user", "content": "..."})
 
     if (answer_opener and len(messages) >= 2 and messages[-1]["role"] == "assistant"
-            and messages[-1]["content"].strip() == GREETING_TEXT.strip()):
+            and messages[-1]["content"].strip() in {g.strip() for g in (GREETING_TEXT, GREETING_AR, GREETING_ARABIZI)}):
         # The greeting went out AFTER their question. The system prompt already tells
         # the model the greeting was received, so drop it here and answer the question.
         messages.pop()
