@@ -143,11 +143,13 @@ OPENER_MIN_WORDS = 4
 #   FGC_GREETING_WAIT  seconds to give the phone in fallback mode, default 30.
 #   FGC_GREETING_TEXT  the message. Default is the app's pink-heart greeting.
 #                      A literal "\n" in the env value becomes a line break.
-GREETING_MODE = os.environ.get("FGCSY_GREETING_MODE", "fallback").strip().lower() or "fallback"
+# Syria: instant replies (Kendall 09.10.2026). The server sends the greeting at once;
+# MK must keep the WhatsApp Business app greeting OFF on this phone or both go out.
+GREETING_MODE = os.environ.get("FGCSY_GREETING_MODE", "always").strip().lower() or "fallback"
 try:
-    GREETING_WAIT = max(0.0, float(os.environ.get("FGCSY_GREETING_WAIT", "30")))
+    GREETING_WAIT = max(0.0, float(os.environ.get("FGCSY_GREETING_WAIT", "0")))
 except Exception:
-    GREETING_WAIT = 30.0
+    GREETING_WAIT = 0.0
 GREETING_TEXT = os.environ.get(
     "FGCSY_GREETING_TEXT", "Hello this item is for $12\n\nWould you like to order?"
 ).replace("\\n", "\n").strip()
@@ -2294,7 +2296,7 @@ def _answer_opener_async(wa_id, wamid):
         else:
             print(f"[fgcsy-wa] opener {wa_id}: greeting never landed, not answering the opener")
             return
-        time.sleep(3)
+        time.sleep(1)
         _reply_async(wa_id, trigger_wamid=wamid, answer_opener=True)
     except Exception as e:
         print(f"[fgcsy-wa] opener answer error for {wa_id}: {repr(e)}")
