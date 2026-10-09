@@ -72,7 +72,7 @@ FGC_TEST_BUSINESS_NUMBER = "".join(
 # customer who happens to type "reset" would wipe their own order history, which is a
 # far worse outcome than a slightly awkward test flow.
 FGC_TESTERS = {"".join(c for c in n if c.isdigit())
-               for n in os.environ.get("FGCSY_TESTERS", "").split(",") if n.strip()}
+               for n in os.environ.get("FGCSY_TESTERS", "12085910132").split(",") if n.strip()}
 
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 AGENT_MODEL = os.environ.get("WHATSAPP_AGENT_MODEL", "claude-opus-4-7")
@@ -128,7 +128,9 @@ except Exception:
 # question, seen live). With this on, the greeting still goes out first and the agent
 # then answers the question as a reply to THEIR message. A bare "price?" / "hi" opener
 # is still answered by the greeting alone.
-ANSWER_OPENER = os.environ.get("FGCSY_ANSWER_OPENER", "1") not in ("0", "false", "False", "")
+# Syria (Kendall 09.10.2026): the first message gets ONLY the greeting, which asks
+# "Would you like to order?" and waits. The agent answers from their next message on.
+ANSWER_OPENER = os.environ.get("FGCSY_ANSWER_OPENER", "0") not in ("0", "false", "False", "")
 OPENER_MIN_WORDS = 4
 
 # Server-owned greeting (added 04.09.2026). The WhatsApp Business app's automated
