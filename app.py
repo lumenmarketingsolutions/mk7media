@@ -13,6 +13,7 @@ from agents.whatsapp_agent import agent as wa  # which profile is live: see ACTI
 from agents.whatsapp_agent.profiles.fgc_agent_v1_00 import agent as fgc_wa
 # FGC agent on Marykate's +961 79 018 107: a separate instance, FGC-ads-only gate.
 from agents.whatsapp_agent.profiles.fgc_mk_number_v1_00 import agent as fgcmk_wa
+from agents.whatsapp_agent.profiles.fgc_syria_v1_00 import agent as fgcsy_wa
 from agents.whatsapp_agent.profiles.lumen_ai_agent_v1_00 import agent as lumenai_wa
 from agents.whatsapp_observer import observer as wa_observer, config as observer_config  # no-reply attribution clients
 from agents.whatsapp_observer.api import bp as observer_api_bp
@@ -989,6 +990,7 @@ def whatsapp_receive():
     # app secret, so accept a payload that verifies against either.
     if not (wa.verify_signature(raw, _sig) or fgc_wa.verify_signature(raw, _sig)
             or fgcmk_wa.verify_signature(raw, _sig)
+            or fgcsy_wa.verify_signature(raw, _sig)
             or lumenai_wa.verify_signature(raw, _sig)):
         return "Forbidden", 403
     payload = request.get_json(silent=True) or {}
@@ -1000,6 +1002,7 @@ def whatsapp_receive():
     # the active profile would answer FGC customers from the wrong number.
     fgc_entries, main_entries, observer_entries, lumenai_entries = [], [], [], []
     fgcmk_entries = []
+    fgcsy_entries = []
     for entry in payload.get("entry", []) or []:
         changes = entry.get("changes", []) or []
         fgc_ch = [c for c in changes if fgc_wa.is_fgc_event(c.get("value", {}) or {})]
@@ -1007,7 +1010,10 @@ def whatsapp_receive():
         # fall through to the main profile, the observer, or the original FGC agent.
         fgcmk_ch = [c for c in changes if c not in fgc_ch
                     and fgcmk_wa.is_fgc_event(c.get("value", {}) or {})]
-        taken = fgc_ch + fgcmk_ch
+        # FGC Syria (+961 79 449 537): its own agent, Syrian Arabic, Syria prices.
+        fgcsy_ch = [c for c in changes if c not in fgc_ch and c not in fgcmk_ch
+                    and fgcsy_wa.is_fgc_event(c.get("value", {}) or {})]
+        taken = fgc_ch + fgcmk_ch + fgcsy_ch
         # Lumen's OWN number (+961 70 836 908). It must be split out before the
         # fallthrough below, or ACTIVE_PROFILE would answer our prospects from the
         # wrong number with the wrong agent.
@@ -1029,6 +1035,8 @@ def whatsapp_receive():
                       f"{((c.get('value') or {}).get('metadata') or {}).get('phone_number_id')}")
         if fgcmk_ch:
             fgcmk_entries.append({**entry, "changes": fgcmk_ch})
+        if fgcsy_ch:
+            fgcsy_entries.append({**entry, "changes": fgcsy_ch})
         if fgc_ch:
             fgc_entries.append({**entry, "changes": fgc_ch})
         if lumenai_ch:
@@ -1088,6 +1096,11 @@ def whatsapp_receive():
             fgcmk_wa.handle_webhook({**payload, "entry": fgcmk_entries})
         except Exception as e:
             print(f"[fgcmk-wa] webhook handler error: {e}")
+    if fgcsy_entries:
+        try:
+            fgcsy_wa.handle_webhook({**payload, "entry": fgcsy_entries})
+        except Exception as e:
+            print(f"[fgcsy-wa] webhook handler error: {e}")
 
     if lumenai_entries:
         try:

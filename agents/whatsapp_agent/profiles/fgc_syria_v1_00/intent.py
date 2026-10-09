@@ -1,0 +1,314 @@
+# -*- coding: utf-8 -*-
+"""
+Runtime intent detection for FGC conversations, and the trigger that turns a state
+change into a Meta conversion event.
+
+This is deliberately NOT the probabilistic label model from the lumen-ai repo. That
+model exists to manufacture training data offline, where recall matters and a wrong
+label costs one row in a dataset. Here a wrong label costs the merchant real money:
+a false Purchase inflates reported ROAS and teaches the algorithm to chase people who
+never bought. So at runtime we run only the high-precision subset of the rules, and
+we abstain loudly rather than guess.
+
+The rules and the thresholds come from `lumen-ai/product/labeling/lfs.py` and the
+findings in `CORPUS-FINDINGS.md`. Three of them are doing most of the work:
+
+  * The Meta ad prefill is a quarter of all inbound and carries no intent whatsoever.
+  * A Lebanese town means "do you deliver here" before the shop asks for an address
+    and means "send it here" afterwards. Same words, two states, one turn of context.
+  * A commitment can be withdrawn. One customer in a 22-hour export gave an address,
+    heard the delivery fee, said la2 shukran, and re-committed two turns later. That
+    is why COMMITTED settles before it fires instead of firing on the address.
+"""
+import re
+import sqlite3
+import time
+
+ABSTAIN = None
+
+
+def rx(p):
+    return re.compile(p, re.I | re.U)
+
+
+PREFILL = rx(r"can i get more info on this|مزيد من المعلومات حول هذا|puis-je en savoir plus")
+
+ASK_LOCATION = rx(r"\blocation\b|\bwen bad+ak\b|وين بدك|بعتلي ال ?location|\bname\s*\?|"
+                  r"\baddress\b|وين بتحب|عنوان")
+
+PLACES = rx(r"\b(be[iy]rou?t|bayrut|tripoli|tarablus|trablos|sa[iy]da|sidon|sour|tyre|"
+            r"zahl[ée]h?|jounieh?|jbeil|byblos|batroun|baalbe[ck]k?|hermel|akkar|"
+            r"koura|kfer\w*|kfar\w*|ghazir|zouk|jdeide\w*|dekwaneh?|hazmieh?|hadath|"
+            r"chiyah|mansourieh?|antelias|dbaye\w*|zalka|bourj\s*hammoud|achrafieh?|"
+            r"hamra|verdun|mazraa|aley|bhamdoun|broummana|beit\s*mery|nabatieh?|"
+            r"marjeyoun|halba|chekka|amioun|bcharre|zgharta|kaslik|tabarja|adma|"
+            r"bikfaya|choueifat|khalde|damour|jiyeh|sin\s*el\s*fil|barelias|bar\s*elias|"
+            r"riyaq|rayak|minyeh?|miny[ei]|hour\s*taala)\b|"
+            r"بيروت|طرابلس|صيدا|صور|زحلة|جونية|جبيل|بعلبك|الهرمل|عكار|الكورة|"
+            r"برجا|رياق|المنية|حور تعلا|الشوف|البقاع|بشري|زغرتا|النبطية")
+
+ADDR = rx(r"\b(bld?g|building|bnaye|bneye|flo?r|floor|tabe2|etage|street|shar3|jenb|"
+          r"janb|near|2rib|ha[yi]\b|mahal|ma7al|snack|super\s*market|kenise|jem3a|"
+          r"khalf|wara|addres+|adres+|3enw[ae]n)\b|"
+          r"شارع|بناية|طابق|قرب|جنب|خلف|حي |محل|منطقة|عنوان|بلدة")
+
+NAME_FIELD = rx(r"\b(name|esm|nom)\s*[:：]|\bاسم\s*[:：]")
+PHONE = rx(r"(?<!\d)0?(?:3|70|71|76|78|79|81)\s?\d{6}(?!\d)")
+LOCATION_PIN = rx(r"\[location pin")
+
+COLOUR = r"(?:black|blue|bleu|noir|red|pink|white|abyad|aswad)"
+UNIT = r"(?:pcs|pieces?|3elab|3elbe|3olbe|box(?:es)?|strips?)"
+WANT = r"(?:bad+[eiy]|baddy|bde|please|plz|i want)"
+QTY = rx(rf"\b\d{{1,2}}\s*(?:{UNIT}|{COLOUR})\b|\b{WANT}\s*\d{{1,2}}\b|"
+         rf"\b\d{{1,2}}\s*{WANT}\b|^\s*{COLOUR}\s*$|"
+         rf"\b(?:we7de|wehde|wehdi|wa7de|tnen|tneen)\b|واحدة|واحده|تنين")
+
+ORDER_INTENT = rx(r"\b(et?l[oa]u?b|etlob|eetlob|i.?ll take|i want to order)\b|"
+                  r"بدي اطلب|بدي طلب|عتمدت")
+
+NO = rx(r"^\s*(la2?\s*(shukran|chokran|kalas|khalas)?|no+( thanks?| thank you)?|"
+        r"ma\s*ba2a\s*bad+[iy]|ma\s*bad+[iy]|non merci)\b|"
+        r"لا شكرا|لا شكراً|^\s*لا\s*$|ما بعد بدي|ما بدي")
+CANCEL = rx(r"\b(l8[iy]|lag?h[iy]|cancel|il8[iy])\b|لغي|إلغاء")
+
+MEDIA = rx(r"^\s*\[(audio|image|video|document|sticker)\s*message\]\s*$")
+HUMAN_REQ = rx(r"kell?[ie]mn[iy] 3arab[iy]|كلمني عربي|speak arabic|complaint|شكوى|مدير")
+
+BUSINESS_CONFIRM = rx(r"^\s*(done|confirmed|تم|تمام)\s*[.!]?\s*$")
+
+# ---- ENQUIRY and OBJECTION
+#
+# These were left out of the first runtime classifier on the grounds that neither fires
+# a Meta event, so neither was worth computing. That was a mistake made from the wrong
+# point of view. The merchant does not care which states produce events — they care
+# that 128 people arrived and they cannot see what became of them. A funnel reading
+# 128 NEW and 8 sales with nothing in between looks broken even when it is accurate.
+#
+# The simulator caught this before a customer did: a haggler and a trust objector both
+# came out as NEW, which is exactly what someone reading their own dashboard would
+# call wrong.
+
+HOWMUCH = r"(?:2?ad[ei]?[shy]*|qad+e?sh|kad+e?sh|kam|cam|how\s*much|combien)"
+PRICE_W = r"(?:price|pri[cs]e|se3e?r|s[ae]3r|sa3ra|se3ra|se3erou|sa3ro|prix|سعر|سعرو|السعر)"
+PRICE_Q = rx(rf"\b{PRICE_W}\b|\b{HOWMUCH}\b|قديش|بكم|شو سعر|ادي سعر|كم سعر|le prix")
+
+DELIVERY_Q = rx(r"\b(deliver\w*|del[ei]v\w*|dlv|dilev\w*|livraison|shipping)\b|"
+                r"توصيل|دلفري|ديليفري|\bwasel\b|\byousal\w*\b|\btousal\b|في توصيل|بتاخدو")
+
+PRODUCT_Q = rx(r"\b(box|3olbe|3elbe|strips?|colou?rs?|bidayen|bet\s*dayin|dayin|"
+               r"kil\s*we7de|byij\w*|feha|fiha|how long|kam yom|shu hayda|shou hayda)\b|"
+               r"شو هيدا|كم يوم|قديش بيضل|شو بيعمل")
+
+# Objections split by kind, because the merchant needs to act on them differently:
+# a price objection is a pricing decision, a trust objection is a proof problem.
+PRICE_OBJ = rx(r"\bm[iu]ch\b|\bmish\b|\bmesh\b|مش|\bmab?out\b|\bghal[ei]\b|"
+               r"\bexpensive\b|غالي|3mel[il]?na+\s*3arde|3arde|discount|khasem|خصم|عرض|"
+               r"bi2awes+|بيقوص")
+
+TRUST_OBJ = rx(r"\b(sa7+|sah|s7i7|sahih|mazbout\w*|asli|as?li|original|copy|fake|"
+               r"madmoun|damen|guarantee\w*|warrant\w*)\b|"
+               r"صحيح|أصلي|اصلي|مضمون|مش مصدق|مصدق|مية بالمية|miye bel miye|"
+               r"\biza\s*ma\s*(chta8|shta8|zabat)\w*|\bbre?d[ou]n\b|\breturn\b|\brefund\b")
+
+# ---- disqualification: never a customer, as opposed to LOST which is a customer we
+# lost. The distinction is the whole point. LOST says the script or the follow-up
+# failed and is worth fixing. DISQUALIFIED says the targeting is wrong and no script on
+# earth would have helped. Telling a merchant "30% went cold" and "30% were never
+# reachable" are different sentences with different fixes behind them.
+#
+# This state NEVER produces a Meta event. Not a Lead, not a negative signal, nothing.
+# The optimiser learns from what we send it, and there is no event that means "we did
+# not want this one" — the only honest way to say that is silence.
+
+# Disqualification is read from what somebody SAYS, never from their phone number.
+#
+# The first version of this rule disqualified anyone without a +961 number, on the
+# reasoning that the shop only delivers inside Lebanon. That rule was wrong, and the
+# order book says so plainly: 12 of 78 paid orders came from foreign numbers, every one
+# delivered to a Lebanese address — Ghassaniyeh, jbeil, naccache, ras beirut, Tripoli,
+# Koura, Aley, Akkar. Lebanon is full of people carrying Syrian, Gulf, US and European
+# SIMs. The rule would have thrown away 15% of real customers.
+#
+# The clincher: the ads only run in Lebanon, so anyone in the thread is in Lebanon
+# already. Where their SIM was bought says nothing about where they live.
+#
+# Only stated intent counts. "Just looking", "not interested", "asking for my friend".
+
+NOT_INTERESTED = rx(r"\bnot interested\b|\bno thanks?\b|\bmaybe (later|another time)\b|"
+                    r"\bsome other time\b|\bnot (right )?now\b|\bnext time\b|"
+                    r"\bchange(d)? my mind\b|\bma ba2a bad+[iy]\b|\bma bad+[iy]\b|"
+                    r"مش مهتم|مو مهتم|مرة تانية|بعدين|ما بدي|ما بعد بدي|لاحقا|لاحقاً")
+
+JUST_LOOKING = rx(r"\bjust (looking|browsing|checking|seeing)\b|\bhaving a look\b|"
+                  r"\bbas 3am (shouf|shuf|etfarraj)\b|\bkenet 3am shouf\b|"
+                  r"عم تفرج|بس عم شوف|بشوف بعدين|حابب اشوف بس")
+
+RESELLER = rx(r"\b(wholesale|jomla|jimla|bel jomle|reseller|resell|distributor|"
+              r"bulk|bel jomla|supplier|agent)\b|جملة|بالجملة|موزع|وكيل")
+
+NOT_A_BUYER = rx(r"\bfor a friend\b|just ask(ing)?|kenet? 3am\s*(e|i)?st[ae]fs[ae]r|"
+                 r"3am estafsar|curious|survey|student|research|"
+                 r"كنت عم استفسر|بس عم اسأل|لصديق|لصاحبي")
+
+JOB_OR_SPAM = rx(r"\b(job|hiring|vacancy|cv|resume|internship|partnership|"
+                 r"collab(oration)?|promo(te)? your|marketing services|seo|"
+                 r"increase your sales)\b|وظيفة|توظيف|سيرة ذاتية")
+
+RUNG = {"NEW": 0, "ENQUIRY": 1, "QUALIFIED": 2, "INTENT": 3, "COMMITTED": 4}
+
+
+def disqualify(wa_id, messages):
+    """Why this person was never going to buy, in their own words, or None.
+
+    Read only from what the customer says. Returns a reason rather than a bare flag,
+    because "wholesale enquiry" and "not interested" call for completely different
+    responses from the merchant, and a single DISQUALIFIED count with no breakdown is
+    a number nobody can act on.
+    """
+    for m in messages:
+        if m.get("direction") != "in":
+            continue
+        b = (m.get("body") or "").strip()
+        if not b:
+            continue
+        if JOB_OR_SPAM.search(b):
+            return "not a customer enquiry"
+        if RESELLER.search(b):
+            return "wholesale enquiry"
+        if NOT_A_BUYER.search(b):
+            return "asking on someone else's behalf"
+        if JUST_LOOKING.search(b):
+            return "just browsing"
+        if NOT_INTERESTED.search(b):
+            return "said they are not interested"
+    return None
+
+
+def classify(messages, wa_id=None):
+    """Walk a thread in order and return (state, evidence, needs_human).
+
+    `messages` is a list of dicts with `direction` ('in' | 'out' | 'out_app') and
+    `body`. Walking forward rather than taking a maximum is not a stylistic choice:
+    a max over rungs calls the commit-then-cancel thread COMMITTED and a max over
+    terminals calls it LOST. Only the walk gets it right.
+    """
+    # Two evidence slots, not one. The span that justifies a commitment and the span
+    # that justifies a walk-away are different quotes, and a thread can contain both.
+    # Keeping one slot meant the commit-then-cancel-then-recommit thread ended up
+    # COMMITTED while quoting "la2 shukran" as its reason — the exact opposite of what
+    # happened, and worse than no evidence at all for anyone auditing a fired event.
+    reached, state, needs_human = "NEW", "NEW", False
+    rung_evidence = lost_evidence = None
+    asked_location = False
+    objection = None
+
+    # Checked first, but only against stated intent. Somebody who says "just looking"
+    # and then asks the price has told us what they are; letting them climb the ladder
+    # puts them in the merchant's follow-up list and, worse, inside a conversion event.
+    reason = disqualify(wa_id, messages)
+    if reason:
+        return "DISQUALIFIED", reason, False, None
+
+    for m in messages:
+        body = (m.get("body") or "").strip()
+        inbound = m.get("direction") == "in"
+
+        if not inbound:
+            if ASK_LOCATION.search(body):
+                asked_location = True
+            continue
+
+        if MEDIA.match(body) or HUMAN_REQ.search(body):
+            needs_human = True
+            continue
+        if PREFILL.search(body):
+            continue                                    # a button press, not a message
+
+        # Objections annotate rather than advance. Somebody who argues about the price
+        # has read it and is still typing, which puts them ahead of everyone who went
+        # quiet — so an objection must never drag a conversation back down the ladder.
+        if PRICE_OBJ.search(body) and (re.search(r"\d|\$", body)
+                                       or re.search(r"3arde|discount|خصم", body, re.I)):
+            objection = objection or "price"
+        elif TRUST_OBJ.search(body):
+            objection = objection or "trust"
+
+        hit = None
+        # COMMITTED, strongest first. Each of these is something a person only types
+        # when they expect a delivery.
+        if LOCATION_PIN.search(body) or NAME_FIELD.search(body) or ADDR.search(body):
+            hit = "COMMITTED"
+        elif asked_location and (PLACES.search(body) or PHONE.search(body)):
+            hit = "COMMITTED"
+        elif ORDER_INTENT.search(body):
+            hit = "INTENT"
+        elif QTY.search(body):
+            hit = "QUALIFIED"
+        elif PRODUCT_Q.search(body):
+            hit = "QUALIFIED"
+        elif PRICE_Q.search(body) or DELIVERY_Q.search(body) or objection:
+            # Asking the price is the smallest real signal there is, but it is a
+            # signal: this person read the ad and typed something of their own.
+            hit = "ENQUIRY"
+
+        if CANCEL.search(body) or NO.search(body):
+            state = "LOST"
+            lost_evidence = body[:160]
+            continue
+
+        if hit:
+            if RUNG[hit] > RUNG[reached]:
+                reached = hit
+                rung_evidence = body[:160]
+            elif state == "LOST":
+                # Re-committing after a walk-away. The rung does not move, but this
+                # message is now the reason the conversation is live again.
+                rung_evidence = body[:160]
+            state = reached                             # a commitment un-does a walk-away
+
+    evidence = lost_evidence if state == "LOST" else rung_evidence
+    return state, evidence, needs_human, objection
+
+
+def classify_wa(wa_id, db_path):
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    try:
+        rows = conn.execute(
+            "SELECT direction, body FROM wa_messages WHERE wa_id = ? ORDER BY id",
+            (wa_id,)).fetchall()
+    finally:
+        conn.close()
+    return classify([dict(r) for r in rows], wa_id=wa_id)
+
+
+# ---------------------------------------------------------------- the trigger
+
+def on_conversation_update(wa_id):
+    """Called after each inbound message. Queues or fires conversion events.
+
+    LeadSubmitted goes immediately — a qualified lead is qualified the moment they
+    name a quantity, and there is nothing to withdraw. Purchase is queued behind the
+    settle window instead, and re-checked when the window closes, because the corpus
+    says commitments get withdrawn inside minutes.
+    """
+    from . import agent, capi_bm
+    try:
+        state, evidence, needs_human, objection = classify_wa(wa_id, agent.DB_PATH)
+    except Exception as e:
+        print(f"[fgc-intent] classify failed for {wa_id}: {e}")
+        return None
+
+    if state == "DISQUALIFIED":
+        # Recorded for the merchant, never reported to Meta.
+        print(f"[fgc-intent] {wa_id} disqualified: {evidence}")
+        return state
+
+    try:
+        if RUNG.get(state, 0) >= RUNG["QUALIFIED"] and state != "LOST":
+            capi_bm.send(wa_id, "LeadSubmitted", state=state)
+        if state == "COMMITTED":
+            capi_bm.queue(wa_id, "Purchase", state=state, evidence=evidence)
+    except Exception as e:
+        print(f"[fgc-intent] event dispatch failed for {wa_id}: {e}")
+    return state
