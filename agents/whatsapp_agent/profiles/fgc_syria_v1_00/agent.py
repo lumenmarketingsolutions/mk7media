@@ -2412,7 +2412,10 @@ def _reply_async(wa_id, trigger_wamid=None, answer_opener=False):
             set_contact_status(wa_id, "handed_off")
             # A confirmed order (a location on file + a "Confirmed"/"Done" reply) is
             # a closed sale — log it straight to Shopify before handing to MK.
-            _maybe_log_agent_order(wa_id, reply)
+            if any(w in (reply or "").lower() for w in _CONFIRM_WORDS):
+                # Booked order: WhatsApp card to MK, Shopify, the orders sheet, email.
+                from . import syria_orders
+                threading.Thread(target=syria_orders.capture, args=(wa_id,), daemon=True).start()
             _alert_handoff(wa_id, reason="agent flagged this for MK (order to book, "
                                          "or a question it should not answer)")
         _admin_monitor(wa_id, last_in, reply, handoff=wants_handoff)
