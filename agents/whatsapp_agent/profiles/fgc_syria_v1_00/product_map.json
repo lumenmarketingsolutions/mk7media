@@ -2878,6 +2878,30 @@
    "ad_name": "FGC | Acne Patch | Box Image | SY",
    "video_id": null,
    "market": "SY"
+  },
+  "120251058947110239": {
+   "product": "Whitening Toothpaste",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | BOGO $15 Toothpaste | SY2",
+   "market": "SY"
+  },
+  "120251058946630239": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | BOGO $15 Strips | SY2",
+   "market": "SY"
+  },
+  "120251058944870239": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Whitening 5 | SY2",
+   "market": "SY"
+  },
+  "120251058944010239": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "ad_name": "FGC | Whitening | Aug 20 Purple | SY2",
+   "market": "SY"
   }
  },
  "videos": {
@@ -3984,6 +4008,16 @@
   "1454984413306612": {
    "product": "Pimple Patches",
    "how": "frames"
+  },
+  "3076d153810f6e32df040af6bcaf0e31": {
+   "product": "Whitening Toothpaste",
+   "how": "frames",
+   "kind": "image_hash"
+  },
+  "779b0d5c13f65497a85f114ae4921e36": {
+   "product": "Teeth Whitening Strips",
+   "how": "frames",
+   "kind": "image_hash"
   }
  },
  "adsets": {},
