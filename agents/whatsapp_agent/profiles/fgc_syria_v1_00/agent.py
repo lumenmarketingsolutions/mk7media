@@ -2076,6 +2076,12 @@ def _handle_inbound_message(msg, profiles, via_phone_id=None):
     if not is_new:
         return
 
+    # SYRIA (09.10.2026): this number was bought new for the Syria shop, so there are no
+    # old threads to protect. Every chat is the agent's, ad click or not, unless MK has
+    # already written in it from her phone (then she owns it, as on the Lebanon number).
+    if not _mk_has_spoken(wa_id):
+        _mark_agent_eligible(wa_id, "Syria number answers every new chat")
+
     # Re-read intent and dispatch conversion events. On its own thread and wrapped,
     # because a customer waiting on a reply must never pay for a Graph call — and
     # because an attribution bug must never be able to take the sales agent down.
