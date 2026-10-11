@@ -1467,23 +1467,22 @@ def send_text(to_wa_id, body):
 # fired ~20-23h after their last inbound (their last chance before it shuts).
 #   - never truly replied (only the ad opener) -> offer 10$ if they order today
 #   - a real conversation that went quiet      -> a light "still interested?"
-REENGAGE_ON = os.environ.get("FGCSY_REENGAGE", "0") not in ("0", "false", "False", "")
-REENGAGE_MIN_H = float(os.environ.get("FGCSY_REENGAGE_MIN_H", "20"))
+# Syria (MK training 11.10): "after 15 hours if the clients didnt reply, send 'still interested'".
+REENGAGE_ON = os.environ.get("FGCSY_REENGAGE", "1") not in ("0", "false", "False", "")
+REENGAGE_MIN_H = float(os.environ.get("FGCSY_REENGAGE_MIN_H", "15"))
 REENGAGE_MAX_H = float(os.environ.get("FGCSY_REENGAGE_MAX_H", "23"))
-REENGAGE_INTERVAL = int(os.environ.get("FGCSY_REENGAGE_INTERVAL", "1800"))  # 30 min
+REENGAGE_INTERVAL = int(os.environ.get("FGCSY_REENGAGE_INTERVAL", "900"))  # 30 min
 
 _ARABIC_RE = re.compile(r"[؀-ۿ]")
 
-REENGAGE_MSG = {
-    "noreply": {
-        "ar": "لسا مهتم؟ إذا طلبت اليوم بصير السعر 10$ بدل 12$ (زائد 4$ توصيل).",
-        "en": "Still interested? Order today and it's 10$ instead of 12$ (+ 4$ delivery).",
-    },
-    "died": {
-        "ar": "لسا مهتم؟",
-        "en": "Still interested?",
-    },
-}
+# MK's exact words, English customers only for now. Arabic-script and arabizi wording is
+# not confirmed yet, so those customers get NO follow-up until it is (FGCSY_FOLLOWUP_AR /
+# FGCSY_FOLLOWUP_ARABIZI turn them on with her wording).
+_FU_EN = os.environ.get("FGCSY_FOLLOWUP_EN", "hi are you still interested?")
+_FU_AR = os.environ.get("FGCSY_FOLLOWUP_AR", "")
+_FU_ARABIZI = os.environ.get("FGCSY_FOLLOWUP_ARABIZI", "")
+REENGAGE_MSG = {"noreply": {"en": _FU_EN, "ar": _FU_AR, "arabizi": _FU_ARABIZI},
+                "died": {"en": _FU_EN, "ar": _FU_AR, "arabizi": _FU_ARABIZI}}
 
 
 def _genuine_inbound_count(conn, wa_id):
@@ -1506,8 +1505,9 @@ def _genuine_inbound_count(conn, wa_id):
 
 def _last_inbound_lang(conn, wa_id):
     r = conn.execute("SELECT body FROM wa_messages WHERE wa_id=? AND direction='in' "
-                     "ORDER BY id DESC LIMIT 1", (wa_id,)).fetchone()
-    return "ar" if (r and _ARABIC_RE.search(r["body"] or "")) else "en"
+                     "AND body NOT LIKE '[%' ORDER BY id DESC LIMIT 1", (wa_id,)).fetchone()
+    g = greeting_for(r["body"] if r else "")
+    return "ar" if g == GREETING_AR else ("arabizi" if g == GREETING_ARABIZI else "en")
 
 
 def _reengage_candidates(conn):
@@ -1597,7 +1597,8 @@ def _reengage_hard_block(conn, wa_id):
             if asked_location and body and not any(mk in low for mk in AD_PREFILL_MARKERS):
                 return "customer answered the shop's location request"
         else:
-            if re.match(r"^\s*(done|confirmed|تم|تمام)\s*[.!]?\s*$", body, re.I):
+            if re.match(r"^\s*(done|confirmed|تم)\s*[.!]?\s*$", body, re.I) or "تم الطلب" in body \
+                    or "your order is booked" in low:
                 return "shop confirmed the order"
             try:
                 from . import intent
@@ -1654,7 +1655,12 @@ def reengage_sweep(dry=False):
         wa_id = r["wa_id"]
         kind = "died" if _genuine_inbound_count(conn, wa_id) >= 1 else "noreply"
         lang = _last_inbound_lang(conn, wa_id)
-        msg = REENGAGE_MSG[kind][lang]
+        msg = REENGAGE_MSG[kind].get(lang) or ""
+        if not msg:
+            out.append({"wa_id": wa_id, "kind": kind, "lang": lang, "msg": "", "send": False,
+                        "reason": f"no confirmed {lang} follow-up wording yet",
+                        "last_inbound_at": r["last_inbound_at"]})
+            continue  # not stamped: picked up once MK's wording for this language is set
         send, reason = reengage_decide(conn, wa_id)
         out.append({"wa_id": wa_id, "kind": kind, "lang": lang, "msg": msg,
                     "send": send, "reason": reason,
