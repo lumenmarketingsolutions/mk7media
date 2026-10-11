@@ -55,10 +55,15 @@ def price_for(qty):
     return 10.0 * qty, 0.0
 
 
-def syria_phone(raw, fallback_wa):
+def syria_phone(raw, fallback_wa, country="Syria"):
     d = "".join(ch for ch in str(raw or "") if ch.isdigit())
     if d.startswith("00"):
         d = d[2:]
+    if country == "Lebanon":
+        if d.startswith("961"):
+            return "+" + d
+        if len(d) in (7, 8):
+            return "+961" + d.lstrip("0")
     if d.startswith("963"):
         return "+" + d
     if d.startswith("09") and len(d) == 10:
@@ -76,6 +81,8 @@ SCHEMA = {
     "properties": {
         "name": {"type": "string", "description": "Customer name as they wrote it"},
         "phone": {"type": "string", "description": "Phone number the customer gave, as written; empty if none"},
+        "country": {"type": "string", "enum": ["Syria", "Lebanon"],
+                    "description": "Where the order is delivered, from the city/area they gave"},
         "city": {"type": "string"},
         "area": {"type": "string"},
         "items": {"type": "array", "items": {
@@ -85,7 +92,7 @@ SCHEMA = {
             "required": ["product", "quantity"], "additionalProperties": False}},
         "notes": {"type": "string", "description": "Anything MK must know (delivery time asked for, etc). Empty if nothing."},
     },
-    "required": ["name", "phone", "city", "area", "items", "notes"],
+    "required": ["name", "phone", "country", "city", "area", "items", "notes"],
     "additionalProperties": False,
 }
 
@@ -115,7 +122,7 @@ def _extract(transcript, known_product):
 
 # ── 2. WhatsApp card to MK ───────────────────────────────────────────────────
 def _card(o, shopify_line, check):
-    lines = ["New Syria order"]
+    lines = ["New Lebanon order (Syria number)" if o.get("country") == "Lebanon" else "New Syria order"]
     if check:
         lines.append(f"CHECK THIS ONE: {check}")
     lines += [f"Name: {o['name'] or '-'}",
@@ -170,13 +177,15 @@ def _shopify_order(o):
     first, _, last = (o["name"] or "WhatsApp").partition(" ")
     addr = {"first_name": first or "WhatsApp", "last_name": last or "(Syria)",
             "address1": f"{o['area']}".strip() or o["city"] or "Syria",
-            "address2": "Syria", "city": o["city"] or "Syria", "phone": o["phone_fmt"]}
+            "address2": o["country"], "city": o["city"] or o["country"], "phone": o["phone_fmt"]}
+    if o["country"] == "Lebanon":
+        addr["country"] = "Lebanon"
     # Shopify rejects Syria as a shipping country ("isn't supported", checked 09.10.2026),
     # so the address goes in without one; "Syria" sits in address2 and the note.
     draft = {"line_items": lines,
              "shipping_address": addr,
              "shipping_line": {"title": "Delivery", "price": f"{delivery:.2f}"},
-             "tags": "Syria, agent deal, WhatsApp, auto-entry",
+             "tags": f"{'Syria number, Lebanon' if o['country'] == 'Lebanon' else 'Syria'}, agent deal, WhatsApp, auto-entry",
              "note": (f"SYRIA AGENT ORDER. {o['products_txt']}. Total {o['total']:g}$ "
                       f"({o['price_txt']}), cash on delivery. Customer WhatsApp +{o['wa_id']}. "
                       f"City: {o['city']}. Area: {o['area']}." + (f" Notes: {o['notes']}" if o.get("notes") else ""))}
@@ -251,7 +260,8 @@ def capture(wa_id):
         qty = sum(q for _, q in items)
         goods, delivery = price_for(qty)
         o = {"wa_id": wa_id, "name": (x.get("name") or contact.get("profile_name") or "").strip(),
-             "phone_fmt": syria_phone(x.get("phone"), wa_id),
+             "phone_fmt": syria_phone(x.get("phone"), wa_id, "Lebanon" if x.get("country") == "Lebanon" else "Syria"),
+             "country": "Lebanon" if (x.get("country") == "Lebanon") else "Syria",
              "city": (x.get("city") or "").strip(), "area": (x.get("area") or "").strip(),
              "notes": (x.get("notes") or "").strip(), "items": items, "qty": qty,
              "goods": goods, "delivery": delivery, "total": goods + delivery,

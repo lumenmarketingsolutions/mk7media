@@ -308,7 +308,15 @@ Mirror the customer's script exactly:
   tawseel?") -> reply in the SAME arabizi style, Syrian words, normal digits:
   "Se3ra 12$".
 - English -> English. French -> French.
-Syrian, not Lebanese. These are confirmed by the shop owner:
+DIALECT BY CUSTOMER: a customer on a LEBANESE number (+961, the note at the end
+says so) gets LEBANESE dialect, like the Lebanon shop (e.g. "٤$ ديليفري",
+"شو اسمك ورقمك والمنطقة؟", arabizi "4$ delivery, w iza akhadt tnen el delivery
+bi balesh", "Tayeb, esmak w ra2mak w l madine w l manta2a?"). EVERYONE ELSE
+gets Syrian dialect. English always gets English.
+ARABIZI: when the customer writes Arabic in Latin letters, reply in Arabic but
+in Latin letters ONLY, never Arabic script. Syrian arabizi "two" is "tnein"
+(never "tentein"): "Tawseel 4$, w iza akhadt tnein el tawseel bbalash".
+Syrian, not Lebanese (for non-Lebanese numbers). Confirmed by the shop owner:
 - Say هاد, never هيدا. Say توصيل, never ديليفري. "Ok" is تمام, never أوك.
 - Damascus is الشام.
 - In Arabic-script replies ALWAYS write numbers with Arabic digits: ١٢$، ٤$،
@@ -326,6 +334,8 @@ You are a SALES agent. Your one goal is to book the order. On every message
 answer what they asked in one short line, then move them toward giving their
 details. Assume they want to buy. Carry the whole conversation yourself and
 only hand off when you genuinely cannot proceed (short list below).
+When they say yes after the price or greeting, ask straight away for their
+details. Reply to EVERY customer message, never leave one unanswered.
 An order needs FOUR things: name, phone number, city, and area. A location pin
 alone is NOT enough, the delivery agency needs the city and area written out.
 - Ask for them in one line: "الاسم والرقم والمدينة والمنطقة إذا بتريد"
@@ -348,15 +358,27 @@ MONEY
   Use it when they ask about delivery, a discount, the total for more than one,
   or say it's expensive. "غالي" / "ghali" -> "إذا أخدت تنتين التوصيل ببلاش، وتلاتة بـ ٣٠$"
 - Total for one item: "١٦$ مع التوصيل".
-- Prices are in US dollars. If they ask in Syrian pounds, the rate is
-  1$ = 122 ليرة: one pack is "١٤٦٤ ليرة سورية", delivery is ٤٨٨ ليرة.
+- Prices are in US dollars. Syrian pounds ONLY for Syria and only when asked,
+  using exactly these amounts: one pack "١٤٦٠ ليرة سورية", delivery "٤٨٧ ليرة",
+  one pack with delivery "١٩٤٧ ليرة", 2 items "٢٩٢٠ ليرة", 3 items "٣٦٥٠ ليرة"
+  (free delivery). 4 or more items: dollars only (10$ each). Lebanon: dollars only.
 - Payment is cash on delivery only. No transfers, no Whish, nothing else.
 
 WHERE WE DELIVER AND HOW LONG
-- All of Syria EXCEPT Sweida (السويداء). Sweida -> "للأسف ما منوصل عالسويداء"
-- Outside Syria (Lebanon, Beirut, anywhere else) -> "منوصل بسوريا بس" then ask
-  for what is missing.
-- Timing: "بالشام يوم، وباقي المحافظات من ٢ لـ ٦ أيام". Never promise faster.
+- We deliver ALL OVER SYRIA AND ALL OVER LEBANON. "Where do you deliver?" ->
+  "منوصل لكل سوريا ولبنان" (English: "All over Syria and Lebanon").
+- The only place we do not deliver is Sweida (السويداء), and only say so if they
+  name it: "للأسف ما منوصل عالسويداء".
+- LEBANON orders are exactly like Syria orders: same 12$ price, 4$ delivery, the
+  same deals (2 = 24$, 3 = 30$, 4+ = 10$ each, free delivery from 2), cash on
+  delivery, DOLLARS ONLY (never Syrian pounds for Lebanon). Every area of
+  Lebanon, no exceptions. Book it the same way (name, phone, city, area).
+- Syria timing: "بالشام يوم، وباقي المحافظات من ٢ لـ ٦ أيام".
+- Lebanon timing: Beirut same day, everywhere else in Lebanon 2 to 5 days.
+- Never promise faster.
+- A place named in a QUESTION ("do you deliver to Beirut?", "بتوصلو عحلب؟") is
+  not an order and never a reason to hand off: answer it ("Yes, Beirut same
+  day" / "إي، منوصل") and keep going.
 - If they are not home, the delivery agency calls them and tries again.
 
 ORDER COMPLETE
@@ -426,7 +448,8 @@ WHEN TO HAND OFF — output ONLY [[HANDOFF]], nothing else
 - After the order-complete messages above (they end with [[HANDOFF]]).
 - Anything about an order that already exists: late, missing, change, cancel.
 - A complaint or a refund request.
-- A voice note, photo, or video you cannot read.
+- A photo or video you cannot read.
+- They ask for a picture of the product (the owner sends it).
 - A language other than Arabic, English, or French.
 - The product is unknown and they ask a product-specific question.
 - They quote an ad offer/price/pack size that differs from these instructions.
@@ -436,6 +459,11 @@ instantly and takes it.
 DO NOT hand off for: price, delivery price or timing, the multi-buy offer,
 Syrian pounds, Sweida, coverage, payment, quantity, how to use a known product,
 is-it-original, is-it-guaranteed. Answer them and keep closing.
+
+VOICE NOTES: never hand off. Ask them to type, in their dialect: Syrian
+"ما بقدر اسمع الصوت هلق، اكتبلي إذا بتريد" (feminine: اكتبيلي إذا بتريدي),
+Lebanese number "ما فيي إسمع الصوت هلق، فيك تكتبلي؟", English "I can't listen
+to voice notes right now, could you type it?".
 
 Do not mention that you are an AI, an assistant, or a bot. You are the shop.
 """
@@ -2173,8 +2201,22 @@ def _handle_inbound_message(msg, profiles, via_phone_id=None):
         print(f"[fgcsy-wa] inbound {wa_id}: {body[:60]!r} — human owns thread (snoozed/handed_off), agent silent")
         return
 
+    if msg_type in ("edit", "revoke", "reaction", "ephemeral"):
+        # A customer editing, deleting or reacting to a message is not a new question.
+        print(f"[fgcsy-wa] inbound {wa_id}: {msg_type} — ignored, not a handoff")
+        return
+
+    if msg_type in ("audio", "voice"):
+        # MK (training 09.10): never hand voice notes off; ask them to type instead.
+        line = _voice_note_line(wa_id)
+        print(f"[fgcsy-wa] inbound {wa_id}: voice note — asking them to type")
+        send_text(wa_id, line)
+        _last_reply_at[wa_id] = time.time()
+        _admin_monitor(wa_id, body, line, handoff=False, note="voice note, asked to type")
+        return
+
     if msg_type in HANDOFF_MEDIA_TYPES:
-        # Voice notes, video, photos, documents: the agent cannot read these.
+        # Video, photos, documents: the agent cannot read these.
         # Per Kendall: do not reply, hand straight to MK.
         print(f"[fgcsy-wa] inbound {wa_id}: {msg_type} — cannot read, handing off to MK")
         set_contact_status(wa_id, "handed_off")
@@ -2287,6 +2329,62 @@ def _mk_has_spoken(wa_id):
                        "LIMIT 1", (wa_id,)).fetchone()
     conn.close()
     return bool(row)
+
+
+# ── MK's live training ───────────────────────────────────────────────────────
+# Everything MK confirms on lumenmarketing.co/FGCagenttraining is saved as a "Syria
+# brief" (newest value per key). The live agent pulls that brief every few minutes and
+# adds it after the instructions above, marked as the owner's latest word, so what she
+# teaches goes live on its own (Kendall 12.10.2026: "so I dont have to come to you").
+# If the training site is down, the last brief that loaded keeps being used.
+TRAINING_BRIEF_URL = os.environ.get("FGCSY_BRIEF_URL", "")
+TRAINING_REFRESH_S = int(os.environ.get("FGCSY_BRIEF_REFRESH", "300"))
+_brief_cache = {"at": 0.0, "text": ""}
+_brief_lock = threading.Lock()
+
+
+def live_training_block():
+    if not TRAINING_BRIEF_URL:
+        return ""
+    with _brief_lock:
+        if time.time() - _brief_cache["at"] < TRAINING_REFRESH_S:
+            return _brief_cache["text"]
+        _brief_cache["at"] = time.time()
+    try:
+        r = requests.get(TRAINING_BRIEF_URL, timeout=8)
+        brief = (r.json() or {}).get("brief") or []
+        lines = [f"- [{f['section']}] {f['key']}: {f['value']}" for f in brief
+                 if f.get("section") != "open_questions" and f.get("value")]
+        text = ("THE OWNER'S LATEST TRAINING (MK, saved on the training page). These are her "
+                "confirmed rules and lines, newest value per item. Where anything here differs "
+                "from the instructions above, THIS WINS. Lines marked SUPERSEDED are no longer "
+                "true. Keep every other rule above (length, one message, never invent a fact, "
+                "product safety, handoff token).\n" + "\n".join(lines)) if lines else ""
+        with _brief_lock:
+            _brief_cache["text"] = text
+        print(f"[fgcsy-wa] training brief loaded: {len(lines)} items")
+        return text
+    except Exception as e:
+        print(f"[fgcsy-wa] training brief fetch failed ({e}), using last one")
+        return _brief_cache["text"]
+
+
+def _voice_note_line(wa_id):
+    """'Please type' in the customer's own dialect and script (MK's training lines)."""
+    lebanese = str(wa_id).startswith("961")
+    last = ""
+    for h in reversed(_history(wa_id)):
+        if h["direction"] == "in" and (h["body"] or "").strip() and not (h["body"] or "").startswith("["):
+            last = h["body"]
+            break
+    g = greeting_for(last)
+    if g == GREETING_AR:
+        return "ما فيي إسمع الصوت هلق، فيك تكتبلي؟" if lebanese else "ما بقدر اسمع الصوت هلق، اكتبلي إذا بتريد"
+    if g == GREETING_ARABIZI:
+        return "Ma fiyye esma3 el sot hala2, fik tektebli?" if lebanese else "Ma be2der esma3 el sot hala2, ktebli iza btrid"
+    if not last:
+        return "ما فيي إسمع الصوت هلق، فيك تكتبلي؟" if lebanese else "ما بقدر اسمع الصوت هلق، اكتبلي إذا بتريد"
+    return "I can't listen to voice notes right now, could you type it?"
 
 
 def _schedule_greeting(wa_id):
@@ -2522,6 +2620,13 @@ def generate_reply(wa_id, answer_opener=False):
             messages.append({"role": role, "content": content})
 
     bits = []
+    if str(wa_id).startswith("961"):
+        bits.append("This customer is on a LEBANESE number (+961): reply in LEBANESE dialect "
+                    "(or English if they write English). Lebanon orders: same prices, 4$ delivery, "
+                    "same deals, dollars only, Beirut same day, rest of Lebanon 2 to 5 days.")
+    else:
+        bits.append("This customer is NOT on a Lebanese number: reply in SYRIAN dialect "
+                    "(or English if they write English).")
     if contact.get("profile_name"):
         bits.append(f"The customer's WhatsApp profile name is {contact['profile_name']}.")
     # What the customer NAMES in the conversation beats the ad they clicked. Scan
@@ -2595,6 +2700,9 @@ def generate_reply(wa_id, answer_opener=False):
         return None, False
 
     system_blocks = [{"type": "text", "text": SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}]
+    live = live_training_block()
+    if live:
+        system_blocks.append({"type": "text", "text": live, "cache_control": {"type": "ephemeral"}})
     if context_line:
         system_blocks.append({"type": "text", "text": context_line})
 
