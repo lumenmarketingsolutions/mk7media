@@ -242,7 +242,8 @@ def capture(wa_id):
         transcript = "\n".join(
             f"{'CUSTOMER' if h['direction'] == 'in' else 'SHOP'}: {h['body']}"
             for h in hist if (h.get("body") or "").strip())
-        known = contact.get("product")
+        known = contact.get("product") or (A.PRODUCT_BY_AD.get(str(contact.get("product_ad_id")))
+                                           if contact.get("product_ad_id") else None)
         named = {p for h in hist if h["direction"] == "in"
                  for p in [A._product_from_text(h["body"] or "")] if p}
         allowed = ({known} if known else set()) | named

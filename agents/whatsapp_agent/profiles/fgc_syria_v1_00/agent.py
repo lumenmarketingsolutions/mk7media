@@ -235,12 +235,16 @@ GREETING_MARKERS = ("would you like to order", "this item is for", "بدك تط�
 # gets Arabic script, Arabic in Latin letters gets the same, everything else English.
 GREETING_AR = "أهلين، السعر ١٢$\n\nبدك تطلب؟"
 GREETING_ARABIZI = "Ahlein, se3ro 12$\n\nBadak totlob?"
+GREETING_FR = "Bonjour, c'est 12$\n\nVous voulez commander?"
+_FRENCH_WORDS = {"bonjour", "bonsoir", "salut", "combien", "prix", "livraison", "svp", "stp",
+                 "commander", "voudrais", "veux", "est-ce", "c'est"}
 _ARABIZI_WORDS = {"marhaba", "mar7aba", "ahla", "ahlan", "ahlein", "shu", "shou", "chou", "sho",
                   "addesh", "adesh", "adde", "addeh", "2adesh", "2addesh", "ade", "kam", "kif", "keef",
                   "bade", "baddi", "badde", "badi", "biddi", "bdi", "fi", "tawseel", "tawsil", "se3r",
                   "se3ra", "se3ro", "salam", "yalla", "w", "3am", "3a", "la2", "eh", "ma3", "mni7",
                   "bas", "kteer", "ktir", "wen", "wein", "lesh", "hay", "hayda", "hada", "hadi", "3ndkon",
-                  "3andkon", "btwaslo", "betwaslo", "mawjood", "mawjoud", "arjook", "3afak"}
+                  "3andkon", "btwaslo", "betwaslo", "mawjood", "mawjoud", "arjook", "3afak",
+                  "aade", "bde", "wahde", "whde", "tmm", "shlon", "shlonak", "fiyo", "badon"}
 
 
 def greeting_for(text):
@@ -251,6 +255,8 @@ def greeting_for(text):
     if words and (any(w in _ARABIZI_WORDS for w in words)
                   or any(re.search(r"[a-z][2375][a-z]|[a-z][2375]$|^[2375][a-z]", w) for w in words)):
         return GREETING_ARABIZI
+    if any(w in _FRENCH_WORDS for w in re.findall(r"[a-z\u00e0-\u00ff'-]+", t.lower())):
+        return GREETING_FR
     return GREETING_TEXT
 # Where handoff pings go: the FGC number itself, so the alert lands in the
 # WhatsApp Business app MK already works in. Sent FROM the Lumen Cloud API number.
@@ -264,15 +270,18 @@ OPT_OUT_WORDS = {"stop", "unsubscribe", "opt out", "optout", "remove me", "stop 
 # knowledge. Prices/offers marked TODO must be confirmed by Kendall/MK before
 # go-live (FGC_AUTO_REPLY=0 until then keeps the agent in log-only mode).
 SYSTEM_PROMPT = """\
-You are answering WhatsApp messages for Feels Good Club (FGC) in SYRIA, a small
-online shop. Customers arrive by clicking an Instagram or Facebook ad, so they
-already saw the product. They have ALREADY received our opening message:
+You are answering WhatsApp messages for Feels Good Club (FGC), a small online
+shop, on its Syria number. This number sells to customers in SYRIA AND in
+LEBANON: a large share of the people writing here are Lebanese, and a Lebanese
+order is just as wanted as a Syrian one. Customers arrive by clicking an
+Instagram or Facebook ad, so they already saw the product. They have ALREADY received our opening message:
 "Hello this item is for $12 / Would you like to order?" (or the same in the
 customer's script: "أهلين، السعر ١٢$ / بدك تطلب؟" or "Ahlein, se3ro 12$ /
-Badak totlob?") — never repeat it.
+Badak totlob?", or in French "Bonjour, c'est 12$ / Vous voulez commander?")
+— never repeat it.
 
 WHO YOU SOUND LIKE
-You are the FGC shop account in Syria, the same person who sent that opening
+You are the FGC shop account (Syria number), the same person who sent that opening
 message. Warm, fast, and extremely short. This is a WhatsApp shop chat, not
 customer service and not a sales pitch.
 
@@ -294,40 +303,64 @@ order?" — the opening message already asked that.
 - NEVER use emojis. Not one, ever.
 - Never ask "what would you like to know?". They already saw the ad and price.
 
-LANGUAGE — Syrian, never Lebanese, never formal
-ABSOLUTE: reply in the same language AND script as the customer's LAST message.
-English message -> English reply, even if the chat started in Arabic.
-Arabizi message -> arabizi reply. Arabic script -> Arabic script. The Arabic
-lines below are the Arabic-script versions; for English or arabizi customers,
-say the same thing in their language (e.g. Sweida in arabizi: "La2 ma mnwasel
-3al Sweida"; delivery in English: "Yes, 4$ delivery, free if you take 2";
-guaranteed in English: "Yes, guaranteed"; original in arabizi: "Eh asli 100%").
-Mirror the customer's script exactly:
-- Arabic script -> SYRIAN Arabic (Shami, Damascus style) in Arabic script.
-- Arabizi (Arabic in Latin letters, e.g. "shou se3ra", "adesh tawseel", "fi
-  tawseel?") -> reply in the SAME arabizi style, Syrian words, normal digits:
-  "Se3ra 12$".
-- English -> English. French -> French.
-DIALECT BY CUSTOMER: a customer on a LEBANESE number (+961, the note at the end
-says so) gets LEBANESE dialect, like the Lebanon shop (e.g. "٤$ ديليفري",
-"شو اسمك ورقمك والمنطقة؟", arabizi "4$ delivery, w iza akhadt tnen el delivery
-bi balesh", "Tayeb, esmak w ra2mak w l madine w l manta2a?"). EVERYONE ELSE
-gets Syrian dialect. English always gets English.
-ARABIZI: when the customer writes Arabic in Latin letters, reply in Arabic but
-in Latin letters ONLY, never Arabic script. Syrian arabizi "two" is "tnein"
-(never "tentein"): "Tawseel 4$, w iza akhadt tnein el tawseel bbalash".
-Syrian, not Lebanese (for non-Lebanese numbers). Confirmed by the shop owner:
+LANGUAGE — two things decide every reply: the customer's SCRIPT and DIALECT
+1) SCRIPT, absolute: reply in the same language AND script as the customer's
+   LAST message.
+   - English -> English, even if the chat started in Arabic.
+   - French -> French (Lebanese customers often write French: "bonjour",
+     "c'est combien", "livraison"). Short and casual, like the English replies.
+   - Arabic script -> Arabic script.
+   - Arabizi (Arabic in Latin letters/numbers, e.g. "shou se3ra", "ade
+     delivery", "bade wa7de", "adesh tawseel") -> Arabizi ONLY, never Arabic
+     script, normal digits (12$).
+   - Mixed English + arabizi -> arabizi.
+2) DIALECT: the note at the end says whether this customer is LEBANESE or
+   SYRIAN and why. Follow it. It is worked out from where they want delivery,
+   the words they use, and their number, in that order. Lebanese customers get
+   Lebanese Arabic exactly like the Lebanon shop. Syrian customers get Syrian.
+   Never formal Modern Standard Arabic for either.
+
+Every Arabic line below is given in BOTH dialects. Use the one that matches
+the customer. For English, French or arabizi customers say the same thing in
+their language (e.g. delivery in English: "Yes, 4$ delivery, free if you take
+2"; guaranteed: "Yes, guaranteed"; original in arabizi: "Eh asli 100%").
+
+SYRIAN customers (Shami, Damascus style). Confirmed by the shop owner:
 - Say هاد, never هيدا. Say توصيل, never ديليفري. "Ok" is تمام, never أوك.
 - Damascus is الشام.
 - In Arabic-script replies ALWAYS write numbers with Arabic digits: ١٢$، ٤$،
-  ٢٤$، ٣٠$، ١٠$، ١٨$، ١٠٠%. Keep the $ and % signs. Arabizi and English
-  replies use normal digits (12$).
-- Masculine by default (تكرم، إذا بتريد، إذا أخدت، بدك تطلبه، معك). Switch to
-  feminine (تكرمي، إذا بتريدي، بدك تطلبيه، معكي) only when the customer is
-  clearly a woman, e.g. a female name.
+  ٢٤$، ٣٠$، ١٠$، ١٨$، ١٠٠%. Keep the $ and % signs.
+- Syrian arabizi "two" is "tnein" (never "tentein"): "Tawseel 4$, w iza akhadt
+  tnein el tawseel bbalash".
 - Thanks -> "تكرم" (to a man) / "تكرمي" (to a woman).
 - They only say "مرحبا" -> "أهلين، بدك تطلبه؟"
-Never formal Modern Standard Arabic.
+
+LEBANESE customers (like the Lebanon shop, the way MK writes to them):
+- Lebanese words are RIGHT here: هيدا, ديليفري, أوك, قديش, هلق, كتير.
+  The Syrian-only rules above (هاد, توصيل, تمام-not-أوك, الشام) do NOT apply.
+- Digits: normal digits are fine ("سعر 12$", "4$ ديليفري"), like the Lebanon shop.
+- Lines (Arabic script / arabizi):
+    price: "سعر 12$" / "Se3ro 12$"
+    delivery: "4$ ديليفري، واذا بتاخد تنين الديليفري ببلاش" /
+              "4$ delivery, w iza akhadt tnen el delivery bi balesh"
+    order details: "طيب، اسمك ورقمك والمدينة والمنطقة؟" /
+              "Tayeb, esmak w ra2mak w l madine w l manta2a?"
+    city known: "اسمك ورقمك والمنطقة؟" / "Esmak w ra2mak w l manta2a?"
+    when will it arrive: "بيروت نفس النهار، وباقي لبنان من 2 لـ 5 أيام" /
+              "Bayrouth nafs el nhar, w ba2i Lebnen men 2 la 5 iyyem"
+    where do you deliver: "على كل لبنان وسوريا" / "3a kel Lebnen w Souria"
+    guaranteed: "اكيد مضمون" / "Akid madmoun"
+    original: "اي أصلي 100%" / "Eh asli 100%"
+    expensive: "اذا بتاخد تنين الديليفري ببلاش، وتلاتة بـ 30$" /
+              "Iza akhadt tnen el delivery bi balesh, w tlete b 30$"
+    asks for 10$: "La, bas iza akhadt 3 bi 30$ w el delivery bi balesh"
+    ok: "أوك" / "Ok"     thanks: "ولو، أهلا وسهلا" / "Walaw, ahla w sahla"
+    only "مرحبا": "أهلا، بدك تطلبه؟" / "Ahla, badak totlbo?"
+
+BOTH dialects: masculine by default (Syrian: تكرم، إذا بتريد، معك. Lebanese:
+بدك، معك، اسمك). Switch to feminine (Syrian تكرمي، إذا بتريدي، معكي. Lebanese
+بدك تطلبيه، معكي، اسمك) only when the customer is clearly a woman, e.g. a
+female name.
 
 YOUR REAL JOB — CLOSE THE SALE
 You are a SALES agent. Your one goal is to book the order. On every message
@@ -338,8 +371,9 @@ When they say yes after the price or greeting, ask straight away for their
 details. Reply to EVERY customer message, never leave one unanswered.
 An order needs FOUR things: name, phone number, city, and area. A location pin
 alone is NOT enough, the delivery agency needs the city and area written out.
-- Ask for them in one line: "الاسم والرقم والمدينة والمنطقة إذا بتريد"
-  (English: "Name, phone number, city and area please").
+- Ask for them in one line: Syrian "الاسم والرقم والمدينة والمنطقة إذا بتريد",
+  Lebanese "طيب، اسمك ورقمك والمدينة والمنطقة؟" (English: "Name, phone number,
+  city and area please"; French: "Nom, numéro, ville et quartier svp").
 - If they already gave some, ask ONLY for what is missing, e.g. city known:
   "الاسم والرقم والمنطقة إذا بتريد".
 
@@ -385,9 +419,14 @@ ORDER COMPLETE
 The moment you have name, phone, city and area, send exactly these two
 messages, separated by the token [[NEXT]], then [[HANDOFF]]:
   تمام، تم الطلب، المندوب رح يتواصل معك قريباً[[NEXT]]عنا عرض: لزقات التبييض مع المعجون البنفسجي بـ ١٨$، خبرنا إذا بدك[[HANDOFF]]
-(feminine: معكي. English customer: "Done, your order is booked, the driver will
-contact you soon[[NEXT]]We have an offer: whitening strips with the purple
-toothpaste for 18$, let us know if you want it[[HANDOFF]]".)
+That is the SYRIAN version. The other versions (keep the words "تم الطلب" /
+"tam el talab" / "order is booked" / "commande est confirmée" exactly, they
+are how the order gets recorded):
+  Lebanese Arabic: تمام، تم الطلب، الديليفري رح يتواصل معك قريباً[[NEXT]]في عنا عرض: لزقات التبييض مع المعجون البنفسجي بـ 18$، خبرنا اذا بدك[[HANDOFF]]
+  Arabizi (either dialect): Tamem, tam el talab, el delivery ra7 yetwasal ma3ak 2ariban[[NEXT]]Fi 3anna 3ard: whitening strips ma3 el ma3joun el banafsaje b 18$, khabbirna iza baddak[[HANDOFF]]
+  English: Done, your order is booked, the driver will contact you soon[[NEXT]]We have an offer: whitening strips with the purple toothpaste for 18$, let us know if you want it[[HANDOFF]]
+  French: C'est bon, votre commande est confirmée, le livreur va vous contacter bientôt[[NEXT]]On a une offre: les strips blanchissants avec le dentifrice violet à 18$, dites-nous si ça vous intéresse[[HANDOFF]]
+(feminine: معكي / ma3ik.)
 This is the ONLY upsell you ever make unprompted, and only at this moment.
 Never send "تم الطلب" twice on the same thread.
 
@@ -2108,7 +2147,17 @@ def _handle_inbound_message(msg, profiles, via_phone_id=None):
         if msg_type == "reaction":
             emoji = (msg.get("reaction") or {}).get("emoji", "")
             body = f"[reacted {emoji}]".strip()
-        _record_message(wa_id, "in", msg_type, body, wamid=wamid)
+        is_new = _record_message(wa_id, "in", msg_type, body, wamid=wamid)
+        # 17.10.2026: a chat that OPENS with an "unsupported" message (the ad click
+        # arrives in a format the Cloud API can't render) used to stop here, so the
+        # agent never greeted and MK answered by hand 10 to 60 minutes later. 35 of 130
+        # Lebanese chats opened this way. The customer did write to us, so greet them.
+        # Syrian (+963) numbers are blocked on the API (sanctions): MK keeps those.
+        if (msg_type == "unsupported" and is_new and not str(wa_id).startswith("963")
+                and not _mk_has_spoken(wa_id)):
+            _mark_agent_eligible(wa_id, "chat opened with an unsupported message")
+            if _schedule_greeting(wa_id):
+                print(f"[fgcsy-wa] inbound {wa_id}: opened with an unsupported message, greeting them")
         return
 
     # Eligibility: an ad click (referral) or the ad's prefill greeting means this
@@ -2252,7 +2301,8 @@ def _handle_inbound_message(msg, profiles, via_phone_id=None):
 
 
 # Syria: "تمام" is the everyday "ok" here, so only the real close counts as settled.
-_SETTLED_WORDS = ("confirmed", "done", "تم الطلب", "تمام، تم الطلب", "done, your order")
+_SETTLED_WORDS = ("confirmed", "done", "تم الطلب", "تمام، تم الطلب", "done, your order",
+                  "tamem, tam el talab", "tam el talab", "c'est bon, votre commande")
 
 
 def _returning_on_settled_thread(wa_id):
@@ -2365,7 +2415,14 @@ def live_training_block():
                 "confirmed rules and lines, newest value per item. Where anything here differs "
                 "from the instructions above, THIS WINS. Lines marked SUPERSEDED are no longer "
                 "true. Keep every other rule above (length, one message, never invent a fact, "
-                "product safety, handoff token).\n" + "\n".join(lines)) if lines else ""
+                "product safety, handoff token).\n"
+                "DIALECT LINES: items written as \"Lebanese: X -> Syrian: Y\" were MK teaching "
+                "how to talk to SYRIAN customers. Use Y for Syrian customers. For a LEBANESE "
+                "customer the Lebanese side (X) is the right style of words, and the \"never say "
+                "Lebanese words\" item does not apply to them. Take only the WORDS from X, never "
+                "its facts: Lebanon delivery is Beirut same day, rest of Lebanon 2 to 5 days, and "
+                "every order still needs name, phone, city and area. Prices, deals and every "
+                "other rule here apply to both.\n" + "\n".join(lines)) if lines else ""
         with _brief_lock:
             _brief_cache["text"] = text
         print(f"[fgcsy-wa] training brief loaded: {len(lines)} items")
@@ -2375,9 +2432,75 @@ def live_training_block():
         return _brief_cache["text"]
 
 
+# ── Lebanese or Syrian? ──────────────────────────────────────────────────────
+# 17.10.2026: the number alone was wrong both ways. Syrians living in Lebanon write
+# from +961 numbers ("موجود بسوريا", "جسر الشغور"), and Lebanese customers on foreign
+# numbers got Syrian. Order of evidence: where they want it delivered, then words
+# only one dialect uses, then the number.
+_LB_PLACES = ("بيروت", "طرابلس", "صيدا", "صور", "جونيه", "جونية", "زحلة", "زحله", "بعلبك",
+              "النبطية", "النبطيه", "عكار", "البقاع", "بقاع", "الضاحية", "الضاحيه", "جبيل",
+              "المتن", "كسروان", "عاليه", "الشوف", "البترون", "الكورة", "الكوره", "زغرتا",
+              "مجدل عنجر", "شتورة", "شتوره", "بنت جبيل", "حلبا", "المنية", "المنيه", "الهرمل",
+              "عرسال", "خلدة", "خلده", "الدامور", "برجا", "لبنان",
+              "beirut", "beyrouth", "bayrouth", "tripoli", "tripolie", "trablos", "saida", "sidon", "sour",
+              "tyre", "jounieh", "jounie", "zahle", "zahleh", "baalbek", "nabatieh", "nabatiye",
+              "akkar", "bekaa", "beqaa", "dahye", "dahieh", "jbeil", "byblos", "metn", "keserwan",
+              "aley", "chouf", "batroun", "koura", "zgharta", "chtaura", "halba", "minieh",
+              "hermel", "khalde", "damour", "lebanon", "liban", "lebnen", "libnen")
+_SY_PLACES = ("الشام", "دمشق", "حلب", "حمص", "حماة", "حماه", "اللاذقية", "اللاذقيه", "طرطوس",
+              "ادلب", "إدلب", "درعا", "دير الزور", "الرقة", "الرقه", "الحسكة", "الحسكه",
+              "القامشلي", "جسر الشغور", "جبلة", "جبله", "بانياس", "القنيطرة", "السويداء",
+              "منبج", "عفرين", "سوريا", "سورية",
+              "sham", "damascus", "dimashq", "aleppo", "halab", "homs", "hama", "latakia",
+              "lattakia", "tartus", "tartous", "idlib", "daraa", "deir ez", "raqqa", "hasakah",
+              "qamishli", "jableh", "banias", "suwayda", "sweida", "syria", "souria", "suria")
+_LB_WORDS = ("هيدا", "هيدي", "ميرسي", "دليفري", "ديليفري", "دلفري", "hayda", "hayde",
+             "merci", "mersi", "delivery ade", "ade delivery", "adde", "aade")
+_SY_WORDS = ("هاد", "هادا", "هادي", "هدول", "شلون", "منشان", "شقد", "قديه",
+             "hada", "hadi", "shlon", "shlonak", "menshan", "2adeh", "addeh")
+
+
+def _has_term(text, terms):
+    t = " " + (text or "").lower() + " "
+    for term in terms:
+        if re.search(r"[a-z]", term):
+            if re.search(r"(?<![a-z])" + re.escape(term) + r"(?![a-z])", t):
+                return term
+        # Arabic: whole word, allowing the attached prefixes و ب ل ع ف ال ("ببيروت",
+        # "عالشام", "بصور"). Without the boundary "صور" (Tyre) matched "بصورلك" (I'll
+        # send you a photo).
+        elif re.search(r"(?<![؀-ۿ])(?:[وبلعف]|ال|بال|عال)?" + re.escape(term)
+                       + r"(?![؀-ۿ])", t):
+            return term
+    return None
+
+
+def _dialect(wa_id):
+    """('lebanese' | 'syrian', why). Reads the customer's own messages."""
+    said = " ".join((h["body"] or "") for h in _history(wa_id)
+                    if h["direction"] == "in" and not (h["body"] or "").startswith("["))
+    said_l = said.lower()
+    # Where they want it delivered beats everything. Latest mention wins.
+    lb, sy = _has_term(said_l, _LB_PLACES), _has_term(said_l, _SY_PLACES)
+    if lb and sy:
+        return ("lebanese", f"named {lb}") if said_l.rfind(lb) > said_l.rfind(sy) else ("syrian", f"named {sy}")
+    if lb:
+        return "lebanese", f"named {lb} (Lebanon)"
+    if sy:
+        return "syrian", f"named {sy} (Syria)"
+    lw, sw = _has_term(said_l, _LB_WORDS), _has_term(said_l, _SY_WORDS)
+    if lw and not sw:
+        return "lebanese", f"writes Lebanese ('{lw}')"
+    if sw and not lw:
+        return "syrian", f"writes Syrian ('{sw}')"
+    if str(wa_id).startswith("961"):
+        return "lebanese", "Lebanese number (+961)"
+    return "syrian", "not a Lebanese number"
+
+
 def _voice_note_line(wa_id):
     """'Please type' in the customer's own dialect and script (MK's training lines)."""
-    lebanese = str(wa_id).startswith("961")
+    lebanese = _dialect(wa_id)[0] == "lebanese"
     last = ""
     for h in reversed(_history(wa_id)):
         if h["direction"] == "in" and (h["body"] or "").strip() and not (h["body"] or "").startswith("["):
@@ -2450,7 +2573,12 @@ def _greet_async(wa_id):
             return
         if not _claim_greeting(wa_id):
             return
-        greeting = greeting_for(_last_inbound_body(wa_id) or "")
+        last = _last_inbound_body(wa_id) or ""
+        if last.startswith("[") and last.endswith("]"):
+            # No readable text yet ("[unsupported message]"): go by the script of their
+            # WhatsApp name, as MK does ("مرحبا ١٢$" to Arabic names, "Hello 12$" otherwise).
+            last = contact.get("profile_name") or ""
+        greeting = greeting_for(last)
         data = send_text(wa_id, greeting)
         if not data:
             # Send failed. Give the claim back so a later app greeting can still arm us.
@@ -2558,7 +2686,8 @@ def _reply_async(wa_id, trigger_wamid=None, answer_opener=False):
 
 
 AGENT_ORDERS_ON = os.environ.get("FGCSY_AGENT_ORDERS", "0") not in ("0", "false", "False", "")
-_CONFIRM_WORDS = ("تم الطلب", "your order is booked", "confirmed")
+_CONFIRM_WORDS = ("تم الطلب", "your order is booked", "confirmed", "tam el talab",
+                  "commande est confirmée")
 
 
 def _maybe_log_agent_order(wa_id, reply):
@@ -2626,18 +2755,25 @@ def generate_reply(wa_id, answer_opener=False):
             messages.append({"role": role, "content": content})
 
     bits = []
-    if str(wa_id).startswith("961"):
-        bits.append("This customer is on a LEBANESE number (+961): reply in LEBANESE dialect "
-                    "(or English if they write English). Lebanon orders: same prices, 4$ delivery, "
-                    "same deals, dollars only, Beirut same day, rest of Lebanon 2 to 5 days.")
+    dialect, why = _dialect(wa_id)
+    if dialect == "lebanese":
+        bits.append(f"DIALECT: this customer is LEBANESE ({why}). Arabic script or arabizi -> "
+                    "LEBANESE Arabic, the Lebanese lines above, like the Lebanon shop; the "
+                    "Syrian-only words rules do not apply. English -> English, French -> French. "
+                    "Lebanon orders: same prices, 4$ delivery, same deals, dollars only, never "
+                    "Syrian pounds, Beirut same day, rest of Lebanon 2 to 5 days.")
     else:
-        bits.append("This customer is NOT on a Lebanese number: reply in SYRIAN dialect "
-                    "(or English if they write English).")
+        bits.append(f"DIALECT: this customer is SYRIAN ({why}). Arabic script or arabizi -> "
+                    "SYRIAN Arabic. English -> English, French -> French.")
     if contact.get("profile_name"):
         bits.append(f"The customer's WhatsApp profile name is {contact['profile_name']}.")
     # What the customer NAMES in the conversation beats the ad they clicked. Scan
     # recent inbound turns (newest first) for an explicit product mention.
     ad_product = contact.get("product")
+    if not ad_product and contact.get("product_ad_id"):
+        # The ad was unknown when they clicked and has been verified since (e.g. the
+        # Lebanese whitening ads added 17.10.2026). Only the verified map counts.
+        ad_product = PRODUCT_BY_AD.get(str(contact["product_ad_id"]))
     said_product = None
     for m in reversed(messages):
         if m["role"] == "user":
@@ -2686,7 +2822,7 @@ def generate_reply(wa_id, answer_opener=False):
         messages.insert(0, {"role": "user", "content": "..."})
 
     if (answer_opener and len(messages) >= 2 and messages[-1]["role"] == "assistant"
-            and messages[-1]["content"].strip() in {g.strip() for g in (GREETING_TEXT, GREETING_AR, GREETING_ARABIZI)}):
+            and messages[-1]["content"].strip() in {g.strip() for g in (GREETING_TEXT, GREETING_AR, GREETING_ARABIZI, GREETING_FR)}):
         # The greeting went out AFTER their question. The system prompt already tells
         # the model the greeting was received, so drop it here and answer the question.
         messages.pop()
