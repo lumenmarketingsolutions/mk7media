@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brand Showcase — MK7 Media</title>
+  <meta name="description" content="Selected brands and websites: exotic car rentals, software, saunas, holsters and detailing. See the work, then visit the live sites.">
+  <meta property="og:title" content="Brand Showcase — MK7 Media">
+  <meta property="og:description" content="Selected brands and websites from MK7 Media.">
+  <meta property="og:image" content="/static/portfolio/supercar-desktop.jpg">
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+
+  <!-- Meta Pixel — DPSmgmt dataset 2251653638703742 -->
+  <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '2251653638703742');
+    fbq('track', 'PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=2251653638703742&ev=PageView&noscript=1"/></noscript>
+  <!-- End Meta Pixel -->
+  <script src="/static/mk7-pixel.js" defer></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050507;
+      --bg-card: #0d0d12;
+      --bg-elevated: #111118;
+      --text: #f0f0f5;
+      --text-muted: #8888a0;
+      --text-dim: #55556a;
+      --gradient: linear-gradient(135deg, #4d7cf5, #e84da0);
+      --gradient-text: linear-gradient(135deg, #6b93ff, #ff6bbf);
+      --border: rgba(255,255,255,0.06);
+      --border-hover: rgba(255,255,255,0.12);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; }
+    img { display: block; max-width: 100%; }
+
+    .grad-text {
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Navigation ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 48px;
+      background: rgba(5,5,7,0.72);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo svg { width: 32px; height: 32px; }
+    .nav-logo span { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+    .nav-links { display: flex; align-items: center; gap: 28px; }
+    .nav-links a { font-size: 14px; font-weight: 500; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      padding: 9px 20px;
+      border-radius: 100px;
+      background: var(--gradient);
+      color: #fff !important;
+      font-weight: 600 !important;
+    }
+    .nav-cta:hover { opacity: 0.9; }
+    @media (max-width: 640px) {
+      nav { padding: 14px 16px; }
+      .nav-links .hide-sm { display: none; }
+    }
+
+    /* ── Hero ── */
+    .hero {
+      position: relative;
+      padding: 168px 24px 72px;
+      text-align: center;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -240px; left: 50%;
+      width: 900px; height: 600px;
+      transform: translateX(-50%);
+      background: radial-gradient(ellipse at center, rgba(77,124,245,0.16), rgba(232,77,160,0.08) 45%, transparent 70%);
+      pointer-events: none;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      border: 1px solid var(--border-hover);
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gradient); }
+    .hero h1 {
+      position: relative;
+      font-size: clamp(40px, 7vw, 84px);
+      font-weight: 800;
+      line-height: 1.04;
+      letter-spacing: -2.5px;
+      max-width: 960px;
+      margin: 0 auto 24px;
+    }
+    .hero p {
+      position: relative;
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ── Brand index ── */
+    .index {
+      max-width: 1200px;
+      margin: 0 auto 40px;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+    .index a {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 16px 18px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--bg-card);
+      text-decoration: none;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .index a:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+    .index .num { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--text-dim); }
+    .index .name { font-size: 15px; font-weight: 700; letter-spacing: -0.2px; }
+    .index .cat { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+    .index .bar { height: 3px; border-radius: 3px; margin-top: 8px; background: var(--accent); }
+    @media (max-width: 900px) {
+      .index { grid-template-columns: repeat(2, 1fr); }
+      .index a:last-child { grid-column: span 2; }
+    }
+
+    /* ── Showcase ── */
+    .showcase {
+      --accent: #fff;
+      position: relative;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 96px 24px;
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 72px;
+      align-items: center;
+      border-top: 1px solid var(--border);
+      scroll-margin-top: 72px;
+    }
+    .showcase.flip { grid-template-columns: 1fr 1.35fr; }
+    .showcase.flip .visual { order: 2; }
+
+    .visual { position: relative; padding-bottom: 48px; padding-right: 56px; }
+    .showcase.flip .visual { padding-right: 0; padding-left: 56px; }
+    .visual::before {
+      content: '';
+      position: absolute;
+      inset: 10% 5% 0;
+      background: radial-gradient(ellipse at center, var(--glow), transparent 70%);
+      filter: blur(40px);
+      pointer-events: none;
+    }
+
+    .browser {
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #16161d;
+      border: 1px solid var(--border-hover);
+      box-shadow: 0 40px 80px -24px rgba(0,0,0,0.8);
+    }
+    .browser-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 11px 14px;
+      background: #1b1b23;
+      border-bottom: 1px solid var(--border);
+    }
+    .browser-bar i { width: 10px; height: 10px; border-radius: 50%; background: #34343f; }
+    .browser-bar .url {
+      flex: 1;
+      margin-left: 10px;
+      padding: 3px 12px;
+      border-radius: 6px;
+      background: #111118;
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .browser img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; }
+
+    .phone {
+      position: absolute;
+      right: 0; bottom: 0;
+      width: 27%;
+      min-width: 120px;
+      padding: 6px;
+      border-radius: 28px;
+      background: #0b0b10;
+      border: 1px solid var(--border-hover);
+      box-shadow: 0 30px 60px -16px rgba(0,0,0,0.9);
+    }
+    .showcase.flip .phone { right: auto; left: 0; }
+    .phone img { width: 100%; aspect-ratio: 9 / 18.5; object-fit: cover; object-position: top; border-radius: 22px; }
+
+    .copy .num {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--accent);
+      margin-bottom: 14px;
+    }
+    .copy h2 {
+      font-size: clamp(32px, 4vw, 48px);
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      line-height: 1.05;
+      margin-bottom: 10px;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 22px;
+    }
+    .meta span + span::before { content: '·'; margin-right: 14px; }
+    @media (max-width: 640px) {
+      .meta { flex-direction: column; gap: 0; }
+      .meta span + span::before { content: none; }
+    }
+    .tagline {
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 1.4;
+      letter-spacing: -0.3px;
+      margin-bottom: 14px;
+    }
+    .desc { font-size: 15px; color: var(--text-muted); margin-bottom: 26px; }
+    .highlights { list-style: none; display: grid; gap: 10px; margin-bottom: 28px; }
+    .highlights li {
+      position: relative;
+      padding-left: 22px;
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .highlights li::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 7px;
+      width: 8px; height: 8px;
+      border-radius: 2px;
+      background: var(--accent);
+    }
+    .palette { display: flex; align-items: center; gap: 8px; margin-bottom: 30px; }
+    .palette .label { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); margin-right: 6px; }
+    .palette i { width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.14); }
+    .visit {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 24px;
+      border-radius: 100px;
+      border: 1px solid var(--border-hover);
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .visit:hover { background: rgba(255,255,255,0.05); border-color: var(--accent); }
+    .visit .arrow { transition: transform 0.2s; }
+    .visit:hover .arrow { transform: translate(2px, -2px); }
+
+    @media (max-width: 900px) {
+      .showcase, .showcase.flip { grid-template-columns: 1fr; gap: 40px; padding: 72px 16px; }
+      .showcase.flip .visual { order: 0; padding-left: 0; padding-right: 40px; }
+      .showcase.flip .phone { left: auto; right: 0; }
+      .visual { padding-right: 40px; padding-bottom: 36px; }
+    }
+
+    /* ── CTA ── */
+    .cta {
+      max-width: 1200px;
+      margin: 40px auto 96px;
+      padding: 0 24px;
+    }
+    .cta-inner {
+      position: relative;
+      overflow: hidden;
+      padding: 72px 32px;
+      border-radius: 28px;
+      text-align: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+    }
+    .cta-inner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 120%, rgba(232,77,160,0.18), rgba(77,124,245,0.1) 40%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta h2 { position: relative; font-size: clamp(30px, 4.5vw, 52px); font-weight: 800; letter-spacing: -1.5px; line-height: 1.08; margin-bottom: 16px; }
+    .cta p { position: relative; color: var(--text-muted); max-width: 520px; margin: 0 auto 32px; }
+    .cta-btn {
+      position: relative;
+      display: inline-block;
+      padding: 16px 34px;
+      border-radius: 100px;
+      background: var(--gradient);
+      color: #fff;
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: 0 12px 40px -8px rgba(232,77,160,0.4);
+    }
+    .cta-btn:hover { opacity: 0.92; }
+
+    footer {
+      padding: 40px 24px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 13px;
+    }
+    .footer-logo { display: inline-flex; align-items: center; gap: 8px; color: var(--text); font-weight: 700; margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">
+    <svg viewBox="0 0 40 40" fill="none">
+      <path d="M20 2 L33.5 8 L37 22 L30 34 L10 34 L3 22 L6.5 8 Z" stroke="url(#navGrad)" stroke-width="2" fill="none"/>
+      <path d="M12 26 L12 14 L20 22 L28 14 L28 26" stroke="#f0f0f5" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <defs><linearGradient id="navGrad" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#4d7cf5"/><stop offset="1" stop-color="#e84da0"/></linearGradient></defs>
+    </svg>
+    <span>MK7 Media</span>
+  </a>
+  <div class="nav-links">
+    <a href="/" class="hide-sm">Home</a>
+    <a href="/#results" class="hide-sm">Results</a>
+    <a href="/#inquiry" class="nav-cta" data-track="InitiateCheckout" data-track-source="work_nav_cta">Get Started</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow"><span class="dot"></span>Brand Showcase</div>
+  <h1>Five brands. <span class="grad-text">Five different worlds.</span></h1>
+  <p>Exotic cars, software, saunas, holsters and detailing. Each one built to look like its category and sell like it means it.</p>
+</section>
+
+<div class="index">
+  <a href="#supercar" style="--accent:#ff4f16"><span class="num">01</span><span class="name">Supercar Experience</span><span class="cat">Exotic car rentals</span><span class="bar"></span></a>
+  <a href="#launchpoint" style="--accent:#f0956a"><span class="num">02</span><span class="name">Launchpoint</span><span class="cat">Software studio</span><span class="bar"></span></a>
+  <a href="#westernsol" style="--accent:#c8894f"><span class="num">03</span><span class="name">Western Sol</span><span class="cat">Saunas &amp; wellness</span><span class="bar"></span></a>
+  <a href="#havok" style="--accent:#f08a2c"><span class="num">04</span><span class="name">Havok Holsters</span><span class="cat">Custom Kydex gear</span><span class="bar"></span></a>
+  <a href="#ocdetailing" style="--accent:#fbbf24"><span class="num">05</span><span class="name">OC Detailing</span><span class="cat">Auto detailing</span><span class="bar"></span></a>
+</div>
+
+<!-- 01 · Supercar Experience -->
+<section class="showcase" id="supercar" style="--accent:#ff4f16; --glow:rgba(255,79,22,0.22)">
+  <div class="visual">
+    <div class="browser">
+      <div class="browser-bar"><i></i><i></i><i></i><span class="url">supercarexp.vip</span></div>
+      <img src="/static/portfolio/supercar-desktop.jpg" alt="Supercar Experience homepage: a dark sports car on a desert road with the headline A Ride of a Lifetime" loading="lazy">
+    </div>
+    <div class="phone"><img src="/static/portfolio/supercar-mobile.jpg" alt="Supercar Experience on mobile" loading="lazy"></div>
+  </div>
+  <div class="copy">
+    <div class="num">01 — AUTOMOTIVE / LUXURY</div>
+    <h2>Supercar Experience</h2>
+    <div class="meta"><span>Exotic &amp; luxury car rentals</span><span>Las Vegas · Scottsdale · Boise</span></div>
+    <p class="tagline">“A ride of a lifetime. Waiting for you.”</p>
+    <p class="desc">Lamborghini, Ferrari, McLaren and Rolls-Royce by the hour or the day. The brand runs on cinematic, after-dark imagery and a single hot orange that pulls every eye to the booking button.</p>
+    <ul class="highlights">
+      <li>Multi-city site with a location switcher across three showrooms</li>
+      <li>Live countdown driving sign-ups for the Supercar Experience Rally</li>
+      <li>Text-or-call CTA pinned on every screen, plus a blog built for local search</li>
+    </ul>
+    <div class="palette"><span class="label">Palette</span><i style="background:#ff4f16"></i><i style="background:#1a1b20"></i><i style="background:#eeeeef"></i></div>
+    <a class="visit" href="https://www.supercarexp.vip" target="_blank" rel="noopener">Visit live site <span class="arrow">↗</span></a>
+  </div>
+</section>
+
+<!-- 02 · Launchpoint -->
+<section class="showcase flip" id="launchpoint" style="--accent:#f0956a; --glow:rgba(110,90,220,0.28)">
+  <div class="visual">
+    <div class="browser">
+      <div class="browser-bar"><i></i><i></i><i></i><span class="url">launchpoint.dev</span></div>
+      <img src="/static/portfolio/launchpoint-desktop.jpg" alt="Launchpoint homepage: an astronaut looking at Earth with the headline Welcome To What's Next In Software" loading="lazy">
+    </div>
+    <div class="phone"><img src="/static/portfolio/launchpoint-mobile.jpg" alt="Launchpoint on mobile" loading="lazy"></div>
+  </div>
+  <div class="copy">
+    <div class="num">02 — SOFTWARE / B2B</div>
+    <h2>Launchpoint</h2>
+    <div class="meta"><span>Purpose-built software studio</span><span>launchpoint.dev</span></div>
+    <p class="tagline">“Welcome to what’s next in software.”</p>
+    <p class="desc">Industry-specific products and custom software on a proven foundation. Deep-space navy, a warm sunrise gradient on the headline, and a story that sells speed: don’t start from zero.</p>
+    <ul class="highlights">
+      <li>Cinematic hero that makes a B2B offer feel like a launch</li>
+      <li>Six-step narrative, from proven core systems to AI built in</li>
+      <li>Client logo wall directly under the fold for instant trust</li>
+    </ul>
+    <div class="palette"><span class="label">Palette</span><i style="background:#000323"></i><i style="background:#f0956a"></i><i style="background:#5b4fd6"></i></div>
+    <a class="visit" href="https://launchpoint.dev" target="_blank" rel="noopener">Visit live site <span class="arrow">↗</span></a>
+  </div>
+</section>
+
+<!-- 03 · Western Sol -->
+<section class="showcase" id="westernsol" style="--accent:#c8894f; --glow:rgba(200,137,79,0.2)">
+  <div class="visual">
+    <div class="browser">
+      <div class="browser-bar"><i></i><i></i><i></i><span class="url">westernsolhealing.com</span></div>
+      <img src="/static/portfolio/westernsol-desktop.jpg" alt="Western Sol homepage with the headline Healing mind, body, and soul" loading="lazy">
+    </div>
+    <div class="phone"><img src="/static/portfolio/westernsol-mobile.jpg" alt="Western Sol on mobile" loading="lazy"></div>
+  </div>
+  <div class="copy">
+    <div class="num">03 — WELLNESS / ECOMMERCE</div>
+    <h2>Western Sol</h2>
+    <div class="meta"><span>Non-toxic saunas</span><span>Home &amp; business</span></div>
+    <p class="tagline">“Healing mind, body, and soul.”</p>
+    <p class="desc">Outdoor, indoor, infrared and fully custom saunas. Warm cedar tones and a western horseshoe mark give a high-ticket product a calm, handcrafted feel.</p>
+    <ul class="highlights">
+      <li>Shopify storefront with three buying paths: shop, DIY kit or custom quote</li>
+      <li>Lead-capture offer with real scarcity: “only 10 builds a month”</li>
+      <li>Find-a-builder and affiliate programs built into the navigation</li>
+    </ul>
+    <div class="palette"><span class="label">Palette</span><i style="background:#0c1618"></i><i style="background:#c8894f"></i><i style="background:#f5f5f7"></i></div>
+    <a class="visit" href="https://www.westernsolhealing.com" target="_blank" rel="noopener">Visit live site <span class="arrow">↗</span></a>
+  </div>
+</section>
+
+<!-- 04 · Havok Holsters -->
+<section class="showcase flip" id="havok" style="--accent:#f08a2c; --glow:rgba(240,138,44,0.2)">
+  <div class="visual">
+    <div class="browser">
+      <div class="browser-bar"><i></i><i></i><i></i><span class="url">havokholsters.com</span></div>
+      <img src="/static/portfolio/havok-desktop.jpg" alt="Havok Holsters homepage featuring the October Prints of the Month holster collection" loading="lazy">
+    </div>
+    <div class="phone"><img src="/static/portfolio/havok-mobile.jpg" alt="Havok Holsters on mobile" loading="lazy"></div>
+  </div>
+  <div class="copy">
+    <div class="num">04 — OUTDOOR / ECOMMERCE</div>
+    <h2>Havok Holsters</h2>
+    <div class="meta"><span>Custom Kydex holsters</span><span>Built in Idaho</span></div>
+    <p class="tagline">“Built to fit your pistol, light, and optic.”</p>
+    <p class="desc">Concealed-carry holsters tested by real carriers and shipped nationwide. Bold black-and-white type, rounded pill navigation, and limited monthly prints that give customers a reason to come back.</p>
+    <ul class="highlights">
+      <li>“Find the Perfect Holster” finder by carry style (IWB / OWB)</li>
+      <li>Monthly print drops (ODST, American Psycho, Xenomorph) as hero campaigns</li>
+      <li>Quick-ship and free-shipping promises rotating in the top bar</li>
+    </ul>
+    <div class="palette"><span class="label">Palette</span><i style="background:#141414"></i><i style="background:#f08a2c"></i><i style="background:#ffffff"></i></div>
+    <a class="visit" href="https://havokholsters.com" target="_blank" rel="noopener">Visit live site <span class="arrow">↗</span></a>
+  </div>
+</section>
+
+<!-- 05 · OC Detailing -->
+<section class="showcase" id="ocdetailing" style="--accent:#fbbf24; --glow:rgba(251,191,36,0.18)">
+  <div class="visual">
+    <div class="browser">
+      <div class="browser-bar"><i></i><i></i><i></i><span class="url">ocdetailingboise.com</span></div>
+      <img src="/static/portfolio/ocdetailing-desktop.jpg" alt="OC Detailing homepage: a detailer wiping down an orange BMW with the headline Mobile or In Shop Car Detailing" loading="lazy">
+    </div>
+    <div class="phone"><img src="/static/portfolio/ocdetailing-mobile.jpg" alt="OC Detailing on mobile" loading="lazy"></div>
+  </div>
+  <div class="copy">
+    <div class="num">05 — LOCAL SERVICE</div>
+    <h2>OC Detailing</h2>
+    <div class="meta"><span>Detailing &amp; ceramic coating</span><span>Boise, Idaho</span></div>
+    <p class="tagline">“Perfect every time.”</p>
+    <p class="desc">Mobile and in-shop detailing for exotic and everyday vehicles. Real work photography, heavy uppercase headlines, and a bright yellow that makes “Book Your Service” the only thing to do next.</p>
+    <ul class="highlights">
+      <li>Clear service split: exterior, interior, paint correction &amp; ceramic</li>
+      <li>Proof up front: $13.7M+ worth of vehicles managed across 20+ car brands</li>
+      <li>Call-or-text card and booking CTA in the hero for local, high-intent visitors</li>
+    </ul>
+    <div class="palette"><span class="label">Palette</span><i style="background:#141414"></i><i style="background:#fbbf24"></i><i style="background:#ffffff"></i></div>
+    <a class="visit" href="https://ocdetailingboise.com" target="_blank" rel="noopener">Visit live site <span class="arrow">↗</span></a>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="cta-inner">
+    <h2>Your brand <span class="grad-text">is next.</span></h2>
+    <p>Websites, content and Meta ads built for your category, so the people who land there actually buy.</p>
+    <a href="/#inquiry" class="cta-btn" data-track="InitiateCheckout" data-track-source="work_bottom_cta">Start your project →</a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">
+    <svg width="22" height="22" viewBox="0 0 40 40" fill="none"><path d="M20 2 L33.5 8 L37 22 L30 34 L10 34 L3 22 L6.5 8 Z" stroke="url(#footGrad)" stroke-width="2" fill="none"/><path d="M12 26 L12 14 L20 22 L28 14 L28 26" stroke="#f0f0f5" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="footGrad" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#4d7cf5"/><stop offset="1" stop-color="#e84da0"/></linearGradient></defs></svg>
+    <span>MK7 Media</span>
+  </div>
+  <p>Results-Driven Meta Advertising</p>
+</footer>
+
+</body>
+</html>

@@ -271,6 +271,10 @@ def home():
         return redirect(url_for("admin_whatsapp"))
     return render_template("index.html")
 
+@app.route("/work")
+def work_showcase():
+    return render_template("work.html")
+
 @app.route("/saas0801")
 def saas0801_proposal():
     return render_template("saas0801.html")
