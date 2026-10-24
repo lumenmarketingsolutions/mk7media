@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mk7 Media Portfolio</title>
+<meta name="description" content="Selected web work by Mk7 Media: exotic car rentals, a software studio, handcrafted saunas, Kydex holsters and luxury detailing. Each site built around how its buyer actually decides, books and pays.">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<meta property="og:title" content="Mk7 Media Portfolio">
+<meta property="og:description" content="Five brands, five very different customers. Selected web work by Mk7 Media.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a contact-sheet index up top, then one full-width case per brand; each case borrows its client's palette as the local accent. */
+:root {
+  --paper: #eceef0;
+  --surface: #f7f8f9;
+  --ink: #111417;
+  --ink-2: #4a5059;
+  --rule: #c9ced4;
+  --mk7: #2b3bd6;
+  --display: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --body: "Geist", "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1114; --surface: #171a1f; --ink: #eef0f3; --ink-2: #a2a9b3; --rule: #2b3038; --mk7: #8d98ff; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1114; --surface: #171a1f; --ink: #eef0f3; --ink-2: #a2a9b3; --rule: #2b3038; --mk7: #8d98ff; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink);
+  font: 400 16px/1.6 var(--body);
+  margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+img { max-width: 100%; }
+.wrap { max-width: 1180px; margin: 0 auto; }
+a { color: inherit; }
+a:focus-visible { outline: 2px solid var(--mk7); outline-offset: 3px; border-radius: 2px; }
+.mono { font-family: var(--mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+
+/* Masthead */
+header.mast { padding-block: 40px 28px; display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); }
+.mark { font: 800 22px/1 var(--display); letter-spacing: -.02em; }
+.mark span { color: var(--mk7); }
+.mast .mono { color: var(--ink-2); }
+
+.intro { padding-block: 64px 48px; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 48px; align-items: end; }
+.intro h1 { font: 800 clamp(44px, 7.4vw, 96px)/.92 var(--display); letter-spacing: -.035em; margin: 0; text-wrap: balance; }
+.intro h1 em { font-style: normal; color: var(--mk7); }
+.intro p { margin: 0; color: var(--ink-2); max-width: 42ch; font-size: 17px; }
+
+/* Index: five tiles that jump to each case */
+.index { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; padding-bottom: 72px; }
+.tile { text-decoration: none; display: flex; flex-direction: column; gap: 10px; }
+.tile .thumb { aspect-ratio: 4 / 5; max-width: 100%; border-radius: 6px; overflow: hidden; background: var(--b); position: relative; }
+.tile img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s ease, filter .3s ease; filter: saturate(.85); }
+.tile:hover img, .tile:focus-visible img { transform: scale(1.04); filter: saturate(1.05); }
+.tile .thumb::after { content: ""; position: absolute; inset: auto 0 0 0; height: 6px; background: var(--b); }
+.tile strong { font: 600 15px/1.2 var(--display); }
+.tile .mono { color: var(--ink-2); font-size: 11px; }
+
+/* Case studies */
+.case { border-top: 1px solid var(--rule); padding-block: 56px; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 48px; align-items: start; scroll-margin-top: 16px; }
+.case:nth-of-type(even) .shot { order: 2; }
+.shot { margin: 0; border-radius: 8px; overflow: hidden; background: var(--b); box-shadow: 0 1px 0 var(--rule), 0 24px 48px -28px rgba(10, 14, 20, .45); }
+.shot img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
+.shot figcaption { display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px; background: var(--b); color: var(--on-b); font: 500 11px/1.4 var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+
+.meta { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+.meta .eyebrow { color: var(--ink-2); display: flex; gap: 10px; flex-wrap: wrap; }
+.meta .eyebrow b { font-weight: 500; color: var(--ink); }
+.meta h2 { font: 800 clamp(34px, 4.4vw, 54px)/.95 var(--display); letter-spacing: -.03em; margin: 0; text-wrap: balance; }
+.quote { margin: 0; padding-left: 16px; border-left: 3px solid var(--b-line, var(--b)); font: 600 20px/1.3 var(--display); letter-spacing: -.01em; text-wrap: balance; }
+.meta p { margin: 0; color: var(--ink-2); max-width: 52ch; }
+
+dl.facts { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 20px; border-top: 1px solid var(--rule); padding-top: 18px; }
+dl.facts dt { color: var(--ink-2); }
+dl.facts dd { margin: 0; font-size: 15px; }
+
+.swatches { display: flex; gap: 6px; flex-wrap: wrap; }
+.sw { display: flex; flex-direction: column; gap: 6px; width: 78px; }
+.sw i { display: block; height: 44px; border-radius: 4px; background: var(--c); box-shadow: inset 0 0 0 1px rgba(127, 127, 127, .25); }
+.sw span { font: 400 11px/1 var(--mono); color: var(--ink-2); text-transform: uppercase; }
+
+.visit { align-self: flex-start; display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font: 600 15px/1 var(--body); padding: 13px 18px; border-radius: 999px; border: 1px solid var(--ink); transition: background .2s, color .2s; }
+.visit:hover { background: var(--ink); color: var(--paper); }
+.visit svg { width: 14px; height: 14px; }
+
+footer { border-top: 1px solid var(--rule); padding-block: 48px 64px; display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; align-items: end; }
+footer h3 { font: 800 clamp(28px, 4vw, 44px)/1 var(--display); letter-spacing: -.03em; margin: 0; max-width: 18ch; text-wrap: balance; }
+footer .mono { color: var(--ink-2); }
+
+@media (max-width: 900px) {
+  .intro { grid-template-columns: 1fr; gap: 24px; padding-block: 44px 36px; }
+  .index { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .case { grid-template-columns: 1fr; gap: 28px; padding-block: 44px; }
+  .case:nth-of-type(even) .shot { order: 0; }
+}
+@media (max-width: 560px) {
+  .index { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .index .tile:last-child { grid-column: span 2; }
+  .index .tile:last-child .thumb { aspect-ratio: 16 / 9; }
+  .shot figcaption span:last-child { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="mast">
+    <div class="mark">Mk7<span>.</span> Media</div>
+    <div class="mono">Selected web work · 2025–2026</div>
+  </header>
+
+  <section class="intro">
+    <h1>Five brands, five <em>very different</em> customers.</h1>
+    <p>Exotic car rentals, a software studio, handcrafted saunas, Kydex holsters and luxury detailing. Each site was built around how its buyer actually decides, books and pays.</p>
+  </section>
+
+  <nav class="index" aria-label="Projects">
+    <a class="tile" href="#supercar" style="--b:#ff4f16"><div class="thumb"><img src="/static/webportfolio/img/supercar.jpg" alt=""></div><strong>Supercar Experience</strong><span class="mono">Car rental · NV / AZ / ID</span></a>
+    <a class="tile" href="#launchpoint" style="--b:#000323"><div class="thumb"><img src="/static/webportfolio/img/launchpoint.jpg" alt=""></div><strong>Launchpoint</strong><span class="mono">Software studio</span></a>
+    <a class="tile" href="#westernsol" style="--b:#a8683c"><div class="thumb"><img src="/static/webportfolio/img/westernsol.jpg" alt=""></div><strong>Western Sol</strong><span class="mono">Saunas · E-commerce</span></a>
+    <a class="tile" href="#havok" style="--b:#b08d5f"><div class="thumb"><img src="/static/webportfolio/img/havok.jpg" alt=""></div><strong>Havok Holsters</strong><span class="mono">Kydex gear · Idaho</span></a>
+    <a class="tile" href="#ocdetailing" style="--b:#e8761e"><div class="thumb"><img src="/static/webportfolio/img/oc.jpg" alt=""></div><strong>OC Detailing</strong><span class="mono">Detailing · Boise</span></a>
+  </nav>
+
+  <article class="case" id="supercar" style="--b:#ff4f16; --on-b:#1a1b20">
+    <figure class="shot"><img src="/static/webportfolio/img/supercar.jpg" alt="Supercar Experience social card: orange Lamborghini beside the headline Exotic Car Rentals"><figcaption><span>supercarexp.vip</span><span>Fleet · Booking · Rally</span></figcaption></figure>
+    <div class="meta">
+      <div class="eyebrow mono"><b>Supercar Experience</b><span>Exotic &amp; luxury car rental</span></div>
+      <h2>Lamborghinis by the hour, across three cities.</h2>
+      <blockquote class="quote">“A ride of a lifetime. Waiting for you.”</blockquote>
+      <p>A high-energy rental site for showrooms in Las Vegas, Scottsdale and Boise. Every car card shows 3-hour and 5-hour pricing up front, a promo ticker runs the current deals, and a live countdown builds hype for the annual Rally.</p>
+      <dl class="facts mono">
+        <dt>Built</dt><dd>Fleet catalog, city switcher, rally countdown, text-to-book</dd>
+        <dt>Audience</dt><dd>Tourists, birthdays, corporate events</dd>
+      </dl>
+      <div class="swatches" aria-label="Brand palette">
+        <div class="sw" style="--c:#ff4f16"><i></i><span>#FF4F16</span></div>
+        <div class="sw" style="--c:#1a1b20"><i></i><span>#1A1B20</span></div>
+        <div class="sw" style="--c:#eeeeef"><i></i><span>#EEEEEF</span></div>
+      </div>
+      <a class="visit" href="https://www.supercarexp.vip" target="_blank" rel="noopener">Visit site <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10 10 4M5 4h5v5"/></svg></a>
+    </div>
+  </article>
+
+  <article class="case" id="launchpoint" style="--b:#000323; --on-b:#f0a77a; --b-line:#ef8354">
+    <figure class="shot"><img src="/static/webportfolio/img/launchpoint.jpg" alt="Launchpoint social card: astronaut looking at Earth under the headline Custom Software Built Around Your Business"><figcaption><span>launchpoint.dev</span><span>Studio · Product platform</span></figcaption></figure>
+    <div class="meta">
+      <div class="eyebrow mono"><b>Launchpoint</b><span>Purpose-built software</span></div>
+      <h2>A software studio that sells the foundation, not just the build.</h2>
+      <blockquote class="quote">“Welcome to what's next in software.”</blockquote>
+      <p>A deep-navy, space-themed site that explains a technical offer in plain terms: accounts, payments, CRM and dashboards come ready-made, so client budgets go into the parts that make their business different. Their in-product AI, Astra, gets its own story.</p>
+      <dl class="facts mono">
+        <dt>Built</dt><dd>Services, product pages, capability map, contact flow</dd>
+        <dt>Audience</dt><dd>Owners outgrowing off-the-shelf tools</dd>
+      </dl>
+      <div class="swatches" aria-label="Brand palette">
+        <div class="sw" style="--c:#000323"><i></i><span>#000323</span></div>
+        <div class="sw" style="--c:#ef8354"><i></i><span>#EF8354</span></div>
+        <div class="sw" style="--c:#f3e1d4"><i></i><span>#F3E1D4</span></div>
+      </div>
+      <a class="visit" href="https://launchpoint.dev" target="_blank" rel="noopener">Visit site <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10 10 4M5 4h5v5"/></svg></a>
+    </div>
+  </article>
+
+  <article class="case" id="westernsol" style="--b:#a8683c; --on-b:#fbf3ea">
+    <figure class="shot"><img src="/static/webportfolio/img/westernsol.jpg" alt="Western Sol cedar barrel sauna in a pine forest with the horseshoe WS logo"><figcaption><span>westernsolhealing.com</span><span>Shopify · Configurator</span></figcaption></figure>
+    <div class="meta">
+      <div class="eyebrow mono"><b>Western Sol</b><span>Non-toxic saunas</span></div>
+      <h2>A western-wellness brand selling five-figure saunas online.</h2>
+      <blockquote class="quote">“Healing mind, body, and soul.”</blockquote>
+      <p>An online store for outdoor barrel saunas, handcrafted infrared cabins from $7,700, and fully custom builds. Shoppers choose between buying a DIY kit, finding a certified builder or requesting a custom quote, so every budget has a next step.</p>
+      <dl class="facts mono">
+        <dt>Built</dt><dd>Shopify store, build options, quote request, builder finder</dd>
+        <dt>Audience</dt><dd>Homeowners, gyms, wellness studios</dd>
+      </dl>
+      <div class="swatches" aria-label="Brand palette">
+        <div class="sw" style="--c:#0c1618"><i></i><span>#0C1618</span></div>
+        <div class="sw" style="--c:#a8683c"><i></i><span>#A8683C</span></div>
+        <div class="sw" style="--c:#f5f5f7"><i></i><span>#F5F5F7</span></div>
+      </div>
+      <a class="visit" href="https://www.westernsolhealing.com" target="_blank" rel="noopener">Visit site <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10 10 4M5 4h5v5"/></svg></a>
+    </div>
+  </article>
+
+  <article class="case" id="havok" style="--b:#141414; --on-b:#d9c29a; --b-line:#b08d5f">
+    <figure class="shot"><img src="/static/webportfolio/img/havok.jpg" alt="Havok Holsters homepage: a Kydex holster at a desert range with the headline Precision Built. Carry with Confidence."><figcaption><span>havokholsters.com</span><span>Shopify · Product builder</span></figcaption></figure>
+    <div class="meta">
+      <div class="eyebrow mono"><b>Havok Holsters</b><span>Custom Kydex holsters</span></div>
+      <h2>Made-to-fit holsters, shot at the range they're built for.</h2>
+      <blockquote class="quote">“Precision Built. Carry with Confidence.”</blockquote>
+      <p>A rugged storefront for holsters built in Idaho to fit each customer's pistol, light and optic. The 4.8/5 Google rating sits right in the hero, and shoppers can sort by IWB, OWB or quick-ship models that go out in 1–3 days.</p>
+      <dl class="facts mono">
+        <dt>Built</dt><dd>Shopify store, holster categories, colors, training pages</dd>
+        <dt>Audience</dt><dd>Everyday concealed carriers, nationwide</dd>
+      </dl>
+      <div class="swatches" aria-label="Brand palette">
+        <div class="sw" style="--c:#141414"><i></i><span>#141414</span></div>
+        <div class="sw" style="--c:#b08d5f"><i></i><span>#B08D5F</span></div>
+        <div class="sw" style="--c:#ffffff"><i></i><span>#FFFFFF</span></div>
+      </div>
+      <a class="visit" href="https://havokholsters.com" target="_blank" rel="noopener">Visit site <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10 10 4M5 4h5v5"/></svg></a>
+    </div>
+  </article>
+
+  <article class="case" id="ocdetailing" style="--b:#e8761e; --on-b:#141414">
+    <figure class="shot"><img src="/static/webportfolio/img/oc.jpg" alt="OC Detailing technician hand-finishing an orange BMW M5 under a concrete colonnade" style="object-position: 50% 62%"><figcaption><span>ocdetailingboise.com</span><span>Services · Booking</span></figcaption></figure>
+    <div class="meta">
+      <div class="eyebrow mono"><b>OC Detailing</b><span>Interior detailing &amp; ceramic coating</span></div>
+      <h2>Boise's detailer for everything from daily drivers to McLarens.</h2>
+      <blockquote class="quote">“Every detail tailored to perfection.”</blockquote>
+      <p>A clean, premium service site for mobile and in-shop detailing. It leads with proof: over $13.7M worth of vehicles handled and a row of Ferrari, Porsche and Bentley marks. Then it walks customers from a free consultation to a booked service.</p>
+      <dl class="facts mono">
+        <dt>Built</dt><dd>Service pages, gallery, step-by-step booking, call-or-text CTA</dd>
+        <dt>Audience</dt><dd>Exotic owners and everyday drivers in Boise</dd>
+      </dl>
+      <div class="swatches" aria-label="Brand palette">
+        <div class="sw" style="--c:#141414"><i></i><span>#141414</span></div>
+        <div class="sw" style="--c:#e8761e"><i></i><span>#E8761E</span></div>
+        <div class="sw" style="--c:#ffffff"><i></i><span>#FFFFFF</span></div>
+      </div>
+      <a class="visit" href="https://ocdetailingboise.com" target="_blank" rel="noopener">Visit site <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10 10 4M5 4h5v5"/></svg></a>
+    </div>
+  </article>
+
+  <footer>
+    <h3>Your brand could be the sixth.</h3>
+    <div class="mono">Mk7 Media · Websites &amp; Meta ads</div>
+  </footer>
+</div>
+
+<script src="/static/mk7-pixel.js" defer></script>
+</body>
+</html>

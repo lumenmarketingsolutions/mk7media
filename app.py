@@ -285,6 +285,10 @@ def marlatabet_proposal():
 def marlatabet_reel():
     return render_template("marlatabet_reel.html")
 
+@app.route("/webportfolio")
+def webportfolio():
+    return render_template("webportfolio.html")
+
 def _whatsapp_digits(value):
     return "".join(c for c in (value or "") if c.isdigit())
 
