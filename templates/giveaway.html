@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MK7 Media | Win a Free Website</title>
+<meta name="description" content="MK7 Media is giving one business a free website plus its first month of ads. Enter in 20 seconds. Winner picked {{ draw_label }}.">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<meta property="og:title" content="Win a free website for your business">
+<meta property="og:description" content="One business wins a custom website plus its first month of ads, free. Enter in 20 seconds.">
+<meta property="og:image" content="https://mk7media.com/static/giveaway/og.jpg">
+<meta property="og:type" content="website">
+
+<!-- Meta Pixel — DPSmgmt dataset 2251653638703742 -->
+<script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '2251653638703742');
+  fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=2251653638703742&ev=PageView&noscript=1"/></noscript>
+<!-- End Meta Pixel -->
+<script src="/static/mk7-pixel.js" defer></script>
+<link rel="stylesheet" href="/static/phone-input.css">
+<script src="/static/phone-input.js" defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* Same palette as the giveaway statics so the ad and the page feel like one thing. */
+  :root {
+    --bg: #050507;
+    --card: #0d0d13;
+    --elevated: #13131b;
+    --text: #f2f2f7;
+    --muted: #9a9ab2;
+    --dim: #5e5e75;
+    --blue: #4d9bff;
+    --violet: #a87bff;
+    --pink: #ff7dbe;
+    --grad: linear-gradient(120deg, #4d9bff 0%, #a87bff 50%, #ff7dbe 100%);
+    --border: rgba(255,255,255,0.08);
+    --radius: 18px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: var(--bg); scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg); color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    font-size: 16px; line-height: 1.6;
+    overflow-x: hidden;
+  }
+  img { display: block; max-width: 100%; }
+  .wrap { width: 100%; max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  .grad-text { background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+  /* Top bar */
+  .top { padding: 20px 0; }
+  .top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: -0.3px; font-size: 16px; color: var(--text); text-decoration: none; }
+  .brand img { width: 30px; height: 30px; }
+  .top-pill { font-size: 12px; font-weight: 600; color: var(--muted); border: 1px solid var(--border); padding: 6px 12px; border-radius: 999px; white-space: nowrap; }
+
+  /* Hero */
+  .hero { position: relative; padding: 28px 0 64px; }
+  .hero-glow {
+    position: absolute; inset: -80px 0 auto; height: 520px; pointer-events: none;
+    background: radial-gradient(60% 60% at 30% 30%, rgba(77,155,255,0.16), transparent 70%),
+                radial-gradient(50% 50% at 75% 45%, rgba(255,125,190,0.13), transparent 70%);
+  }
+  .hero-grid { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 36px; align-items: center; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text); padding: 8px 14px; border-radius: 999px;
+    background: rgba(168,123,255,0.12); border: 1px solid rgba(168,123,255,0.28);
+  }
+  .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--pink); box-shadow: 0 0 10px var(--pink); }
+  .hero h1 {
+    font-size: clamp(40px, 9vw, 72px); font-weight: 900; line-height: 1.02; letter-spacing: -0.04em;
+    margin: 22px 0 18px; text-wrap: balance;
+  }
+  .hero-sub { font-size: clamp(17px, 2.4vw, 20px); color: var(--muted); max-width: 520px; text-wrap: pretty; }
+  .hero-sub strong { color: var(--text); font-weight: 600; }
+
+  /* Countdown */
+  .count-label { margin-top: 30px; font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: 0.5px; }
+  .count { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 12px; max-width: 400px; }
+  .count div { background: var(--elevated); border: 1px solid var(--border); border-radius: 14px; padding: 12px 6px; text-align: center; min-width: 0; }
+  .count b { display: block; font-size: clamp(24px, 6vw, 32px); font-weight: 800; letter-spacing: -1px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .count span { font-size: 11px; font-weight: 600; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* Form card */
+  .entry {
+    position: relative; border-radius: 24px; padding: 2px; background: var(--grad);
+    box-shadow: 0 30px 80px -30px rgba(168,123,255,0.45);
+  }
+  .entry-inner { background: var(--card); border-radius: 22px; padding: 30px 24px; }
+  .entry h2 { font-size: clamp(22px, 4vw, 26px); font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; }
+  .entry p.lead { color: var(--muted); font-size: 15px; margin: 8px 0 22px; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+  .entry input {
+    width: 100%; padding: 15px 16px; font: inherit; font-size: 16px; color: var(--text);
+    background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 12px; outline: none;
+    transition: border-color .2s, background .2s;
+  }
+  .entry input:focus { border-color: var(--violet); background: rgba(255,255,255,0.06); }
+  .entry input.bad { border-color: var(--pink); }
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; margin-top: 8px; padding: 17px 20px; border: none; border-radius: 14px;
+    font: inherit; font-size: 17px; font-weight: 700; color: #fff; cursor: pointer;
+    background: var(--grad); text-decoration: none; text-align: center;
+    transition: transform .2s, filter .2s;
+  }
+  .btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
+  .btn[disabled] { opacity: .6; cursor: wait; transform: none; }
+  .form-err { display: none; color: var(--pink); font-size: 14px; margin-top: 10px; }
+  .entry .fine { font-size: 12.5px; color: var(--dim); margin-top: 14px; text-align: center; }
+
+  /* Sections */
+  section { padding: 72px 0; }
+  .tag { font-size: 12px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--violet); margin-bottom: 14px; }
+  .h2 { font-size: clamp(30px, 5.5vw, 46px); font-weight: 900; letter-spacing: -0.035em; line-height: 1.08; text-wrap: balance; max-width: 640px; }
+  .sub { color: var(--muted); font-size: 17px; margin-top: 14px; max-width: 560px; text-wrap: pretty; }
+
+  /* What you get */
+  .get-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 32px; margin-top: 40px; align-items: center; }
+  .get-photo { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); aspect-ratio: 4 / 3; background: var(--elevated); }
+  .get-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 85%; }
+  .get-list { list-style: none; display: grid; gap: 12px; }
+  .get-list li { display: flex; gap: 16px; align-items: flex-start; background: var(--elevated); border: 1px solid var(--border); border-radius: 16px; padding: 18px; }
+  .get-list .ic {
+    flex: none; width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center;
+    background: linear-gradient(135deg, rgba(77,155,255,.18), rgba(255,125,190,.18));
+  }
+  .get-list .ic svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .get-list h3 { font-size: 16px; font-weight: 700; letter-spacing: -0.2px; line-height: 1.35; }
+  .get-list p { font-size: 14.5px; color: var(--muted); margin-top: 3px; line-height: 1.55; }
+
+  /* Work */
+  .work { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 36px; }
+  .work figure { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); background: var(--elevated); min-width: 0; }
+  .work figure:first-child { grid-column: 1 / -1; }
+  /* Portfolio shots are ~1.9:1 social cards with text at the edges, so keep that ratio and never crop the sides */
+  .work img { width: 100%; aspect-ratio: 1200 / 630; object-fit: cover; }
+  .work figcaption { padding: 10px 14px 12px; font-size: 13px; color: var(--muted); }
+  .work figcaption b { color: var(--text); font-weight: 600; display: block; font-size: 14px; }
+
+  /* Steps */
+  .steps { list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin-top: 36px; }
+  .steps li { background: var(--elevated); border: 1px solid var(--border); border-radius: 16px; padding: 22px; }
+  .steps .n { font-size: 28px; font-weight: 900; letter-spacing: -1px; line-height: 1; }
+  .steps h3 { font-size: 17px; font-weight: 700; margin-top: 12px; }
+  .steps p { font-size: 14.5px; color: var(--muted); margin-top: 4px; }
+
+  /* Final CTA + footer */
+  .final { text-align: center; padding: 80px 0 64px; }
+  .final .h2 { margin: 0 auto; }
+  .final .sub { margin: 14px auto 28px; }
+  .final .btn { max-width: 360px; margin: 0 auto; }
+  .rules { font-size: 13px; color: var(--dim); max-width: 620px; margin: 40px auto 0; line-height: 1.7; }
+  footer { border-top: 1px solid var(--border); padding: 28px 0 40px; font-size: 13px; color: var(--dim); text-align: center; }
+
+  /* Scroll-driven fade (JS sets opacity + blur frame by frame) */
+  .fade { will-change: opacity, filter; }
+
+  @media (min-width: 860px) {
+    .hero { padding: 48px 0 96px; }
+    .hero-grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 56px; }
+    .entry-inner { padding: 36px 32px; }
+    section { padding: 96px 0; }
+    .get-grid { grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr); gap: 48px; }
+    .get-photo { aspect-ratio: 4 / 5; }
+    .work { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .work figure { grid-column: span 2; }
+    .work figure:nth-child(-n+2) { grid-column: span 3; }
+    .steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 360px) {
+    .wrap { padding: 0 16px; }
+    .top-pill { display: none; }
+    .entry-inner { padding: 26px 18px; }
+    .count { gap: 6px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="/"><img src="/static/favicon.svg" alt="">MK7 Media</a>
+    <span class="top-pill">1 winner · {{ draw_label.split(' at ')[0] }}</span>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <div class="hero-glow"></div>
+    <div class="wrap hero-grid">
+      <div>
+        <span class="eyebrow"><span class="dot"></span>Website giveaway</span>
+        <h1>Win a free website for <span class="grad-text">your business.</span></h1>
+        <p class="hero-sub">We're building one business a brand new website <strong>plus its first month of ads</strong>, completely free. Online store or service business, it's yours to keep.</p>
+        <p class="count-label">Winner picked {{ draw_label }}</p>
+        <div class="count" data-countdown="{{ draw_iso }}">
+          <div><b data-d>0</b><span>Days</span></div>
+          <div><b data-h>0</b><span>Hours</span></div>
+          <div><b data-m>0</b><span>Min</span></div>
+          <div><b data-s>0</b><span>Sec</span></div>
+        </div>
+      </div>
+
+      <div class="entry" id="enter">
+        <div class="entry-inner">
+          <h2>Enter in 20 seconds</h2>
+          <p class="lead">Three quick details. We'll message the winner on WhatsApp.</p>
+          <form id="entryForm" novalidate>
+            <div class="field">
+              <label for="g-name">Your name</label>
+              <input type="text" id="g-name" autocomplete="name" required>
+            </div>
+            <div class="field">
+              <label for="g-business">Business name</label>
+              <input type="text" id="g-business" autocomplete="organization" required>
+            </div>
+            <div class="field">
+              <label for="g-wa">WhatsApp number</label>
+              <div data-phone-input>
+                <input type="tel" id="g-wa" autocomplete="tel" inputmode="tel" required>
+              </div>
+            </div>
+            <button type="submit" class="btn" id="g-submit" data-track="giveaway_submit">Enter the giveaway</button>
+            <p class="form-err" id="g-err">Please fill in all three, with your full WhatsApp number.</p>
+          </form>
+          <p class="fine">Free to enter. One entry per business.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section>
+    <div class="wrap">
+      <p class="tag fade">What the winner gets</p>
+      <h2 class="h2 fade">A real website, built for you and handed over.</h2>
+      <div class="get-grid">
+        <div class="get-photo fade"><img src="/static/giveaway/devices.jpg" alt="A laptop and phone showing a new website" loading="lazy"></div>
+        <ul class="get-list">
+          <li class="fade">
+            <span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
+            <div><h3>A custom website, up to 5 pages</h3><p>Or a full online store with your products loaded and ready to sell.</p></div>
+          </li>
+          <li class="fade">
+            <span class="ic"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></span>
+            <div><h3>Designed for phones first</h3><p>That's where your customers find you, so that's where it has to look its best.</p></div>
+          </li>
+          <li class="fade">
+            <span class="ic"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-13.5 7.8L3 21l1.3-4.4A9 9 0 1 1 21 12z"/></svg></span>
+            <div><h3>WhatsApp on every page</h3><p>Customers tap once and they're messaging you directly.</p></div>
+          </li>
+          <li class="fade">
+            <span class="ic"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg></span>
+            <div><h3>Your first month of ads, on us</h3><p>Our team runs your Meta ads for 30 days so the new site gets real traffic.</p></div>
+          </li>
+          <li class="fade">
+            <span class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
+            <div><h3>You own all of it</h3><p>It's set up in your name and we hand you every login. No contract, nothing to pay back.</p></div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="tag fade">Recent builds</p>
+      <h2 class="h2 fade">The kind of site you'd be getting.</h2>
+      <div class="work">
+        <figure class="fade"><img src="/static/webportfolio/img/supercar.jpg" alt="Supercar Experience website" loading="lazy"><figcaption><b>Supercar Experience</b>Car rentals, booking site</figcaption></figure>
+        <figure class="fade"><img src="/static/webportfolio/img/westernsol.jpg" alt="Western Sol website" loading="lazy"><figcaption><b>Western Sol</b>Online store</figcaption></figure>
+        <figure class="fade"><img src="/static/webportfolio/img/oc.jpg" alt="OC Detailing website" loading="lazy" style="object-position: 50% 62%"><figcaption><b>OC Detailing</b>Service business</figcaption></figure>
+        <figure class="fade"><img src="/static/webportfolio/img/havok.jpg" alt="Havok Holsters website" loading="lazy"><figcaption><b>Havok Holsters</b>Online store</figcaption></figure>
+        <figure class="fade"><img src="/static/webportfolio/img/launchpoint.jpg" alt="Launchpoint website" loading="lazy"><figcaption><b>Launchpoint</b>Software studio</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="tag fade">How it works</p>
+      <h2 class="h2 fade">Three steps, and the last one is ours.</h2>
+      <ol class="steps">
+        <li class="fade"><span class="n grad-text">01</span><h3>Enter today</h3><p>Your name, your business and your WhatsApp. That's the whole entry.</p></li>
+        <li class="fade"><span class="n grad-text">02</span><h3>We pick a winner</h3><p>On {{ draw_label }}. We message the winner directly on WhatsApp.</p></li>
+        <li class="fade"><span class="n grad-text">03</span><h3>We build it and hand it over</h3><p>A short call to learn your business, then we design, build and launch it, and your ads go live.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="final">
+    <div class="wrap">
+      <h2 class="h2 fade">One business wins. It could be yours.</h2>
+      <p class="sub fade">Entering takes 20 seconds and costs nothing.</p>
+      <a href="#enter" class="btn fade" data-track="giveaway_final_cta">Enter the giveaway</a>
+      <p class="rules">Free to enter, no purchase needed. One entry per business. Open to businesses in Lebanon. The winner is picked on {{ draw_label }} and contacted on the WhatsApp number they entered. The prize covers the design and build of a website of up to 5 pages or an online store, plus 30 days of Meta ads management. Ad spend, domain and hosting fees are paid by the business.</p>
+    </div>
+  </div>
+</main>
+
+<footer><div class="wrap">MK7 Media · mk7media.com</div></footer>
+
+<script>
+  // Countdown to the draw
+  (function () {
+    var el = document.querySelector('[data-countdown]');
+    if (!el) return;
+    var end = new Date(el.getAttribute('data-countdown')).getTime();
+    var f = { d: el.querySelector('[data-d]'), h: el.querySelector('[data-h]'), m: el.querySelector('[data-m]'), s: el.querySelector('[data-s]') };
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    function tick() {
+      var t = Math.max(0, end - Date.now());
+      f.d.textContent = Math.floor(t / 864e5);
+      f.h.textContent = pad(Math.floor(t / 36e5) % 24);
+      f.m.textContent = pad(Math.floor(t / 6e4) % 60);
+      f.s.textContent = pad(Math.floor(t / 1e3) % 60);
+    }
+    tick(); setInterval(tick, 1000);
+  })();
+
+  // Scroll-driven progressive fade: opacity + blur follow scroll position, no trigger line.
+  (function () {
+    var els = [].slice.call(document.querySelectorAll('.fade'));
+    if (!els.length) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    function frame() {
+      var vh = window.innerHeight;
+      els.forEach(function (el, i) {
+        var r = el.getBoundingClientRect();
+        var sib = el.parentNode ? [].indexOf.call(el.parentNode.children, el) : 0;
+        var top = r.top + Math.min(sib, 4) * 40;
+        var start = vh * 0.85, end = vh * 0.55;
+        var p = Math.min(1, Math.max(0, (start - top) / (start - end)));
+        var e = 1 - Math.pow(1 - p, 3);
+        el.style.opacity = e.toFixed(3);
+        el.style.filter = e >= 1 ? 'none' : 'blur(' + (6 * (1 - e)).toFixed(2) + 'px)';
+      });
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
+
+  // Entry form
+  (function () {
+    var form = document.getElementById('entryForm');
+    var nameI = document.getElementById('g-name');
+    var bizI = document.getElementById('g-business');
+    var waI = document.getElementById('g-wa');
+    var btn = document.getElementById('g-submit');
+    var err = document.getElementById('g-err');
+
+    function fullWa() { return (window.PhoneInput && window.PhoneInput.fullNumber) ? window.PhoneInput.fullNumber(waI) : waI.value.trim(); }
+    function waValid() { return (window.PhoneInput && window.PhoneInput.isValid) ? window.PhoneInput.isValid(waI) : waI.value.replace(/\D/g, '').length >= 8; }
+    function cookie(n) { var m = document.cookie.match(new RegExp('(?:^|; )' + n + '=([^;]+)')); return m ? decodeURIComponent(m[1]) : ''; }
+
+    [nameI, bizI, waI].forEach(function (i) { i.addEventListener('input', function () { i.classList.remove('bad'); err.style.display = 'none'; }); });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var bad = [];
+      if (!nameI.value.trim()) bad.push(nameI);
+      if (!bizI.value.trim()) bad.push(bizI);
+      if (!waValid()) bad.push(waI);
+      if (bad.length) {
+        bad.forEach(function (i) { i.classList.add('bad'); });
+        err.style.display = 'block';
+        bad[0].focus();
+        return;
+      }
+
+      btn.disabled = true; btn.textContent = 'Entering...';
+      var eventId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('ev_' + Date.now() + '_' + Math.random().toString(36).slice(2));
+      var name = nameI.value.trim();
+      if (window.fbq) fbq('track', 'Lead', { content_name: 'Website giveaway entry', lead_source: 'website_giveaway' }, { eventID: eventId });
+
+      fetch('/api/giveaway/enter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name, business: bizI.value.trim(), whatsapp: fullWa(),
+          event_id: eventId, fbp: cookie('_fbp'), fbc: cookie('_fbc'), page_url: location.href
+        })
+      }).then(function (r) { return r.json(); }).then(function (d) {
+        if (d && d.ok) {
+          location.href = '/giveaway/entered?n=' + encodeURIComponent(name.split(' ')[0]);
+        } else {
+          throw new Error((d && d.error) || 'failed');
+        }
+      }).catch(function () {
+        btn.disabled = false; btn.textContent = 'Enter the giveaway';
+        err.textContent = 'Something went wrong. Please try again.';
+        err.style.display = 'block';
+      });
+    });
+  })();
+</script>
+</body>
+</html>

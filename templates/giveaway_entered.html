@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MK7 Media | You're Entered</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+
+<!-- Meta Pixel — DPSmgmt dataset 2251653638703742 -->
+<script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '2251653638703742');
+  fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=2251653638703742&ev=PageView&noscript=1"/></noscript>
+<!-- End Meta Pixel -->
+<script src="/static/mk7-pixel.js" defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050507;
+    --card: #0d0d13;
+    --elevated: #13131b;
+    --text: #f2f2f7;
+    --muted: #9a9ab2;
+    --dim: #5e5e75;
+    --violet: #a87bff;
+    --pink: #ff7dbe;
+    --grad: linear-gradient(120deg, #4d9bff 0%, #a87bff 50%, #ff7dbe 100%);
+    --border: rgba(255,255,255,0.08);
+    --wa: #25D366;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg); color: var(--text);
+    -webkit-font-smoothing: antialiased; line-height: 1.6;
+    overflow-x: hidden; min-height: 100svh;
+    display: flex; flex-direction: column;
+  }
+  .wrap { width: 100%; max-width: 620px; margin: 0 auto; padding: 0 20px; }
+  .top { padding: 20px 0; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: -0.3px; font-size: 16px; color: var(--text); text-decoration: none; }
+  .brand img { width: 30px; height: 30px; }
+  main { flex: 1; position: relative; padding: 40px 0 64px; text-align: center; }
+  .glow {
+    position: absolute; inset: 0 0 auto; height: 460px; pointer-events: none;
+    background: radial-gradient(50% 60% at 35% 30%, rgba(77,155,255,0.16), transparent 70%),
+                radial-gradient(45% 55% at 70% 40%, rgba(255,125,190,0.14), transparent 70%);
+  }
+  .inner { position: relative; }
+  .check {
+    width: 76px; height: 76px; border-radius: 50%; margin: 0 auto 26px;
+    display: grid; place-items: center; background: var(--grad);
+    box-shadow: 0 18px 50px -12px rgba(168,123,255,0.6);
+  }
+  .check svg { width: 34px; height: 34px; stroke: #fff; fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  h1 { font-size: clamp(36px, 9vw, 56px); font-weight: 900; letter-spacing: -0.04em; line-height: 1.05; text-wrap: balance; }
+  .grad-text { background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .sub { color: var(--muted); font-size: 17px; margin: 16px auto 0; max-width: 460px; text-wrap: pretty; }
+  .sub strong { color: var(--text); font-weight: 600; }
+
+  .count-label { margin-top: 36px; font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: 0.5px; }
+  .count { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 12px auto 0; max-width: 440px; }
+  .count div { background: var(--elevated); border: 1px solid var(--border); border-radius: 16px; padding: 16px 6px; min-width: 0; }
+  .count b { display: block; font-size: clamp(28px, 8vw, 40px); font-weight: 800; letter-spacing: -1px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .count span { font-size: 11px; font-weight: 600; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
+  .count-done { display: none; margin-top: 12px; font-weight: 700; }
+
+  .card { margin-top: 40px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 26px 22px; text-align: left; }
+  .card h2 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  .card p { color: var(--muted); font-size: 15px; margin-top: 6px; }
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; margin-top: 16px; padding: 15px 18px; border-radius: 14px;
+    font: inherit; font-size: 16px; font-weight: 700; text-decoration: none; text-align: center;
+    transition: transform .2s, filter .2s;
+  }
+  .btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
+  .btn svg { width: 20px; height: 20px; flex: none; }
+  .btn-wa { background: var(--wa); color: #fff; }
+  .btn-wa svg { fill: #fff; }
+  .btn-ghost { background: transparent; color: var(--text); border: 1px solid rgba(255,255,255,0.16); }
+  .btn-ghost svg { stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  footer { border-top: 1px solid var(--border); padding: 28px 0 40px; font-size: 13px; color: var(--dim); text-align: center; }
+  @media (max-width: 360px) { .wrap { padding: 0 16px; } .count { gap: 6px; } }
+</style>
+</head>
+<body>
+
+<header class="top"><div class="wrap"><a class="brand" href="/giveaway"><img src="/static/favicon.svg" alt="">MK7 Media</a></div></header>
+
+<main>
+  <div class="glow"></div>
+  <div class="wrap inner">
+    <div class="check"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h1>You're entered{% if first_name %}, <span class="grad-text">{{ first_name }}</span>{% endif %}.</h1>
+    <p class="sub">We pick the winner on <strong>{{ draw_label }}</strong> and message them on WhatsApp. Keep an eye on your phone.</p>
+
+    <p class="count-label">Winner announced in</p>
+    <div class="count" data-countdown="{{ draw_iso }}">
+      <div><b data-d>0</b><span>Days</span></div>
+      <div><b data-h>0</b><span>Hours</span></div>
+      <div><b data-m>0</b><span>Min</span></div>
+      <div><b data-s>0</b><span>Sec</span></div>
+    </div>
+    <p class="count-done" id="countDone">We're picking the winner now. Watch your WhatsApp.</p>
+
+    <div class="card">
+      <h2>Make sure you don't miss our message</h2>
+      <p>Send us a quick hello on WhatsApp so our number is saved on your phone.</p>
+      <a class="btn btn-wa" data-track="giveaway_wa_hello" target="_blank" rel="noopener"
+         href="https://wa.me/96179018107?text={{ ('Hi MK7, I just entered the website giveaway' ~ (' (' ~ first_name ~ ')' if first_name else '') ~ '!') | urlencode }}">
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Say hi on WhatsApp
+      </a>
+      <a class="btn btn-ghost" data-track="giveaway_share" target="_blank" rel="noopener"
+         href="https://wa.me/?text={{ 'MK7 Media is giving away a free website plus a month of ads to one business. Takes 20 seconds to enter: https://mk7media.com/giveaway' | urlencode }}">
+        <svg viewBox="0 0 24 24"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg>
+        Share with a business owner
+      </a>
+    </div>
+  </div>
+</main>
+
+<footer><div class="wrap">MK7 Media · mk7media.com</div></footer>
+
+<script>
+  (function () {
+    var el = document.querySelector('[data-countdown]');
+    var end = new Date(el.getAttribute('data-countdown')).getTime();
+    var f = { d: el.querySelector('[data-d]'), h: el.querySelector('[data-h]'), m: el.querySelector('[data-m]'), s: el.querySelector('[data-s]') };
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    function tick() {
+      var t = end - Date.now();
+      if (t <= 0) { el.style.display = 'none'; document.getElementById('countDone').style.display = 'block'; return; }
+      f.d.textContent = Math.floor(t / 864e5);
+      f.h.textContent = pad(Math.floor(t / 36e5) % 24);
+      f.m.textContent = pad(Math.floor(t / 6e4) % 60);
+      f.s.textContent = pad(Math.floor(t / 1e3) % 60);
+    }
+    tick(); setInterval(tick, 1000);
+  })();
+</script>
+</body>
+</html>

@@ -7,7 +7,7 @@ import uuid
 import sqlite3
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, Response
 
 from agents.whatsapp_agent import agent as wa  # which profile is live: see ACTIVE_PROFILE in agents/whatsapp_agent/__init__.py
 from agents.whatsapp_agent.profiles.fgc_agent_v1_00 import agent as fgc_wa
@@ -291,6 +291,137 @@ def webportfolio():
 
 def _whatsapp_digits(value):
     return "".join(c for c in (value or "") if c.isdigit())
+
+
+# ── Website giveaway (/giveaway) ──
+# One-week Lebanon giveaway: winner gets a free website + first month of ads.
+# Every entry is kept (not just emailed) because the non-winners are the real
+# list: MK follows up with each one after the draw with a runner-up offer.
+GIVEAWAY_DRAW_ISO = "2026-11-03T20:00:00+02:00"  # Tue Nov 3, 8 PM Beirut
+GIVEAWAY_DRAW_LABEL = "Tuesday, November 3 at 8 PM Beirut time"
+
+def _init_giveaway_db():
+    conn = _analytics_conn()
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS giveaway_entries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            business TEXT,
+            whatsapp TEXT,
+            wa_digits TEXT UNIQUE,
+            ip TEXT,
+            user_agent TEXT,
+            page_url TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+_init_giveaway_db()
+
+@app.route("/giveaway")
+def giveaway_page():
+    return render_template("giveaway.html", draw_iso=GIVEAWAY_DRAW_ISO, draw_label=GIVEAWAY_DRAW_LABEL)
+
+@app.route("/giveaway/entered")
+def giveaway_entered():
+    return render_template("giveaway_entered.html", draw_iso=GIVEAWAY_DRAW_ISO, draw_label=GIVEAWAY_DRAW_LABEL,
+                           first_name=(request.args.get("n") or "").strip()[:40])
+
+def _build_giveaway_email(name, business, whatsapp, total):
+    from html import escape
+    from urllib.parse import quote
+    wa_digits = _whatsapp_digits(whatsapp)
+    first_name = (name or "there").split(" ", 1)[0]
+    prefill = f"Hey {first_name}, MaryKate from MK7. You're in the website giveaway for {business or 'your business'}!"
+    wa_url = f"https://wa.me/{wa_digits}?text={quote(prefill)}"
+    row = '<tr><td style="padding: 8px 0; color: #888; width: 140px;">{}</td><td style="padding: 8px 0; color: #111; font-weight: 600;">{}</td></tr>'
+    return (
+        '<div style="font-family: sans-serif; max-width: 560px; margin: 0 auto; padding: 32px;">'
+        '<h2 style="margin: 0 0 8px; color: #111;">New Giveaway Entry</h2>'
+        f'<p style="margin: 0 0 24px; color: #888;">Entry #{total} · draw is {GIVEAWAY_DRAW_LABEL}</p>'
+        '<table style="width: 100%; border-collapse: collapse;">'
+        + row.format("Name", escape(name)) + row.format("Business", escape(business)) + row.format("WhatsApp", escape(whatsapp)) +
+        '</table>'
+        '<div style="margin-top: 28px; text-align: center;">'
+        f'<a href="{wa_url}" style="display: inline-block; background: #25D366; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 10px; font-weight: 600; font-size: 15px;">Message on WhatsApp</a>'
+        '</div>'
+        '<p style="margin: 24px 0 0; color: #888; font-size: 12px; text-align: center;">All entries: mk7media.com/admin/giveaway</p>'
+        '</div>'
+    )
+
+@app.route("/api/giveaway/enter", methods=["POST"])
+def giveaway_enter():
+    data = request.get_json(silent=True) or {}
+    name = (data.get("name") or "").strip()[:120]
+    business = (data.get("business") or "").strip()[:160]
+    whatsapp = (data.get("whatsapp") or "").strip()[:32]
+    wa_digits = _whatsapp_digits(whatsapp)
+
+    if not name or not business or len(wa_digits) < 10:
+        return jsonify({"error": "Name, business name and a full WhatsApp number are required"}), 400
+
+    ctx = _client_ctx()
+    conn = _analytics_conn()
+    cur = conn.execute(
+        "INSERT OR IGNORE INTO giveaway_entries (name, business, whatsapp, wa_digits, ip, user_agent, page_url) VALUES (?,?,?,?,?,?,?)",
+        (name, business, whatsapp, wa_digits, ctx["client_ip"], ctx["client_ua"][:300], (data.get("page_url") or "")[:500]),
+    )
+    is_new = cur.rowcount == 1
+    conn.commit()
+    total = conn.execute("SELECT COUNT(*) FROM giveaway_entries").fetchone()[0]
+    conn.close()
+
+    # A repeat entry from the same number is a no-op: no second email, no second Lead.
+    if not is_new:
+        return jsonify({"ok": True, "duplicate": True})
+
+    if RESEND_API_KEY:
+        try:
+            import requests as req
+            req.post("https://api.resend.com/emails",
+                headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
+                json={"from": "MK7 Media <notifications@lumenmarketing.co>", "to": NOTIFY_RECIPIENTS,
+                      "subject": f"Giveaway Entry #{total}: {name} ({business})",
+                      "html": _build_giveaway_email(name, business, whatsapp, total)},
+                timeout=10)
+        except Exception as e:
+            print(f"[email] Giveaway notification failed: {e}")
+
+    event_id = (data.get("event_id") or str(uuid.uuid4())).strip()
+    parts = name.split(" ", 1)
+    _send_capi_event(
+        event_name="Lead",
+        event_id=event_id,
+        user_data={
+            "phone": whatsapp,
+            "first_name": parts[0],
+            "last_name": parts[1] if len(parts) > 1 else "",
+            "client_ip": ctx["client_ip"],
+            "client_ua": ctx["client_ua"],
+            "fbp": (data.get("fbp") or "").strip() or None,
+            "fbc": (data.get("fbc") or "").strip() or None,
+        },
+        custom_data={"lead_source": "website_giveaway", "content_name": "Website giveaway entry"},
+        event_source_url=data.get("page_url") or "https://mk7media.com/giveaway",
+    )
+    return jsonify({"ok": True})
+
+@app.route("/admin/giveaway")
+@admin_required
+def admin_giveaway():
+    import csv, io
+    conn = _analytics_conn()
+    rows = conn.execute("SELECT id, created_at, name, business, whatsapp FROM giveaway_entries ORDER BY id").fetchall()
+    conn.close()
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(["entry", "entered_at_utc", "name", "business", "whatsapp"])
+    for r in rows:
+        w.writerow([r["id"], r["created_at"], r["name"], r["business"], r["whatsapp"]])
+    return Response(buf.getvalue(), mimetype="text/csv",
+                    headers={"Content-Disposition": "attachment; filename=mk7-giveaway-entries.csv"})
 
 def _build_inquiry_email(name, whatsapp, website):
     dash = "\u2014"
