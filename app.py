@@ -315,10 +315,69 @@ def _init_giveaway_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(giveaway_entries)")}
+    if "ghl_opp_id" not in cols:
+        conn.execute("ALTER TABLE giveaway_entries ADD COLUMN ghl_opp_id TEXT")
     conn.commit()
     conn.close()
 
 _init_giveaway_db()
+
+# Every entry also lands in MK7's GHL as a contact + an opportunity in the
+# "MK7 Website Giveaway Leads" pipeline, stage New Entry. Inert until
+# GHL_MK7_TOKEN (the MK7 sub-account Private Integration token) is set.
+GHL_MK7_TOKEN = os.environ.get("GHL_MK7_TOKEN", "")
+GHL_MK7_LOCATION = os.environ.get("GHL_MK7_LOCATION", "6b4I6ILHBVcWQYlmPj3i")
+GIVEAWAY_GHL_PIPELINE = "q1z0HrE8MvK4AqBKtNWw"
+GIVEAWAY_GHL_STAGE_NEW = "e13d2908-a7a2-4d03-add2-b4d82fed5725"
+
+def _giveaway_to_ghl(entry_id, name, business, whatsapp):
+    """Upsert the contact and open an opportunity at New Entry. Returns the opp id or None."""
+    if not GHL_MK7_TOKEN:
+        return None
+    import requests as req
+    base = "https://services.leadconnectorhq.com"
+    headers = {"Authorization": f"Bearer {GHL_MK7_TOKEN}", "Version": "2021-07-28",
+               "Content-Type": "application/json", "Accept": "application/json"}
+    digits = _whatsapp_digits(whatsapp)
+    parts = (name or "").split(" ", 1)
+    try:
+        r = req.post(f"{base}/contacts/upsert", headers=headers, timeout=15, json={
+            "locationId": GHL_MK7_LOCATION,
+            "firstName": parts[0],
+            "lastName": parts[1] if len(parts) > 1 else "",
+            "phone": f"+{digits}",
+            "companyName": business,
+            "source": "MK7 Website Giveaway",
+            "tags": ["mk7 website giveaway"],
+        })
+        if r.status_code >= 400:
+            print(f"[ghl] giveaway contact upsert failed {r.status_code}: {r.text[:300]}")
+            return None
+        contact_id = r.json()["contact"]["id"]
+        r = req.post(f"{base}/opportunities/", headers=headers, timeout=15, json={
+            "locationId": GHL_MK7_LOCATION,
+            "pipelineId": GIVEAWAY_GHL_PIPELINE,
+            "pipelineStageId": GIVEAWAY_GHL_STAGE_NEW,
+            "contactId": contact_id,
+            "name": f"{business} ({name})",
+            "status": "open",
+            "source": "MK7 Website Giveaway",
+        })
+        if r.status_code >= 400:
+            # GHL allows one open opp per contact per pipeline; a repeat just means it's already there.
+            print(f"[ghl] giveaway opportunity failed {r.status_code}: {r.text[:300]}")
+            return None
+        opp_id = r.json()["opportunity"]["id"]
+        conn = _analytics_conn()
+        conn.execute("UPDATE giveaway_entries SET ghl_opp_id = ? WHERE id = ?", (opp_id, entry_id))
+        conn.commit()
+        conn.close()
+        print(f"[ghl] giveaway entry {entry_id} -> opp {opp_id}")
+        return opp_id
+    except Exception as e:
+        print(f"[ghl] giveaway sync exception: {e}")
+        return None
 
 @app.route("/giveaway")
 def giveaway_page():
@@ -369,6 +428,7 @@ def giveaway_enter():
         (name, business, whatsapp, wa_digits, ctx["client_ip"], ctx["client_ua"][:300], (data.get("page_url") or "")[:500]),
     )
     is_new = cur.rowcount == 1
+    entry_id = cur.lastrowid
     conn.commit()
     total = conn.execute("SELECT COUNT(*) FROM giveaway_entries").fetchone()[0]
     conn.close()
@@ -389,6 +449,8 @@ def giveaway_enter():
         except Exception as e:
             print(f"[email] Giveaway notification failed: {e}")
 
+    threading.Thread(target=_giveaway_to_ghl, args=(entry_id, name, business, whatsapp), daemon=True).start()
+
     event_id = (data.get("event_id") or str(uuid.uuid4())).strip()
     parts = name.split(" ", 1)
     _send_capi_event(
@@ -407,6 +469,18 @@ def giveaway_enter():
         event_source_url=data.get("page_url") or "https://mk7media.com/giveaway",
     )
     return jsonify({"ok": True})
+
+@app.route("/admin/giveaway/sync-ghl")
+@admin_required
+def admin_giveaway_sync_ghl():
+    """Push any entries that aren't in GHL yet (entries from before the token was set, or failed syncs)."""
+    if not GHL_MK7_TOKEN:
+        return jsonify({"error": "GHL_MK7_TOKEN not set"}), 503
+    conn = _analytics_conn()
+    rows = conn.execute("SELECT id, name, business, whatsapp FROM giveaway_entries WHERE ghl_opp_id IS NULL ORDER BY id").fetchall()
+    conn.close()
+    synced = [r["id"] for r in rows if _giveaway_to_ghl(r["id"], r["name"], r["business"], r["whatsapp"])]
+    return jsonify({"pending": len(rows), "synced": len(synced), "failed": [r["id"] for r in rows if r["id"] not in synced]})
 
 @app.route("/admin/giveaway")
 @admin_required
