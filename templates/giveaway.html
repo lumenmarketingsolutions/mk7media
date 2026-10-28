@@ -150,7 +150,7 @@
   /* Work */
   .work { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 36px; }
   .work figure { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); background: var(--elevated); min-width: 0; }
-  .work figure:first-child { grid-column: 1 / -1; }
+  .work figure:nth-child(-n+2) { grid-column: 1 / -1; }
   /* Portfolio shots are ~1.9:1 social cards with text at the edges, so keep that ratio and never crop the sides */
   .work img { width: 100%; aspect-ratio: 1200 / 630; object-fit: cover; }
   .work figcaption { padding: 10px 14px 12px; font-size: 13px; color: var(--muted); }
@@ -285,11 +285,14 @@
       <p class="tag fade">Recent builds</p>
       <h2 class="h2 fade">The kind of site you'd be getting.</h2>
       <div class="work">
-        <figure class="fade"><img src="/static/webportfolio/img/supercar.jpg" alt="Supercar Experience website" loading="lazy"><figcaption><b>Supercar Experience</b>Car rentals, booking site</figcaption></figure>
-        <figure class="fade"><img src="/static/webportfolio/img/westernsol.jpg" alt="Western Sol website" loading="lazy"><figcaption><b>Western Sol</b>Online store</figcaption></figure>
-        <figure class="fade"><img src="/static/webportfolio/img/oc.jpg" alt="OC Detailing website" loading="lazy" style="object-position: 50% 62%"><figcaption><b>OC Detailing</b>Service business</figcaption></figure>
-        <figure class="fade"><img src="/static/webportfolio/img/havok.jpg" alt="Havok Holsters website" loading="lazy"><figcaption><b>Havok Holsters</b>Online store</figcaption></figure>
-        <figure class="fade"><img src="/static/webportfolio/img/launchpoint.jpg" alt="Launchpoint website" loading="lazy"><figcaption><b>Launchpoint</b>Software studio</figcaption></figure>
+        <figure class="fade"><img src="/static/giveaway/work/nostalgia.jpg" alt="Nostalgia Fridge website" loading="lazy"><figcaption><b>Nostalgia Fridge</b>Retro fridges, online store</figcaption></figure>
+        <figure class="fade"><img src="/static/giveaway/work/dermaholic.jpg" alt="Dermaholic website" loading="lazy"><figcaption><b>Dermaholic</b>K-beauty, online store</figcaption></figure>
+        <figure class="fade"><img src="/static/giveaway/work/eliva.jpg" alt="Eliva website" loading="lazy"><figcaption><b>Eliva</b>Gel polish, Beirut</figcaption></figure>
+        <figure class="fade"><img src="/static/giveaway/work/velouria.jpg" alt="Velouria website" loading="lazy"><figcaption><b>Velouria</b>Jewelry, online store</figcaption></figure>
+        <figure class="fade"><img src="/static/giveaway/work/fgc.jpg" alt="Feels Good Club website" loading="lazy"><figcaption><b>Feels Good Club</b>Natural products</figcaption></figure>
+        <figure class="fade"><img src="/static/giveaway/work/barkey.jpg" alt="Barkey website" loading="lazy"><figcaption><b>Barkey</b>Dog care, online store</figcaption></figure>
+        <figure class="fade"><img src="/static/giveaway/work/elitebark.jpg" alt="Elite Bark website" loading="lazy"><figcaption><b>Elite Bark</b>Pet beds, online store</figcaption></figure>
+        <figure class="fade"><img src="/static/webportfolio/img/supercar.jpg" alt="Supercar Experience website" loading="lazy"><figcaption><b>Supercar Exp.</b>Car rental bookings</figcaption></figure>
       </div>
     </div>
   </section>
