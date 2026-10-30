@@ -398,7 +398,7 @@
       btn.disabled = true; btn.textContent = 'Entering...';
       var eventId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('ev_' + Date.now() + '_' + Math.random().toString(36).slice(2));
       var name = nameI.value.trim();
-      if (window.fbq) fbq('track', 'Lead', { content_name: 'Website giveaway entry', lead_source: 'website_giveaway' }, { eventID: eventId });
+      // The Lead pixel fires on the thank-you page (same eventID as the server CAPI Lead), so it lands after the entry saves
 
       fetch('/api/giveaway/enter', {
         method: 'POST',
@@ -409,7 +409,7 @@
         })
       }).then(function (r) { return r.json(); }).then(function (d) {
         if (d && d.ok) {
-          location.href = '/giveaway/entered?n=' + encodeURIComponent(name.split(' ')[0]);
+          location.href = '/giveaway/entered?n=' + encodeURIComponent(name.split(' ')[0]) + (d.duplicate ? '' : '&e=' + encodeURIComponent(eventId));
         } else {
           throw new Error((d && d.error) || 'failed');
         }

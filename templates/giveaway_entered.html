@@ -19,6 +19,13 @@
   'https://connect.facebook.net/en_US/fbevents.js');
   fbq('init', '2251653638703742');
   fbq('track', 'PageView');
+  // Lead for a new entry: eventID matches the server CAPI Lead so Meta counts it once; skip on refresh
+  (function () {
+    var e = new URLSearchParams(location.search).get('e');
+    if (!e) return;
+    try { if (sessionStorage.getItem('mk7_lead_' + e)) return; sessionStorage.setItem('mk7_lead_' + e, '1'); } catch (x) {}
+    fbq('track', 'Lead', { content_name: 'Website giveaway entry', lead_source: 'website_giveaway' }, { eventID: e });
+  })();
 </script>
 <noscript><img height="1" width="1" style="display:none"
   src="https://www.facebook.com/tr?id=2251653638703742&ev=PageView&noscript=1"/></noscript>
