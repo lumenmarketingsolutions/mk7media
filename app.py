@@ -297,8 +297,8 @@ def _whatsapp_digits(value):
 # One-week Lebanon giveaway: winner gets a free website + first month of ads.
 # Every entry is kept (not just emailed) because the non-winners are the real
 # list: MK follows up with each one after the draw with a runner-up offer.
-GIVEAWAY_DRAW_ISO = "2026-11-06T20:00:00+02:00"  # Fri Nov 6, 8 PM Beirut
-GIVEAWAY_DRAW_LABEL = "Friday, November 6 at 8 PM Beirut time"
+GIVEAWAY_DRAW_ISO = "2026-11-06T18:00:00+02:00"  # Fri Nov 6, 6 PM Beirut
+GIVEAWAY_DRAW_LABEL = "Friday, November 6 at 6 PM Beirut time"
 GIVEAWAY_DRAW_SHORT = "Fri, Nov 6"
 
 def _init_giveaway_db():
