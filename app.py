@@ -441,12 +441,14 @@ def giveaway_enter():
     if RESEND_API_KEY:
         try:
             import requests as req
-            req.post("https://api.resend.com/emails",
+            r = req.post("https://api.resend.com/emails",
                 headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
                 json={"from": "MK7 Media <notifications@lumenmarketing.co>", "to": NOTIFY_RECIPIENTS,
                       "subject": f"Giveaway Entry #{total}: {name} ({business})",
                       "html": _build_giveaway_email(name, business, whatsapp, total)},
                 timeout=10)
+            if r.status_code >= 300:
+                print(f"[email] Giveaway notification rejected {r.status_code}: {r.text[:200]}")
         except Exception as e:
             print(f"[email] Giveaway notification failed: {e}")
 
