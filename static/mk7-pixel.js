@@ -193,11 +193,21 @@
       referrer: document.referrer || '',
       time_on_page: 0
     });
+    // Keep the ad source (utm_* / fbclid) so funnel numbers can be split by ad and creative
+    var src = {};
+    try {
+      var qs = new URLSearchParams(window.location.search);
+      ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'].forEach(function (k) { if (qs.get(k)) src[k] = qs.get(k); });
+      if (qs.get('fbclid')) src.fbclid = 1;
+    } catch (e) { /* noop */ }
     pingAdmin({
       event_type: 'pageview',
-      referrer: document.referrer || ''
+      referrer: document.referrer || '',
+      metadata: Object.keys(src).length ? src : undefined
     });
   }
+  // Pages can log their own funnel steps (e.g. form_start) into the same session
+  window.mk7AdminPing = pingAdmin;
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', sendInitialPageview);
   } else {

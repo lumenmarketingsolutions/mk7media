@@ -500,6 +500,49 @@ def admin_giveaway():
     return Response(buf.getvalue(), mimetype="text/csv",
                     headers={"Content-Disposition": "attachment; filename=mk7-giveaway-entries.csv"})
 
+@app.route("/admin/giveaway/stats")
+@admin_required
+def admin_giveaway_stats():
+    """Giveaway funnel numbers as JSON, per Beirut day and in total: visits, form starts, submits, entries.
+    Counts are unique sessions. ?since=YYYY-MM-DD (default: launch day)."""
+    from urllib.parse import urlparse, parse_qs
+    since = request.args.get("since") or "2026-10-30"
+    day = "date(datetime(created_at, '+2 hours'))"  # Beirut, UTC+2 for the giveaway window
+    conn = _analytics_conn()
+
+    def sessions(where, *args):
+        q = f"""SELECT {day} AS d, COUNT(DISTINCT session_id) AS n FROM analytics_events
+                WHERE {day} >= ? AND {where} GROUP BY d"""
+        return {r["d"]: r["n"] for r in conn.execute(q, (since, *args)).fetchall()}
+
+    steps = {
+        "page_views": sessions("event_type = 'pageview' AND page_path = 'mk7media.com/giveaway'"),
+        "from_ads": sessions("event_type = 'pageview' AND page_path = 'mk7media.com/giveaway' AND event_metadata LIKE '%\"utm_source\": \"meta\"%'"),
+        "form_starts": sessions("event_type = 'form_start' AND page_path = 'mk7media.com/giveaway'"),
+        "submit_clicks": sessions("event_type = 'button_click' AND button_source = 'giveaway_submit'"),
+        "thank_you_views": sessions("event_type = 'pageview' AND page_path = 'mk7media.com/giveaway/entered'"),
+        "whatsapp_hello_clicks": sessions("event_type = 'button_click' AND button_source = 'giveaway_wa_hello'"),
+    }
+    entries = conn.execute(f"SELECT {day} AS d, page_url FROM giveaway_entries WHERE {day} >= ?", (since,)).fetchall()
+    conn.close()
+    steps["entries"] = {}
+    by_creative = {}
+    for e in entries:
+        steps["entries"][e["d"]] = steps["entries"].get(e["d"], 0) + 1
+        qs = parse_qs(urlparse(e["page_url"] or "").query)
+        key = (qs.get("utm_content") or ["not from an ad"])[0]
+        by_creative[key] = by_creative.get(key, 0) + 1
+
+    days = sorted({d for s in steps.values() for d in s})
+    totals = {k: sum(v.values()) for k, v in steps.items()}
+    return jsonify({
+        "since": since,
+        "totals": totals,
+        "by_day": [{"day": d, **{k: v.get(d, 0) for k, v in steps.items()}} for d in days],
+        "entries_by_creative": dict(sorted(by_creative.items(), key=lambda kv: -kv[1])),
+        "note": "Unique sessions per step. Entries are new WhatsApp numbers only (repeats are ignored).",
+    })
+
 def _build_inquiry_email(name, whatsapp, website):
     dash = "\u2014"
     wa_button = ""
@@ -956,7 +999,7 @@ def admin_track():
     session_id = (data.get("session_id") or "").strip()
     referrer = (data.get("referrer") or "").strip()
 
-    if not event_type or event_type not in ("pageview", "time_on_page", "button_click"):
+    if not event_type or event_type not in ("pageview", "time_on_page", "button_click", "form_start"):
         return jsonify({"ok": False, "error": "invalid event_type"}), 400
 
     ip = request.headers.get("X-Forwarded-For", request.remote_addr or "").split(",")[0].strip()

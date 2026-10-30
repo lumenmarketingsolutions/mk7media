@@ -382,6 +382,14 @@
 
     [nameI, bizI, waI].forEach(function (i) { i.addEventListener('input', function () { i.classList.remove('bad'); err.style.display = 'none'; }); });
 
+    // Form start: first time the visitor types in any field (logged once per page load)
+    var started = false;
+    form.addEventListener('input', function () {
+      if (started) return;
+      started = true;
+      if (window.mk7AdminPing) window.mk7AdminPing({ event_type: 'form_start', referrer: document.referrer || '' });
+    });
+
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var bad = [];
