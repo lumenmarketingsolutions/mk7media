@@ -359,12 +359,16 @@ _COL_NOT = {
              "address", "city", "id", "tel"),
     "cancelled": ("reason",),
 }
-# Best first: a column labelled USD beats cash-to-collect, which beats a generic total.
+# Best first. What the customer pays is a TOTAL: 02.11 a sheet with both "USD Price" and
+# "Total USD" entered 25 orders at the price before delivery, which also beat the
+# duplicate check. A plain "USD Price" only wins when no total column has real numbers.
+_TOTAL_WORDS = ("total", "grand", "\u0645\u062c\u0645\u0648\u0639", "\u0627\u062c\u0645\u0627\u0644\u064a", "\u0625\u062c\u0645\u0627\u0644\u064a")
+_USD_WORDS = ("usd", "dollar", "\u062f\u0648\u0644\u0627\u0631", "$")
 _PRICE_RANKS = (
-    ("usd", "dollar", "دولار", "$"),
-    ("cod", "collect", "cash", "تحصيل"),
-    ("total", "grand", "amount", "مجموع", "اجمالي", "إجمالي", "مبلغ"),
-    ("price", "سعر", "value", "cost", "paid"),
+    ("cod", "collect", "cash", "\u062a\u062d\u0635\u064a\u0644"),
+    _TOTAL_WORDS + ("amount", "\u0645\u0628\u0644\u063a"),
+    _USD_WORDS,
+    ("price", "\u0633\u0639\u0631", "value", "cost", "paid"),
 )
 _SHORT = {"id", "tel", "num", "cod", "usd", "syp", "lbp", "ref", "ip", "sku", "fee"}
 _PRICE_MIN, _PRICE_MAX = 3.0, 500.0   # an FGC order in USD; SYP/LBP totals fall outside
@@ -410,6 +414,11 @@ def _candidates(header, field):
 
 def _price_candidates(header):
     out = []
+    for i, cell in enumerate(header):        # "Total USD" is the best label there is
+        c = _cell(cell).lower()
+        if any(_has(c, h) for h in _TOTAL_WORDS) and any(_has(c, h) for h in _USD_WORDS) \
+                and not any(_has(c, x) for x in _COL_NOT["price"]):
+            out.append(i)
     for rank, hints in enumerate(_PRICE_RANKS):
         for i, cell in enumerate(header):
             c = _cell(cell).lower().replace("cash on delivery", "cod")
@@ -578,6 +587,9 @@ def _orders_from_sheet(data, filename, mime):
         orders.append({"phone": phone, "price": price, "quantity": qty if 1 <= qty <= 50 else 1,
                        "city": city or "", "name": name if len(name) >= 2 else "",
                        "address": get("address"), "country": get("country"), "product": product})
+    if "shamify" in (filename or "").lower():   # Shamify is the Syria courier, whatever the number
+        for o in orders:
+            o["country"] = "Syria"
     return orders, skipped, info
 
 
