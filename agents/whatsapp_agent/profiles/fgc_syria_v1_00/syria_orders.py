@@ -45,8 +45,9 @@ _done_lock = threading.Lock()
 
 
 def price_for(qty):
-    """(goods_total, delivery). 20$ each with free delivery (Kendall + MK, 02.11.2026)."""
-    return 20.0 * max(1, qty), 0.0
+    """(goods_total, delivery). Delivery included (Kendall, 02.11.2026): 1 = 20$, 2 = 30$,
+    3 = 37$. 4+ has no set price; capture() flags those for MK and keeps them out of Shopify."""
+    return {1: 20.0, 2: 30.0, 3: 37.0}.get(max(1, qty), 37.0 + 10.0 * (qty - 3)), 0.0
 
 
 def syria_phone(raw, fallback_wa, country="Syria"):
@@ -258,6 +259,8 @@ def capture(wa_id):
             items, check = [(known or "UNKNOWN", 1)], (check or "no product read from the chat")
         qty = sum(q for _, q in items)
         goods, delivery = price_for(qty)
+        if qty >= 4:
+            check = check or "4+ items has no set price, agree the total with the customer"
         o = {"wa_id": wa_id, "name": (x.get("name") or contact.get("profile_name") or "").strip(),
              "phone_fmt": syria_phone(x.get("phone"), wa_id, "Lebanon" if x.get("country") == "Lebanon" else "Syria"),
              "country": "Lebanon" if (x.get("country") == "Lebanon") else "Syria",
