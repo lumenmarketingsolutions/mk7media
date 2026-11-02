@@ -29,7 +29,7 @@ EXTRACT_MODEL = os.environ.get("FGCSY_ORDER_MODEL", "claude-opus-5-5")
 
 PRODUCTS = ["Teeth Whitening Strips", "Nasal Strips", "Migraine Relief Cap",
             "Pimple Patches", "Whitening Toothpaste"]
-# Shopify variants on the FGC store (checked live 09.10.2026), all 12$.
+# Shopify variants on the FGC store (checked live 09.10.2026).
 VARIANTS = {
     "Teeth Whitening Strips": 46831330885831,
     "Nasal Strips": 67793943593159,
@@ -45,14 +45,8 @@ _done_lock = threading.Lock()
 
 
 def price_for(qty):
-    """MK's Syria prices (training 08.10): (goods_total, delivery)."""
-    if qty <= 1:
-        return 12.0, 4.0
-    if qty == 2:
-        return 24.0, 0.0
-    if qty == 3:
-        return 30.0, 0.0
-    return 10.0 * qty, 0.0
+    """(goods_total, delivery). 20$ each with free delivery (Kendall + MK, 02.11.2026)."""
+    return 20.0 * max(1, qty), 0.0
 
 
 def syria_phone(raw, fallback_wa, country="Syria"):
@@ -172,8 +166,12 @@ def _shopify_order(o):
     qty = o["qty"]
     goods, delivery = o["goods"], o["delivery"]
     lines = [{"variant_id": VARIANTS[p], "quantity": q} for p, q in o["items"]]
-    list_total = 12.0 * qty
+    # Store prices differ per product (and are not all 20$), so read them live. Below
+    # list it is a discount; above list the difference goes on the delivery line, so
+    # the order total always equals what the customer was told.
+    list_total = sum(S._live_unit_price(VARIANTS[p], 12.0) * q for p, q in o["items"])
     discount = round(list_total - goods, 2)
+    delivery = round(delivery + max(0.0, -discount), 2)
     first, _, last = (o["name"] or "WhatsApp").partition(" ")
     addr = {"first_name": first or "WhatsApp", "last_name": last or "(Syria)",
             "address1": f"{o['area']}".strip() or o["city"] or "Syria",

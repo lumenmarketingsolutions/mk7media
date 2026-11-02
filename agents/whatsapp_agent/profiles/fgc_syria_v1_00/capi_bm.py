@@ -55,7 +55,7 @@ CURRENCY = os.environ.get("FGCSY_CAPI_CURRENCY", "USD")
 # Purchase value per product. A Purchase with no value is close to useless to Meta's
 # optimiser, and guessing one is worse than a sensible default, so this is explicit
 # and overridable per deployment.
-DEFAULT_VALUE = float(os.environ.get("FGCSY_CAPI_DEFAULT_VALUE", "12"))
+DEFAULT_VALUE = float(os.environ.get("FGCSY_CAPI_DEFAULT_VALUE", "20"))
 PRODUCT_VALUES = {}
 for _pair in os.environ.get("FGCSY_CAPI_PRODUCT_VALUES", "").split(","):
     if ":" in _pair:
