@@ -1668,6 +1668,18 @@ def fgc_orders_health():
     return jsonify(fgc_orders.health())
 
 
+@app.route("/fgc-orders/sheets/<path:name>")
+@admin_required
+def fgc_orders_sheet_file(name):
+    """Download a sheet Mary sent (listed under kept_sheets on /fgc-orders/health)."""
+    path = fgc_orders.kept_sheet_path(name)
+    if not path:
+        return ("not found", 404)
+    with open(path, "rb") as f:
+        return Response(f.read(), mimetype="application/octet-stream",
+                        headers={"Content-Disposition": "attachment; filename=\"sheet.xlsx\""})
+
+
 @app.route("/mk-coexistence")
 @admin_required
 def mk_coexistence_launcher():

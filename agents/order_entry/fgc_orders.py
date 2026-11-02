@@ -26,6 +26,7 @@ import os
 import json
 import time
 import threading
+import urllib.error
 import urllib.request
 
 SHOP = "https://hd8wtv-ck.myshopify.com"
@@ -40,6 +41,8 @@ VARIANTS = {  # product keyword -> (variant_id, fallback_unit_price)
     "cap": (46831330427079, 12.00),
     "patches": (46831330721991, 12.00),
     "strips": (46831330885831, 12.00),
+    "nose": (67793943593159, 12.00),
+    "toothpaste": (67815239024839, 12.00),
 }
 # Human names for the confirmation reply — Mary should see WHAT was ordered, not
 # just a total, so a wrong-product entry is obvious the moment it is made.
@@ -47,6 +50,8 @@ PRODUCT_NAMES = {
     "cap": "Migraine Cap",
     "patches": "Pimple Patches",
     "strips": "Whitening Strips",
+    "nose": "Nose Strips",
+    "toothpaste": "Whitening Toothpaste",
 }
 
 FGC_ORDER_SENDERS = {
@@ -85,6 +90,7 @@ def health():
         "whatsapp_token_present": bool(os.environ.get("WHATSAPP_ACCESS_TOKEN")),
         "sheet_import": {"csv": True, "xlsx": _xlsx_available()},
         "recent_errors": list(_last_errors),
+        "kept_sheets": kept_sheets(),
     }
     try:
         _shopify_token()
@@ -99,6 +105,21 @@ def is_order_sender(wa_id):
     return bool(FGC_ORDER_SENDERS) and "".join(ch for ch in str(wa_id) if ch.isdigit()) in FGC_ORDER_SENDERS
 
 
+def _urlopen(req, data=None, timeout=30):
+    """urlopen that survives a brief network drop (11.01: 'Network is unreachable'
+    killed a whole sheet mid-import). Only connection failures are retried; those
+    never reached Shopify, so a retried POST cannot create a second draft."""
+    for wait in (2, 5, None):
+        try:
+            return urllib.request.urlopen(req, data, timeout=timeout)
+        except urllib.error.HTTPError:
+            raise
+        except urllib.error.URLError as e:
+            if wait is None or "timed out" in str(e):
+                raise
+            time.sleep(wait)
+
+
 def _shopify_token():
     if _token_cache["token"] and time.time() < _token_cache["expires"] - 300:
         return _token_cache["token"]
@@ -107,7 +128,7 @@ def _shopify_token():
                        "client_secret": SHOPIFY_CLIENT_SECRET}).encode()
     req = urllib.request.Request(SHOP + "/admin/oauth/access_token", body, method="POST")
     req.add_header("Content-Type", "application/json")
-    with urllib.request.urlopen(req, timeout=20) as r:
+    with _urlopen(req, body, timeout=20) as r:
         d = json.loads(r.read())
     _token_cache["token"] = d["access_token"]
     _token_cache["expires"] = time.time() + int(d.get("expires_in", 86400))
@@ -121,7 +142,7 @@ def _shopify(method, path, body=None):
     data = json.dumps(body).encode() if body is not None else b""
     req.add_header("Content-Length", str(len(data)))
     try:
-        with urllib.request.urlopen(req, data if method in ("POST", "PUT") else None, timeout=30) as r:
+        with _urlopen(req, data if method in ("POST", "PUT") else None, timeout=30) as r:
             return json.loads(r.read() or b"{}")
     except urllib.error.HTTPError as e:
         return {"_error": e.code, "body": (e.read() or b"")[:300].decode("utf-8", "replace")}
@@ -169,7 +190,13 @@ _LINE_RE = re.compile(
     re.I,
 )
 _QTY_RE = re.compile(r"(?:(?P<a>\d)\s*(?:pcs?|pieces?|pc|boxes|box|x)\b|\bx\s*(?P<b>\d)\b)", re.I)
-_PRODUCT_WORDS = {"patches": "patches", "patch": "patches", "pimple": "patches",
+# Order matters: the first hit wins, so "nose strips" and "whitening toothpaste"
+# must be tested before the plain "strips" / "whitening" words.
+_PRODUCT_WORDS = {"nose": "nose", "nasal": "nose", "toothpaste": "toothpaste", "paste": "toothpaste",
+                  "\u0645\u0639\u062c\u0648\u0646": "toothpaste", "\u0627\u0646\u0641": "nose", "\u0627\u0644\u0627\u0646\u0641": "nose",
+                  "migraine": "cap", "\u0643\u0627\u0628": "cap", "\u0642\u0628\u0639\u0629": "cap",
+                  "\u062a\u0628\u064a\u064a\u0636": "strips",
+                  "patches": "patches", "patch": "patches", "pimple": "patches",
                   "strips": "strips", "strip": "strips", "whitening": "strips", "cap": "cap", "caps": "cap"}
 
 
@@ -231,7 +258,9 @@ _orders_cache = {"index": None, "at": 0}
 
 def _norm_digits(raw):
     d = "".join(ch for ch in str(raw or "") if ch.isdigit())
-    if d.startswith("961"):
+    if d.startswith("00"):
+        d = d[2:]
+    if d.startswith(("961", "963")):
         d = d[3:]
     return d.lstrip("0")
 
@@ -302,30 +331,131 @@ def _download_media(media_id):
     return r.content, (meta.get("mime_type") or "")
 
 
+# Each courier exports different columns, so columns are chosen from the header AND
+# the values under it. 11.01 bug: a new courier sheet (Shamify) produced $0 on every
+# row because the first column whose title merely contained a price word won.
 _COL_HINTS = {
-    "phone": ("phone", "number", "mobile", "tel", "whatsapp", "contact", "num"),
-    "price": ("price", "total", "amount", "cost", "paid", "value", "$"),
-    "city":  ("city", "area", "location", "region", "town", "address", "delivery"),
-    "name":  ("name", "customer", "client", "full name"),
-    "quantity": ("qty", "quantity", "pcs", "pieces", "count"),
-    "product": ("product", "item", "sku", "type"),
+    "phone": ("phone", "mobile", "number", "contact", "whatsapp", "tel", "num",
+              "هاتف", "موبايل", "جوال", "رقم"),
+    "quantity": ("qty", "quantity", "pcs", "pieces", "count", "كمية", "العدد"),
+    "cancelled": ("cancel", "ملغ"),
+    "status": ("status", "حالة"),
+    "country": ("country", "بلد", "دولة"),
+    "city": ("city", "area", "region", "town", "location", "governorate",
+             "مدينة", "منطقة", "محافظة"),
+    "address": ("address", "عنوان"),
+    "product": ("product", "item", "sku", "type", "منتج", "صنف"),
+    "name": ("name", "customer", "client", "recipient", "اسم", "زبون"),
 }
+_COL_NOT = {
+    "phone": ("order", "ref", "invoice", "tracking", "awb", "barcode", "name", "address", "id", "#"),
+    "price": ("delivery", "shipping", "fee", "commission", "discount", "syp", "lbp", "ل.س", "ليرة",
+              "توصيل", "شحن", "date", "id"),
+    "quantity": ("discount", "account"),
+    "city": ("fee", "cost", "price", "date", "status", "time", "charge"),
+    "address": ("fee", "cost", "price", "date", "status", "ip"),
+    "product": ("delivery", "shipping", "order", "id", "price", "cost", "total", "payment"),
+    "name": ("product", "item", "file", "company", "sender", "store", "shop", "phone", "mobile", "number",
+             "address", "city", "id", "tel"),
+    "cancelled": ("reason",),
+}
+# Best first: a column labelled USD beats cash-to-collect, which beats a generic total.
+_PRICE_RANKS = (
+    ("usd", "dollar", "دولار", "$"),
+    ("cod", "collect", "cash", "تحصيل"),
+    ("total", "grand", "amount", "مجموع", "اجمالي", "إجمالي", "مبلغ"),
+    ("price", "سعر", "value", "cost", "paid"),
+)
+_SHORT = {"id", "tel", "num", "cod", "usd", "syp", "lbp", "ref", "ip", "sku", "fee"}
+_PRICE_MIN, _PRICE_MAX = 3.0, 500.0   # an FGC order in USD; SYP/LBP totals fall outside
 
 
-def _map_columns(header):
-    """header list -> {field: column index}. Unrecognised columns are ignored."""
-    out = {}
+def _has(cell, hint):
+    if hint in _SHORT:
+        return re.search(r"(?<![a-z])" + re.escape(hint) + r"(?![a-z])", cell) is not None
+    return hint in cell
+
+
+def _cell(v):
+    """Excel stores phones and prices as numbers; 96170123456.0 must not gain a digit."""
+    if v is None:
+        return ""
+    if isinstance(v, float) and v.is_integer():
+        v = int(v)
+    return str(v).strip()
+
+
+def _parse_price(raw):
+    """A USD price from a cell, or None. '16', '16.5$', 'USD 16' and '16$ / 195000 SYP'
+    all work; a bare '1,500' or a SYP figure does not count as a price."""
+    t = str(raw or "").translate(str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")).strip()
+    m = (re.search(r"(?:\$|usd)\s*(\d+(?:[.,]\d{1,2})?)(?!\d)", t, re.I)
+         or re.search(r"(?<![\d.,])(\d+(?:[.,]\d{1,2})?)\s*(?:\$|usd|دولار)", t, re.I)
+         or re.fullmatch(r"(\d+(?:[.,]\d{1,2})?)", t))
+    return float(m.group(1).replace(",", ".")) if m else None
+
+
+def _phone_like(raw):
+    return 7 <= len(re.sub(r"\D", "", _cell(raw))) <= 15
+
+
+def _candidates(header, field):
+    out = []
     for i, cell in enumerate(header):
-        c = str(cell or "").strip().lower()
-        if not c:
-            continue
-        for field, hints in _COL_HINTS.items():
-            if field in out:
-                continue
-            if any(h in c for h in hints):
+        c = _cell(cell).lower()
+        if c and any(_has(c, h) for h in _COL_HINTS[field]) and not any(_has(c, x) for x in _COL_NOT.get(field, ())):
+            out.append(i)
+    return out
+
+
+def _price_candidates(header):
+    out = []
+    for rank, hints in enumerate(_PRICE_RANKS):
+        for i, cell in enumerate(header):
+            c = _cell(cell).lower().replace("cash on delivery", "cod")
+            if c and i not in out and any(_has(c, h) for h in hints) \
+                    and not any(_has(c, x) for x in _COL_NOT["price"]):
+                out.append(i)
+    return out
+
+
+def _map_columns(header, data=()):
+    """header + the rows under it -> {field: column index}."""
+    col = lambda r, i: r[i] if i < len(r) else None
+    out = {}
+    phones = _candidates(header, "phone")
+    if phones:
+        out["phone"] = max(phones, key=lambda i: (sum(_phone_like(col(r, i)) for r in data), -i))
+    prices = [i for i in _price_candidates(header) if i != out.get("phone")]
+    if prices:
+        # First column, in rank order, that holds real prices on at least 30% of the
+        # rows. All-zero or SYP columns lose. With none, keep the top one so the reply
+        # can name the column that had no usable price in it.
+        need = max(1, int(len(data) * 0.3))
+        def real(i):
+            n = 0
+            for r in data:
+                v = _parse_price(_cell(col(r, i)))
+                n += v is not None and _PRICE_MIN <= v <= _PRICE_MAX
+            return n
+        out["price"] = next((i for i in prices if real(i) >= need), prices[0])
+    used = set(out.values())
+    for field in ("quantity", "cancelled", "status", "country", "city", "address", "product", "name"):
+        for i in _candidates(header, field):
+            if i not in used:
                 out[field] = i
+                used.add(i)
                 break
     return out
+
+
+def _find_table(rows):
+    """Locate the header (exports often open with title rows). -> (cols, start, header)"""
+    for i, r in enumerate(rows[:15]):
+        m = _map_columns(r, rows[i + 1:])
+        if "phone" in m and "price" in m:
+            return m, i + 1, r
+    return {}, 0, rows[0] if rows else []
 
 
 def _rows_from_bytes(data, filename, mime):
@@ -337,9 +467,15 @@ def _rows_from_bytes(data, filename, mime):
             import openpyxl
         except ImportError:
             raise RuntimeError("xlsx support not installed on the server (openpyxl)")
-        wb = openpyxl.load_workbook(io.BytesIO(data), data_only=True, read_only=True)
-        ws = wb[wb.sheetnames[0]]
-        return [list(r) for r in ws.iter_rows(values_only=True)]
+        # Not read_only: that mode trusts the file's stated dimensions, which exports
+        # from web apps often get wrong, and it silently drops columns.
+        wb = openpyxl.load_workbook(io.BytesIO(data), data_only=True)
+        tabs = [[list(r) for r in ws.iter_rows(values_only=True)] for ws in wb.worksheets]
+        for t in tabs:                       # first tab that actually has an order table
+            kept = [r for r in t if any(_cell(c) for c in r)]
+            if _find_table(kept)[0]:
+                return t
+        return tabs[0] if tabs else []
     import csv, io as _io
     txt = data.decode("utf-8-sig", "replace")
     # Try every common delimiter and keep the parse that actually yields a usable
@@ -370,58 +506,133 @@ def _rows_from_bytes(data, filename, mime):
     return best or [r for r in csv.reader(_io.StringIO(txt))]
 
 
+def _sheet_product(prod_raw, city):
+    """-> (product key, None) or (None, reason). A product cell we can't match is a
+    problem to report: guessing here means the wrong item gets packed."""
+    prod = prod_raw.strip().lower()
+    if prod and not re.fullmatch(r"[\d.\s]+", prod):
+        found = []
+        # "Nose Strips" and "Whitening Toothpaste" are one product each, not two.
+        rest = re.sub(r"\b(nose|nasal)\s+strips?\b", "nose", prod)
+        rest = re.sub(r"\bwhitening\s+(toothpaste|paste)\b", "toothpaste", rest)
+        for w, key in _PRODUCT_WORDS.items():
+            if re.search(r"\b" + w + r"\b", rest):
+                rest = re.sub(r"\b" + w + r"\b", " ", rest)
+                if key not in found:
+                    found.append(key)
+        if len(found) == 1:
+            return found[0], None
+        if found:
+            return None, "more than one product"
+        return None, f"unknown product '{prod_raw[:25]}'"
+    for w, key in _PRODUCT_WORDS.items():
+        if re.search(r"\b" + w + r"\b", city.lower()):
+            return key, None
+    return "cap", None
+
+
 def _orders_from_sheet(data, filename, mime):
     """Parse a sheet into the same order dicts the text parser produces.
-    Returns (orders, skipped_rows)."""
-    rows = [r for r in _rows_from_bytes(data, filename, mime) if any(str(c or "").strip() for c in r)]
+    Returns (orders, skipped_rows, info). Info names the columns that were used."""
+    rows = [r for r in _rows_from_bytes(data, filename, mime) if any(_cell(c) for c in r)]
     if not rows:
-        return [], ["sheet is empty"]
-    cols, start = {}, 0
-    for i, r in enumerate(rows[:5]):          # header may not be the first row
-        m = _map_columns(r)
-        if "phone" in m and "price" in m:
-            cols, start = m, i + 1
-            break
+        return [], ["sheet is empty"], {"headers": [], "used": {}}
+    cols, start, header = _find_table(rows)
+    info = {"headers": [_cell(c) for c in (header or [])][:30],
+            "used": {f: _cell(header[i]) for f, i in cols.items()}}
     orders, skipped = [], []
     for r in rows[start:]:
-        get = lambda f: (str(r[cols[f]]).strip() if f in cols and cols[f] < len(r) and r[cols[f]] is not None else "")
-        if cols:
-            phone, price_raw = get("phone"), get("price")
-            name, city = get("name"), get("city")
-            qty_raw, prod_raw = get("quantity"), get("product")
-        else:                                  # no usable header — fall back to the text parser
-            line = " / ".join(str(c).strip() for c in r if str(c or "").strip())
+        get = lambda f: (_cell(r[cols[f]]) if f in cols and cols[f] < len(r) else "")
+        if not cols:                           # no usable header, fall back to the text parser
+            line = " / ".join(_cell(c) for c in r if _cell(c))
             p = _regex_parse(line)
-            if p["orders"]:
-                orders.extend(p["orders"])
+            good = [o for o in p["orders"] if _PRICE_MIN <= float(o["price"]) <= _PRICE_MAX]
+            if good:
+                orders.extend(good)
             elif line:
                 skipped.append(line[:60])
             continue
-        price_digits = re.sub(r"[^\d.]", "", price_raw.replace(",", "."))
-        if not phone or not price_digits:
-            skipped.append((" / ".join(x for x in (name, phone, price_raw, city) if x))[:60] or "blank row")
+        phone, price_raw = get("phone"), get("price")
+        name, city = get("name"), get("city")
+        label = (" / ".join(x for x in (name, phone, price_raw, city) if x))[:50] or "blank row"
+        status = (get("status") + " " + get("cancelled")).lower()
+        if get("cancelled") or "cancel" in status or "ملغ" in status:
+            skipped.append(f"{label} (cancelled)")
             continue
-        product = "cap"
-        blob = f"{prod_raw} {city}".lower()
-        for w, prod in _PRODUCT_WORDS.items():
-            if re.search(r"\b" + w + r"\b", blob):
-                product = prod
-                break
-        try:
-            qty = int(re.sub(r"[^\d]", "", qty_raw) or 1)
-        except ValueError:
-            qty = 1
-        orders.append({"phone": phone, "price": float(price_digits), "quantity": max(1, qty),
-                       "city": city or "Lebanon", "name": name, "address": "", "product": product})
-    return orders, skipped
+        if not _phone_like(phone):
+            skipped.append(f"{label} (no phone number)")
+            continue
+        price = _parse_price(price_raw)
+        if price is None or not (_PRICE_MIN <= price <= _PRICE_MAX):
+            skipped.append(f"{label} (no USD price)")
+            continue
+        prod_raw = get("product")
+        product, why = _sheet_product(prod_raw, city)
+        if not product:
+            skipped.append(f"{label} ({why})")
+            continue
+        # A courier's "Items" column holds a count, not a product name.
+        qty_raw = get("quantity") or (prod_raw if re.fullmatch(r"\d+(\.0+)?", prod_raw) else "")
+        m = re.search(r"\d+", qty_raw)
+        qty = int(m.group()) if m else 1
+        orders.append({"phone": phone, "price": price, "quantity": qty if 1 <= qty <= 50 else 1,
+                       "city": city or "", "name": name if len(name) >= 2 else "",
+                       "address": get("address"), "country": get("country"), "product": product})
+    return orders, skipped, info
+
+
+def _columns_line(info):
+    """One line telling Mary which columns were used, so a wrong read is obvious."""
+    used = info.get("used") or {}
+    if used.get("phone") and used.get("price"):
+        return f"Read the phone from \"{used['phone']}\" and the price from \"{used['price']}\"."
+    heads = ", ".join(h for h in (info.get("headers") or []) if h)[:400]
+    return f"Columns I can see: {heads or 'none'}."
+
+
+# Keep the last few sheets on the volume. WhatsApp media can't be re-fetched without
+# its id, so without this a failed import can't be diagnosed from the real file.
+SHEET_DIR = os.environ.get("FGC_SHEET_DIR", "/data/fgc_order_sheets")
+_SHEETS_KEPT = 20
+
+
+def _keep_sheet(data, filename):
+    try:
+        os.makedirs(SHEET_DIR, exist_ok=True)
+        safe = re.sub(r"[^\w.\-]+", "_", filename or "sheet")[:80]
+        with open(os.path.join(SHEET_DIR, time.strftime("%Y%m%d-%H%M%S-") + safe), "wb") as f:
+            f.write(data)
+        for old in sorted(os.listdir(SHEET_DIR))[:-_SHEETS_KEPT]:
+            os.remove(os.path.join(SHEET_DIR, old))
+    except Exception as e:
+        _record_error("keep_sheet", e)
+
+
+def kept_sheets():
+    try:
+        return sorted(os.listdir(SHEET_DIR), reverse=True)
+    except OSError:
+        return []
+
+
+def kept_sheet_path(name):
+    base = os.path.basename(name or "")
+    path = os.path.join(SHEET_DIR, base)
+    return path if base and os.path.isfile(path) else None
 
 
 def _norm_phone(raw):
     digits = "".join(ch for ch in str(raw) if ch.isdigit())
-    if str(raw).strip().startswith("+") and not digits.startswith("961"):
-        return "+" + digits          # explicit foreign number, keep as written
-    if digits.startswith("961"):
-        return "+" + digits
+    if digits.startswith("00"):
+        return "+" + digits[2:]
+    if str(raw).strip().startswith("+") or digits.startswith(("961", "963")):
+        return "+" + digits          # already has a country code, keep as written
+    if digits.startswith("09") and len(digits) == 10:
+        return "+963" + digits[1:]   # Syrian mobile, local format
+    if digits.startswith("9") and len(digits) == 9:
+        return "+963" + digits       # Syrian mobile, no leading zero
+    if len(digits) >= 10 and not digits.startswith("0"):
+        return "+" + digits          # foreign number written without the +
     if digits.startswith("0"):
         digits = digits[1:]
     return "+961" + digits
@@ -440,7 +651,13 @@ def _enter_order(o):
     shipping = round(price - (unit * qty - disc_per_unit * qty), 2)
     name = (o.get("name") or "").strip()
     first, last = (name.split(" ", 1) + [""])[:2] if name else ("WhatsApp", "".join(ch for ch in str(o["phone"]) if ch.isdigit()))
-    addr = (o.get("address") or "").strip() or o.get("city") or "Lebanon"
+    phone_fmt = _norm_phone(o["phone"])
+    # Shopify refuses Syria as a shipping country (same as syria_orders.py), so those
+    # go in with no country and "Syria" in address2 + tags.
+    syria = phone_fmt.startswith("+963") or bool(re.search(r"syria|\u0633\u0648\u0631\u064a", str(o.get("country") or ""), re.I))
+    home = "Syria" if syria else "Lebanon"
+    city = (o.get("city") or "").strip() or home
+    addr = (o.get("address") or "").strip() or city
     note = f"Auto-entered from WhatsApp. Agreed {price:g}$ incl 3$ delivery."
     body = {"draft_order": {
         "line_items": [{"variant_id": variant_id, "quantity": qty,
@@ -448,10 +665,10 @@ def _enter_order(o):
                                              "value_type": "fixed_amount",
                                              "value": str(disc_per_unit), "amount": str(disc_per_unit)}}],
         "shipping_address": {"first_name": first, "last_name": last or first,
-                             "address1": addr, "city": o.get("city") or "Lebanon",
-                             "country": "Lebanon", "phone": _norm_phone(o["phone"])},
+                             "address1": addr, "city": city, "phone": phone_fmt,
+                             **({"address2": "Syria"} if syria else {"country": "Lebanon"})},
         "shipping_line": {"title": "Delivery", "price": f"{shipping:.2f}"},
-        "tags": "WhatsApp, auto-entry",
+        "tags": "Syria, WhatsApp, auto-entry" if syria else "WhatsApp, auto-entry",
         "note": note}}
     d = _shopify("POST", "/draft_orders.json", body)
     draft = d.get("draft_order")
@@ -636,16 +853,23 @@ def handle_order_sheet(wa_id, media_id, filename, caption, send_text):
                 _record_error("media", e)
                 send_text(wa_id, "I couldn't download that file from WhatsApp. Try sending it again as a document.")
                 return
+            _keep_sheet(data, filename)
             try:
-                orders, skipped = _orders_from_sheet(data, filename, mime)
+                orders, skipped, info = _orders_from_sheet(data, filename, mime)
+                print(f"[fgc-orders] sheet read {filename!r}: {info}")
             except Exception as e:
                 _record_error("sheet_parse", f"{e} | {filename}")
                 send_text(wa_id, f"I couldn't read that sheet ({e}). It needs a phone column and a price column — "
                                  "CSV or Excel both work.")
                 return
             if not orders:
-                send_text(wa_id, "I read the sheet but found no orders in it. It needs a column with the phone "
-                                 "number and one with the price. City, name, quantity and product are optional.")
+                msg = ("I read the sheet but entered nothing, because no row had both a phone number and a "
+                       "USD price. " + _columns_line(info))
+                if skipped:
+                    msg += "\n\nFirst rows I couldn't use:\n" + "\n".join("\u2022 " + r for r in skipped[:5])
+                msg += "\n\nKendall can see this file, so he can get it fixed."
+                _record_error("sheet_no_orders", f"{filename}: {info}")
+                send_text(wa_id, msg[:3900])
                 return
 
             force = "force" in (caption or "").lower()
@@ -659,7 +883,11 @@ def handle_order_sheet(wa_id, media_id, filename, caption, send_text):
                         continue
                     if hit:
                         flagged.append(f"{o.get('phone')} — also has {hit['name']} (${hit['total']:.2f})")
-                order, err = _enter_order(o)
+                try:
+                    order, err = _enter_order(o)
+                except Exception as e:     # one bad row must not lose the rest of the sheet
+                    _record_error("sheet_row", e)
+                    order, err = None, "couldn't reach the store, send the sheet again (nothing gets doubled)"
                 if order:
                     entered.append(_confirm_line(order, o))
                     ph = _norm_digits(o.get("phone"))
@@ -674,7 +902,7 @@ def handle_order_sheet(wa_id, media_id, filename, caption, send_text):
                 head += f", {len(dups)} skipped as already in the store"
             if fails:
                 head += f", {len(fails)} failed"
-            parts = [head + "."]
+            parts = [head + ".", _columns_line(info)]
             if entered:
                 parts.append("\n".join(entered))
             if dups:
