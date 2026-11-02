@@ -247,17 +247,39 @@ _ARABIZI_WORDS = {"marhaba", "mar7aba", "ahla", "ahlan", "ahlein", "shu", "shou"
                   "aade", "bde", "wahde", "whde", "tmm", "shlon", "shlonak", "fiyo", "badon"}
 
 
-def greeting_for(text):
+def _greet_lang(text):
     t = (text or "").strip()
     if re.search(r"[\u0600-\u06FF]", t):
-        return GREETING_AR
+        return "ar"
     words = re.findall(r"[a-z0-9']+", t.lower())
     if words and (any(w in _ARABIZI_WORDS for w in words)
                   or any(re.search(r"[a-z][2375][a-z]|[a-z][2375]$|^[2375][a-z]", w) for w in words)):
-        return GREETING_ARABIZI
+        return "arabizi"
     if any(w in _FRENCH_WORDS for w in re.findall(r"[a-z\u00e0-\u00ff'-]+", t.lower())):
-        return GREETING_FR
-    return GREETING_TEXT
+        return "fr"
+    return "en"
+
+
+def _ar_digits(n):
+    return f"{n:g}".translate(str.maketrans("0123456789", "\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"))
+
+
+def _greeting_in(lang):
+    """The opener in one language. MK's own wording if she set it on the training page,
+    otherwise the standard line with her current one-item price in it."""
+    live_training_block()
+    custom = _live["text"].get("greeting_" + lang)
+    if custom:
+        return custom
+    p = _live["prices"]["1"]
+    if lang == "ar":
+        return GREETING_AR.replace("\u0662\u0660$", _ar_digits(p) + "$")
+    return {"arabizi": GREETING_ARABIZI, "fr": GREETING_FR}.get(lang, GREETING_TEXT) \
+        .replace("$20", f"${p:g}").replace("20$", f"{p:g}$")
+
+
+def greeting_for(text):
+    return _greeting_in(_greet_lang(text))
 # Where handoff pings go: the FGC number itself, so the alert lands in the
 # WhatsApp Business app MK already works in. Sent FROM the Lumen Cloud API number.
 LUMEN_NOTIFY_PHONE_ID = os.environ.get("LUMEN_NOTIFY_PHONE_ID", "1082296231636502")
@@ -1521,6 +1543,19 @@ REENGAGE_MSG = {"noreply": {"en": _FU_EN, "ar": _FU_AR, "arabizi": _FU_ARABIZI},
                 "died": {"en": _FU_EN, "ar": _FU_AR, "arabizi": _FU_ARABIZI}}
 
 
+def _followup_text(kind, lang, wa_id):
+    """MK's wording from the training page wins; the env values are only a fallback."""
+    live_training_block()
+    t = _live["text"]
+    if lang == "ar" and t.get("followup_lb"):
+        try:
+            if _dialect(wa_id)[0] == "lebanese":
+                return t["followup_lb"]
+        except Exception:
+            pass
+    return t.get("followup_" + lang) or REENGAGE_MSG[kind].get(lang) or ""
+
+
 def _genuine_inbound_count(conn, wa_id):
     """Real customer messages, excluding the ad opener and media/system placeholders."""
     rows = conn.execute(
@@ -1542,8 +1577,8 @@ def _genuine_inbound_count(conn, wa_id):
 def _last_inbound_lang(conn, wa_id):
     r = conn.execute("SELECT body FROM wa_messages WHERE wa_id=? AND direction='in' "
                      "AND body NOT LIKE '[%' ORDER BY id DESC LIMIT 1", (wa_id,)).fetchone()
-    g = greeting_for(r["body"] if r else "")
-    return "ar" if g == GREETING_AR else ("arabizi" if g == GREETING_ARABIZI else "en")
+    lang = _greet_lang(r["body"] if r else "")
+    return lang if lang in ("ar", "arabizi") else "en"
 
 
 def _reengage_candidates(conn):
@@ -1691,7 +1726,7 @@ def reengage_sweep(dry=False):
         wa_id = r["wa_id"]
         kind = "died" if _genuine_inbound_count(conn, wa_id) >= 1 else "noreply"
         lang = _last_inbound_lang(conn, wa_id)
-        msg = REENGAGE_MSG[kind].get(lang) or ""
+        msg = _followup_text(kind, lang, wa_id)
         if not msg:
             out.append({"wa_id": wa_id, "kind": kind, "lang": lang, "msg": "", "send": False,
                         "reason": f"no confirmed {lang} follow-up wording yet",
@@ -2393,6 +2428,40 @@ def _mk_has_spoken(wa_id):
 TRAINING_BRIEF_URL = os.environ.get("FGCSY_BRIEF_URL", "")
 TRAINING_REFRESH_S = int(os.environ.get("FGCSY_BRIEF_REFRESH", "300"))
 _brief_cache = {"at": 0.0, "text": ""}
+# Things that are code, not model instructions, and must still follow MK's training:
+# the prices used for the opener and for order totals, and exact opener / follow-up wording.
+# Section "settings" on the training page. Last good copy is kept if a value is bad.
+_live = {"prices": {"1": 20.0, "2": 30.0, "3": 37.0}, "text": {}}
+_LIVE_TEXT_KEYS = {"greeting_en", "greeting_ar", "greeting_arabizi", "greeting_fr",
+                   "followup_en", "followup_ar", "followup_lb", "followup_arabizi"}
+
+
+def _apply_settings(brief):
+    text = {}
+    for f in brief:
+        if f.get("section") != "settings":
+            continue
+        k, v = f.get("key"), (f.get("value") or "").strip()
+        if k in _LIVE_TEXT_KEYS and v:
+            text[k] = v.replace("\\n", "\n")
+        elif k == "price_table":
+            try:
+                t = {str(q): float(a) for q, a in json.loads(v).items()}
+                if not all(1 <= a <= 5000 for a in t.values()) or "1" not in t:
+                    raise ValueError("amount out of range or no one-item price")
+                _live["prices"] = t
+            except Exception as e:
+                print(f"[fgcsy-wa] bad price_table on the training page, keeping the last good one: {e}")
+    _live["text"] = text
+
+
+def live_prices_line():
+    p = _live["prices"]
+    bits = [f"{q} item{'s' if q != '1' else ''} = {p[q]:g}$" for q in sorted(p, key=lambda x: (not x.isdigit(), int(x) if x.isdigit() else 0)) if q.isdigit()]
+    four = (f"4 or more = {p['each_4_plus']:g}$ each." if "each_4_plus" in p
+            else "4 or more has no set price: output ONLY [[HANDOFF]].") if "4" not in p else ""
+    return "CURRENT PRICES, exact, delivery included, beats every other price anywhere in these instructions: " \
+        + ", ".join(bits) + ". " + four
 _brief_lock = threading.Lock()
 
 
@@ -2406,11 +2475,12 @@ def live_training_block():
     try:
         r = requests.get(TRAINING_BRIEF_URL, timeout=8)
         brief = (r.json() or {}).get("brief") or []
+        _apply_settings(brief)
         lines = [f"- [{f['section']}] {f['key']}: {f['value']}" for f in brief
-                 if f.get("section") != "open_questions" and f.get("value")]
+                 if f.get("section") not in ("open_questions", "settings") and f.get("value")]
         text = ("THE OWNER'S LATEST TRAINING (MK, saved on the training page). These are her "
                 "confirmed rules and lines, newest value per item. Where anything here differs "
-                "from the instructions above, THIS WINS. Lines marked SUPERSEDED are no longer "
+                "from the instructions above or from the product note after this, THIS WINS. Lines marked SUPERSEDED are no longer "
                 "true. Keep every other rule above (length, one message, never invent a fact, "
                 "product safety, handoff token).\n"
                 "DIALECT LINES: items written as \"Lebanese: X -> Syrian: Y\" were MK teaching "
@@ -2419,7 +2489,7 @@ def live_training_block():
                 "Lebanese words\" item does not apply to them. Take only the WORDS from X, never "
                 "its facts: Lebanon delivery is Beirut same day, rest of Lebanon 2 to 5 days, and "
                 "every order still needs name, phone, city and area. Prices, deals and every "
-                "other rule here apply to both.\n" + "\n".join(lines)) if lines else ""
+                "other rule here apply to both.\n" + live_prices_line() + "\n" + "\n".join(lines)) if lines else ""
         with _brief_lock:
             _brief_cache["text"] = text
         print(f"[fgcsy-wa] training brief loaded: {len(lines)} items")
@@ -2503,10 +2573,10 @@ def _voice_note_line(wa_id):
         if h["direction"] == "in" and (h["body"] or "").strip() and not (h["body"] or "").startswith("["):
             last = h["body"]
             break
-    g = greeting_for(last)
-    if g == GREETING_AR:
+    lang = _greet_lang(last)
+    if lang == "ar":
         return "ما فيي إسمع الصوت هلق، فيك تكتبلي؟" if lebanese else "ما بقدر اسمع الصوت هلق، اكتبلي إذا بتريد"
-    if g == GREETING_ARABIZI:
+    if lang == "arabizi":
         return "Ma fiyye esma3 el sot hala2, fik tektebli?" if lebanese else "Ma be2der esma3 el sot hala2, ktebli iza btrid"
     if not last:
         return "ما فيي إسمع الصوت هلق، فيك تكتبلي؟" if lebanese else "ما بقدر اسمع الصوت هلق، اكتبلي إذا بتريد"
@@ -2819,7 +2889,8 @@ def generate_reply(wa_id, answer_opener=False):
         messages.insert(0, {"role": "user", "content": "..."})
 
     if (answer_opener and len(messages) >= 2 and messages[-1]["role"] == "assistant"
-            and messages[-1]["content"].strip() in {g.strip() for g in (GREETING_TEXT, GREETING_AR, GREETING_ARABIZI, GREETING_FR)}):
+            and messages[-1]["content"].strip() in {g.strip() for g in (GREETING_TEXT, GREETING_AR, GREETING_ARABIZI, GREETING_FR,
+                                                      *(_greeting_in(x) for x in ("en", "ar", "arabizi", "fr")))}):
         # The greeting went out AFTER their question. The system prompt already tells
         # the model the greeting was received, so drop it here and answer the question.
         messages.pop()

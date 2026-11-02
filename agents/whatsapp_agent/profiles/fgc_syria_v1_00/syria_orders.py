@@ -45,9 +45,24 @@ _done_lock = threading.Lock()
 
 
 def price_for(qty):
-    """(goods_total, delivery). Delivery included (Kendall, 02.11.2026): 1 = 20$, 2 = 30$,
-    3 = 37$. 4+ has no set price; capture() flags those for MK and keeps them out of Shopify."""
-    return {1: 20.0, 2: 30.0, 3: 37.0}.get(max(1, qty), 37.0 + 10.0 * (qty - 3)), 0.0
+    """(goods_total, delivery). The total the customer pays, delivery included, from MK's
+    price table on the training page (agent._live). A quantity with no price: capture()
+    flags it for MK and keeps it out of Shopify."""
+    from . import agent as A
+    A.live_training_block()
+    p = A._live["prices"]
+    q = max(1, qty)
+    if str(q) in p:
+        return p[str(q)], 0.0
+    if q >= 4 and "each_4_plus" in p:
+        return p["each_4_plus"] * q, 0.0
+    return p["1"] * q, 0.0
+
+
+def has_price(qty):
+    from . import agent as A
+    p = A._live["prices"]
+    return str(max(1, qty)) in p or (qty >= 4 and "each_4_plus" in p)
 
 
 def syria_phone(raw, fallback_wa, country="Syria"):
@@ -86,8 +101,9 @@ SCHEMA = {
                            "quantity": {"type": "integer"}},
             "required": ["product", "quantity"], "additionalProperties": False}},
         "notes": {"type": "string", "description": "Anything MK must know (delivery time asked for, etc). Empty if nothing."},
+        "quoted_total": {"type": "number", "description": "The total in dollars the SHOP told this customer for exactly this order. 0 if it never stated one for this quantity."},
     },
-    "required": ["name", "phone", "country", "city", "area", "items", "notes"],
+    "required": ["name", "phone", "country", "city", "area", "items", "notes", "quoted_total"],
     "additionalProperties": False,
 }
 
@@ -259,13 +275,16 @@ def capture(wa_id):
             items, check = [(known or "UNKNOWN", 1)], (check or "no product read from the chat")
         qty = sum(q for _, q in items)
         goods, delivery = price_for(qty)
-        if qty >= 4:
-            check = check or "4+ items has no set price, agree the total with the customer"
+        if not has_price(qty):
+            check = check or f"{qty} items has no set price, agree the total with the customer"
         o = {"wa_id": wa_id, "name": (x.get("name") or contact.get("profile_name") or "").strip(),
              "phone_fmt": syria_phone(x.get("phone"), wa_id, "Lebanon" if x.get("country") == "Lebanon" else "Syria"),
              "country": "Lebanon" if (x.get("country") == "Lebanon") else "Syria",
              "city": (x.get("city") or "").strip(), "area": (x.get("area") or "").strip(),
-             "notes": (x.get("notes") or "").strip(), "items": items, "qty": qty,
+             "notes": ((x.get("notes") or "").strip() + (
+                 f" CHECK PRICE: the chat quoted {float(x['quoted_total']):g}$, the price table says {goods + delivery:g}$."
+                 if float(x.get("quoted_total") or 0) > 0 and abs(float(x["quoted_total"]) - goods - delivery) > 0.01 else "")).strip(),
+             "items": items, "qty": qty,
              "goods": goods, "delivery": delivery, "total": goods + delivery,
              "products_txt": ", ".join(f"{p} x {q}" for p, q in items),
              "price_txt": f"{goods:g} + {delivery:g} delivery" if delivery else f"{goods:g}, free delivery"}
