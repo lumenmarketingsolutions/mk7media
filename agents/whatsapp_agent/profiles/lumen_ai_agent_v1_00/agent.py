@@ -1302,6 +1302,11 @@ def _reset_conversation(wa_id):
             "human_snooze_until=NULL, product=NULL, product_ad_id=NULL, "
             "ctwa_clid=NULL, ctwa_clid_at=NULL, last_lat=NULL, last_lng=NULL, "
             "last_location_text=NULL WHERE wa_id = ?", (wa_id,))
+        try:
+            conn.execute("UPDATE wa_contacts SET booked_start=NULL, booked_email=NULL, "
+                         "booked_event_id=NULL WHERE wa_id = ?", (wa_id,))
+        except Exception:
+            pass
         conn.commit()
     except Exception as e:
         print(f"[lumen-ai] reset failed for {wa_id}: {e}")
@@ -2405,6 +2410,9 @@ def _handle_inbound_message(msg, profiles, via_phone_id=None):
         if cmd in ("/reset", "reset", "/clear"):
             _reset_conversation(wa_id)
             send_text(wa_id, "Thread cleared. Next message starts fresh.")
+            # Wipe again so even the confirmation is gone from what the agent reads.
+            _reset_conversation(wa_id)
+            _last_reply_at.pop(wa_id, None)
             return
         if cmd in ("/state", "/status"):
             try:
