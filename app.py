@@ -260,6 +260,20 @@ def _client_ctx():
         "client_ua": request.headers.get("User-Agent", ""),
     }
 
+# New marketing site (Next.js static export in site_build/). The old homepage is kept at
+# templates/legacy_home_2026-11.html and git tag legacy-site-2026-11-13.
+SITE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "site_build")
+
+
+def _site_file(rel, status=200):
+    from flask import send_from_directory
+    resp = send_from_directory(SITE_DIR, rel)
+    resp.status_code = status
+    if rel.endswith(".html"):
+        resp.headers["Cache-Control"] = "public, max-age=300"
+    return resp
+
+
 def _is_whatsapp_host():
     return (request.host or "").lower().split(":")[0].startswith("whatsapp.")
 
@@ -269,7 +283,7 @@ def home():
     # whatsapp.mk7media.com is the WhatsApp portal's front door — drop straight into it.
     if _is_whatsapp_host():
         return redirect(url_for("admin_whatsapp"))
-    return render_template("index.html")
+    return _site_file("index.html")
 
 @app.route("/saas0801")
 def saas0801_proposal():
@@ -543,34 +557,62 @@ def admin_giveaway_stats():
         "note": "Unique sessions per step. Entries are new WhatsApp numbers only (repeats are ignored).",
     })
 
-def _build_inquiry_email(name, whatsapp, website):
-    dash = "\u2014"
-    wa_button = ""
+def _build_inquiry_email(name, whatsapp, website, email="", business="", service_type="", goals="", enrichment=False):
+    """Lead notification in the new MK7 brand: dark, roomy, one column, nothing cluttered."""
+    from html import escape
+    from urllib.parse import quote
+
+    font = "'Inter Tight','Inter','Helvetica Neue',Helvetica,Arial,sans-serif"
     wa_digits = _whatsapp_digits(whatsapp)
+    first_name = (name or "there").split(" ", 1)[0]
+
+    rows = [
+        ("WhatsApp", whatsapp),
+        ("Email", email),
+        ("Business", business or website),
+        ("Needs help with", service_type),
+        ("Six month goal", goals),
+    ]
+    rows_html = "".join(
+        '<tr><td style="padding:18px 0;border-top:1px solid #222228;">'
+        f'<div style="font-family:{font};font-size:12px;line-height:16px;color:#8D8D96;">{escape(label)}</div>'
+        f'<div style="font-family:{font};font-size:16px;line-height:24px;color:#F2F2F3;margin-top:4px;">{escape(str(value))}</div>'
+        '</td></tr>'
+        for label, value in rows if value
+    )
+
+    button = ""
     if wa_digits:
-        first_name = (name or "there").split(" ", 1)[0]
         prefill = f"Hey {first_name}, MaryKate from MK7. Quick one: are you running ads now or starting fresh?"
-        from urllib.parse import quote
         wa_url = f"https://wa.me/{wa_digits}?text={quote(prefill)}"
-        wa_button = (
-            '<div style="margin-top: 28px; text-align: center;">'
-            f'<a href="{wa_url}" style="display: inline-block; background: #25D366; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 10px; font-weight: 600; font-family: sans-serif; font-size: 15px;">'
-            '\ud83d\udcac Reply on WhatsApp'
-            '</a>'
-            '<p style="margin: 12px 0 0; color: #888; font-size: 12px;">Opens a chat with this lead, pre-filled.</p>'
-            '</div>'
+        button = (
+            '<tr><td style="padding-top:32px;">'
+            f'<a href="{wa_url}" style="display:inline-block;background:#F2F2F3;color:#09090B;text-decoration:none;'
+            f'font-family:{font};font-size:15px;font-weight:600;padding:14px 28px;border-radius:999px;">Reply on WhatsApp</a>'
+            f'<div style="font-family:{font};font-size:12px;color:#5C5C66;margin-top:12px;">Opens a chat with {escape(first_name)}, message ready to send.</div>'
+            '</td></tr>'
         )
 
+    tag = "Lead details" if enrichment else "New lead"
+    line = "Added what they need and where they want to be." if enrichment else "Wants a free strategy call. Reach out on WhatsApp."
+
     return (
-        '<div style="font-family: sans-serif; max-width: 560px; margin: 0 auto; padding: 32px;">'
-        '<h2 style="margin: 0 0 24px; color: #111;">New Inquiry from MK7 Media</h2>'
-        '<table style="width: 100%; border-collapse: collapse;">'
-        f'<tr><td style="padding: 8px 0; color: #888; width: 140px;">Name</td><td style="padding: 8px 0; color: #111; font-weight: 600;">{name}</td></tr>'
-        f'<tr><td style="padding: 8px 0; color: #888;">WhatsApp</td><td style="padding: 8px 0; color: #111; font-weight: 600;">{whatsapp or dash}</td></tr>'
-        f'<tr><td style="padding: 8px 0; color: #888;">Website</td><td style="padding: 8px 0; color: #111;">{website or dash}</td></tr>'
-        '</table>'
-        f'{wa_button}'
-        '</div>'
+        '<!doctype html><html><body style="margin:0;padding:0;background:#09090B;">'
+        '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#09090B;">'
+        '<tr><td align="center" style="padding:40px 16px;">'
+        '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">'
+        f'<tr><td style="font-family:{font};font-size:22px;font-weight:800;letter-spacing:-1px;color:#F2F2F3;padding-bottom:28px;">'
+        'MK<span style="color:#B9A7FF;">7</span></td></tr>'
+        '<tr><td style="background:#111114;border:1px solid #222228;border-radius:12px;padding:36px 32px;">'
+        '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">'
+        f'<tr><td style="font-family:{font};font-size:13px;color:#B9A7FF;">{tag}</td></tr>'
+        f'<tr><td style="font-family:{font};font-size:30px;line-height:36px;font-weight:700;letter-spacing:-1px;color:#F2F2F3;padding-top:8px;">{escape(name or "Someone")}</td></tr>'
+        f'<tr><td style="font-family:{font};font-size:15px;line-height:22px;color:#8D8D96;padding:8px 0 24px;">{line}</td></tr>'
+        f'{rows_html}'
+        f'{button}'
+        '</table></td></tr>'
+        f'<tr><td style="font-family:{font};font-size:12px;color:#5C5C66;padding-top:24px;text-align:center;">From mk7media.com · Beirut, Lebanon</td></tr>'
+        '</table></td></tr></table></body></html>'
     )
 
 @app.route("/api/inquiry", methods=["POST"])
@@ -601,12 +643,13 @@ def inquiry():
         try:
             import resend
             resend.api_key = RESEND_API_KEY
-            subject_prefix = "Inquiry Enrichment" if is_enrichment else "New Inquiry"
+            subject_prefix = "Lead details" if is_enrichment else "New lead"
             resend.Emails.send({
                 "from": "MK7 Media <notifications@lumenmarketing.co>",
                 "to": NOTIFY_RECIPIENTS,
-                "subject": f"{subject_prefix}: {name}" + (f" — {service_type}" if service_type else ""),
-                "html": _build_inquiry_email(name, whatsapp, website)
+                "subject": f"{subject_prefix}: {name}" + (f" · {service_type}" if service_type else ""),
+                "html": _build_inquiry_email(name, whatsapp, website, email=email, business=business,
+                                             service_type=service_type, goals=goals, enrichment=is_enrichment)
             })
         except Exception as e:
             print(f"[email] Failed to send notification: {e}")
@@ -2000,6 +2043,26 @@ def api_lumen_ai_events():
     except Exception as e:
         out["error"] = str(e)[:200]
     return jsonify(out)
+
+
+@app.route("/_next/<path:p>")
+def site_next_assets(p):
+    resp = _site_file(os.path.join("_next", p))
+    resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    return resp
+
+
+@app.route("/<path:p>")
+def site_page(p):
+    """Serves the new site's pages. Every other route in this app is more specific and wins first."""
+    p = p.strip("/")
+    if ".." in p:
+        return _site_file("404.html", 404)
+    for candidate in (p, f"{p}.html", os.path.join(p, "index.html")):
+        full = os.path.join(SITE_DIR, candidate)
+        if os.path.isfile(full):
+            return _site_file(candidate)
+    return _site_file("404.html", 404)
 
 
 @app.route("/api/health")

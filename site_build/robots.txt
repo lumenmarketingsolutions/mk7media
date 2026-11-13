@@ -1,0 +1,8 @@
+User-Agent: *
+Allow: /
+Disallow: /palettes
+Disallow: /sampler
+Disallow: /logos
+Disallow: /admin
+
+Sitemap: https://mk7media.com/sitemap.xml
