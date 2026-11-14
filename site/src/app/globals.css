@@ -1,0 +1,234 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* MK7 palette B "Eclipse". Every color has one job:
+   brand = identity moments, action = buttons only, growth = numbers going up, signal = live moments. */
+:root {
+  --bg: #09090b;
+  --bg-2: #0d0d10;
+  --surface: #111114;
+  --line: #222228;
+  --line-soft: #18181d;
+  --text: #f2f2f3;
+  --muted: #8d8d96;
+  --faint: #5c5c66;
+  --brand: #b9a7ff;
+  --growth: #6ee7a8;
+  --signal: #b9a7ff;
+
+  /* shadcn aliases so pasted 21st.dev components inherit the palette */
+  --background: var(--bg);
+  --foreground: var(--text);
+  --card: var(--surface);
+  --card-foreground: var(--text);
+  --popover: var(--surface);
+  --popover-foreground: var(--text);
+  --primary: var(--text);
+  --primary-foreground: var(--bg);
+  --secondary: var(--surface);
+  --secondary-foreground: var(--text);
+  --muted-foreground: var(--muted);
+  --accent: var(--surface);
+  --accent-foreground: var(--text);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--brand);
+  --radius: 4px;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-brand: var(--brand);
+  --color-growth: var(--growth);
+  --color-signal: var(--signal);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --font-sans: var(--font-tight), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-face), ui-monospace, monospace;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+}
+
+html {
+  background: var(--bg);
+  scroll-behavior: smooth;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+::selection {
+  background: color-mix(in oklch, var(--brand) 35%, transparent);
+}
+
+/* Section rhythm: generous, never crammed */
+.section {
+  padding-block: 96px;
+}
+@media (min-width: 768px) {
+  .section {
+    padding-block: 128px;
+  }
+}
+.wrap {
+  width: 100%;
+  max-width: 1120px;
+  margin-inline: auto;
+  padding-inline: 20px;
+}
+@media (min-width: 640px) {
+  .wrap {
+    padding-inline: 32px;
+  }
+}
+
+/* Type scale: deliberately restrained (AI sites run too big) */
+.h-display {
+  font-size: 40px;
+  line-height: 1.04;
+  letter-spacing: -0.04em;
+  font-weight: 700;
+}
+@media (min-width: 768px) {
+  .h-display {
+    font-size: 64px;
+  }
+}
+.h-section {
+  font-size: 30px;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  font-weight: 700;
+}
+@media (min-width: 768px) {
+  .h-section {
+    font-size: 52px;
+  }
+}
+@media (min-width: 1200px) {
+  .h-section {
+    font-size: 56px;
+  }
+}
+.eyebrow {
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0;
+}
+.lede {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+@media (min-width: 768px) {
+  .lede {
+    font-size: 17px;
+  }
+}
+
+/* Inner pages: tighter rhythm than the home page */
+.section-tight {
+  padding-block: 72px;
+}
+@media (min-width: 768px) {
+  .section-tight {
+    padding-block: 96px;
+  }
+}
+
+/* Subtle grid backdrop, used sparingly */
+.grid-backdrop {
+  background-size: 64px 64px;
+  background-image:
+    linear-gradient(to right, color-mix(in oklch, var(--text) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklch, var(--text) 4%, transparent) 1px, transparent 1px);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 30%, transparent 75%);
+}
+
+@keyframes word-in {
+  from { opacity: 0; transform: translateY(14px); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+@keyframes word-in-touch {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+/* Elements wait (paused, invisible) until they get data-in, then the browser runs the animation on the GPU. */
+.word-in { opacity: 0; animation: word-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both paused; }
+.fade-in-up { opacity: 0; animation: fade-in-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both paused; }
+[data-in] .word-in, .fade-in-up[data-in] { animation-play-state: running; }
+@media (hover: none) {
+  .word-in { animation-name: word-in-touch; }
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes orbit-dot {
+  0%, 100% { transform: translate(var(--tw), 0); }
+  25% { transform: translate(0, 0); }
+  50% { transform: translate(0, var(--th)); }
+  75% { transform: translate(var(--tw), var(--th)); }
+}
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.7; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Blog article typography */
+.prose-mk { color: var(--muted); font-size: 17px; line-height: 1.8; }
+.prose-mk > * + * { margin-top: 1.25em; }
+.prose-mk h2 { color: var(--text); font-size: 26px; line-height: 1.2; letter-spacing: -0.03em; font-weight: 700; margin-top: 2.4em; }
+.prose-mk h3 { color: var(--text); font-size: 20px; letter-spacing: -0.02em; font-weight: 600; margin-top: 2em; }
+.prose-mk strong { color: var(--text); font-weight: 600; }
+.prose-mk a { color: var(--brand); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in oklch, var(--brand) 40%, transparent); }
+.prose-mk a:hover { text-decoration-color: var(--brand); }
+.prose-mk ul, .prose-mk ol { padding-left: 1.3em; }
+.prose-mk ul { list-style: disc; }
+.prose-mk ol { list-style: decimal; }
+.prose-mk li { margin-top: 0.5em; padding-left: 0.2em; }
+.prose-mk li::marker { color: var(--faint); }
+.prose-mk blockquote { border-left: 2px solid var(--brand); padding-left: 1.2em; color: var(--text); }
+.prose-mk table { width: 100%; border-collapse: collapse; font-size: 15px; display: block; overflow-x: auto; }
+.prose-mk th, .prose-mk td { border-bottom: 1px solid var(--line); padding: 10px 12px; text-align: left; }
+.prose-mk th { color: var(--text); font-weight: 600; }
+.prose-mk code { font-family: var(--font-mono); font-size: 0.9em; color: var(--text); background: var(--surface); padding: 2px 6px; border-radius: 4px; }
+.prose-mk hr { border-color: var(--line); margin: 2.5em 0; }
+@media (min-width: 768px) { .prose-mk { font-size: 18px; } .prose-mk h2 { font-size: 30px; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .word-in, .fade-in-up { animation: none; opacity: 1; }
+}

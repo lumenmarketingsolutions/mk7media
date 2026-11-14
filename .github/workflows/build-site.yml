@@ -1,0 +1,48 @@
+name: Build mk7media.com
+# Any change in site/ rebuilds the static site into site_build/, which Railway serves.
+on:
+  push:
+    branches: [main]
+    paths: ["site/**", ".github/workflows/build-site.yml"]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: build-site
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - name: Install
+        working-directory: site
+        run: npm ci
+      - name: Build (retries once: Google Fonts download is sometimes flaky)
+        working-directory: site
+        env:
+          SITE_LIVE: "1"
+          NEXT_TELEMETRY_DISABLED: "1"
+        run: npm run build || (sleep 20 && rm -rf .next out && npm run build)
+      - name: Sanity check the build before publishing
+        run: |
+          test -f site/out/index.html
+          grep -q "/_next/" site/out/index.html
+          test $(find site/out -name "*.html" | wc -l) -ge 20
+      - name: Publish to site_build
+        run: |
+          rm -rf site_build
+          cp -R site/out site_build
+          rm -f site_build/{file,globe,next,vercel,window}.svg
+          git config user.name "mk7-site-bot"
+          git config user.email "actions@github.com"
+          git add -A site_build
+          if git diff --cached --quiet; then echo "no changes"; exit 0; fi
+          git commit -m "Build site from ${GITHUB_SHA::7}"
+          git pull --rebase origin main
+          git push
