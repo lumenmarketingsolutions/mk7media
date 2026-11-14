@@ -23,7 +23,7 @@ jobs:
       - name: Install
         working-directory: site
         run: npm ci
-      - name: Build (retries once: Google Fonts download is sometimes flaky)
+      - name: "Build, retrying once if the Google Fonts download flakes"
         working-directory: site
         env:
           SITE_LIVE: "1"
