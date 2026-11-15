@@ -1,4 +1,4 @@
-/* Kendall to review the answers. Kept short on purpose. */
+/* Answers to review. Kept short on purpose. */
 export const FAQS = [
   {
     q: "Who do you work with?",

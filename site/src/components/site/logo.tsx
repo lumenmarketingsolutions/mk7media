@@ -1,4 +1,4 @@
-/* Logo #5 (Kendall + chosen): "MK" in Inter Tight extra bold + an angled violet 7. */
+/* Logo #5 (chosen): "MK" in Inter Tight extra bold + an angled violet 7. */
 export function Logo({ size = 25 }: { size?: number }) {
   return (
     <span

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 /* The one button component for the whole site. Change the look here and it changes everywhere.
-   "glass" = rounded liquid glass (Kendall's pick). A faint frosted base keeps it visible on flat black. */
+   "glass" = rounded liquid glass (the chosen style). A faint frosted base keeps it visible on flat black. */
 export function Cta({
   href,
   children,

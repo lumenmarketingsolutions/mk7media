@@ -6,7 +6,7 @@ import useMeasure from "react-use-measure";
 import { RevealHeading, FadeUp } from "./reveal";
 import { Odometer } from "./odometer";
 
-/* NOTE for Kendall: $2,000,000 / 4.5x / 30M / 30+ are inside the ranges you gave.
+/* NOTE: $2,000,000 / 4.5x / 30M / 30+ are inside the ranges you gave.
    Confirm the exact figures before launch. */
 
 function ViewsCard() {

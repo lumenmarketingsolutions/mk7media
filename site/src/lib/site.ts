@@ -4,8 +4,8 @@ export const SITE = {
   city: "Beirut, Lebanon",
   whatsapp: "96179018107",
   whatsappPretty: "+961 79 018 107",
-  instagram: "", // TODO Kendall: handle
-  email: "", // TODO Kendall: contact email
+  instagram: "", // TODO: handle
+  email: "", // TODO: contact email
 };
 
 export type Service = {
