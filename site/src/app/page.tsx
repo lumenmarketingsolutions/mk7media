@@ -21,7 +21,7 @@ const jsonLd = {
       name: SITE.name,
       url: SITE.url,
       logo: `${SITE.url}/static/favicon.svg`,
-      description: "Beirut based marketing agency for Meta and Google ads, Shopify stores, WhatsApp automation and CRM systems.",
+      description: "Digital marketing agency in Beirut, Lebanon for Meta and Google ads, Shopify stores, websites, WhatsApp automation and CRM systems.",
       address: { "@type": "PostalAddress", addressLocality: "Beirut", addressCountry: "LB" },
       areaServed: ["LB", "AE", "QA", "SA", "US", "CA", "AM", "AU", "GB", "FR"],
       telephone: `+${SITE.whatsapp}`,

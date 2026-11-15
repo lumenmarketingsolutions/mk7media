@@ -9,11 +9,11 @@ const mono = Geist_Mono({ variable: "--font-mono-face", subsets: ["latin"] });
 export const metadata: Metadata = {
   metadataBase: new URL("https://mk7media.com"),
   title: {
-    default: "MK7 Media | Meta Ads, Websites and Automation Agency in Beirut",
+    default: "MK7 Media | Digital Marketing Agency in Lebanon",
     template: "%s | MK7 Media",
   },
   description:
-    "Beirut based marketing agency. Meta and Google ads, Shopify stores, WhatsApp automation and CRM systems for brands in Lebanon, the Gulf and beyond.",
+    "Digital marketing agency in Beirut, Lebanon. Meta and Google ads, Shopify stores, websites, WhatsApp automation and CRM systems for brands in Lebanon, the Gulf and beyond.",
   openGraph: {
     type: "website",
     siteName: "MK7 Media",

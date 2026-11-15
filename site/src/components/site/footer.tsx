@@ -9,6 +9,7 @@ const COLS = [
     title: "Company",
     links: [
       { label: "About", href: "/about" },
+      { label: "Marketing agency in Lebanon", href: "/marketing-agency-lebanon" },
       { label: "Work", href: "/work" },
       { label: "Blog", href: "/blog" },
       { label: "Contact", href: "/contact" },
