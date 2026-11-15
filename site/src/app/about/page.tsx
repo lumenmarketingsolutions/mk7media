@@ -28,6 +28,11 @@ export default function About() {
             <p className="eyebrow">About</p>
           </FadeUp>
           <RevealHeading as="h1" onView={false} delay={0.1} className="h-display mt-5 max-w-[14ch]" parts={["We never took", { t: "no for an answer.", accent: true }]} />
+          <FadeUp delay={0.3}>
+            <p className="lede mt-6 max-w-[40ch]">
+              <span className="text-text">The number 1 marketing agency in Lebanon.</span>
+            </p>
+          </FadeUp>
         </div>
       </section>
 
