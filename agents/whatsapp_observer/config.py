@@ -37,8 +37,10 @@ class Client:
         self.phone_number_id = str(r["phone_number_id"])
         self.waba_id = str(r.get("waba_id") or "")
         self.dataset_id = str(r.get("dataset_id") or "")
-        self.capi_token = os.environ.get(r.get("capi_token_env") or "", "")
-        self.ads_token = os.environ.get(r.get("ads_token_env") or "", "")
+        # A token pasted in the admin for this client wins; otherwise the named env var
+        # (the Lumen system user token, which has access to every WABA shared with us).
+        self.capi_token = (r.get("capi_token") or "").strip() or os.environ.get(r.get("capi_token_env") or "", "")
+        self.ads_token = os.environ.get(r.get("ads_token_env") or "", "") or self.capi_token
         self.app_secret = os.environ.get(r.get("app_secret_env") or "WHATSAPP_APP_SECRET", "")
         self.currency = r["currency"]
         self.default_value = float(r["default_value"] or 0)

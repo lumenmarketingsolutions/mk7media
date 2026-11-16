@@ -31,7 +31,13 @@ def _slugify(name):
 
 
 def _public(d):
-    return {k: v for k, v in d.items() if not k.endswith("_env")}
+    """Config as the admin sees it. Secrets never leave this service: the pasted token
+    is reported only as set or not, with its last four characters."""
+    out = {k: v for k, v in d.items() if not k.endswith("_env") and k != "capi_token"}
+    t = (d.get("capi_token") or "").strip()
+    out["capi_token_set"] = bool(t)
+    out["capi_token_hint"] = ("..." + t[-4:]) if t else ""
+    return out
 
 
 def _claude(system, user, max_tokens=1500):
@@ -111,6 +117,8 @@ def create_client():
            "dataset_id": str(d.get("dataset_id") or ""), "capi_token_env": "LUMEN_META_CAPI_TOKEN",
            "ads_token_env": "LUMEN_META_CAPI_TOKEN", "app_secret_env": "WHATSAPP_APP_SECRET",
            "languages": ["English", "Arabic", "Arabic in Latin letters"], "dry_run": True}
+    if str(d.get("capi_token") or "").strip():
+        cfg["capi_token"] = str(d["capi_token"]).strip()
     reply, changed = "", []
     if (d.get("context") or "").strip():
         try:
@@ -137,6 +145,17 @@ def update_client(slug):
     if not cfg:
         return jsonify({"error": "unknown"}), 404
     d = request.json or {}; changed = []
+    # The token is write-only: blank keeps the saved one, "clear" removes it.
+    tok = str(d.get("capi_token") or "").strip()
+    if tok:
+        if tok.lower() == "clear":
+            cfg.pop("capi_token", None)
+        else:
+            cfg["capi_token"] = tok
+        changed.append("capi_token")
+    for k in ("waba_id", "phone_number_id", "dataset_id"):
+        if k in d and d[k] is not None:
+            d[k] = "".join(ch for ch in str(d[k]) if ch.isdigit())
     for k in EDITABLE:
         if k in d:
             v = d[k]
@@ -176,31 +195,189 @@ def client_report(slug):
     return jsonify(rep)
 
 
+# ---- Meta plumbing: find the client's number, subscribe it, give it a dataset, prove it.
+# Two tokens on purpose. The webhook token belongs to the app Meta delivers messages to
+# (subscribing with any other app's token subscribes the wrong app, and nothing arrives).
+# The business token is the Lumen system user that can see every WABA shared with us.
+LUMEN_BUSINESS_ID = os.environ.get("LUMEN_BUSINESS_ID", "1531559090655146")
+WEBHOOK_APP_ID = os.environ.get("WHATSAPP_APP_ID", "2107067100091646")
+
+
+def _webhook_token():
+    return os.environ.get("WHATSAPP_ACCESS_TOKEN", "")
+
+
+def _business_token():
+    return os.environ.get("LUMEN_META_CAPI_TOKEN") or os.environ.get("FGC_CAPI_TOKEN") or _webhook_token()
+
+
+def _graph(method, path, token, params=None, body=None, timeout=20):
+    """Returns (json, error_text). Never raises."""
+    from urllib.parse import urlencode
+    params = dict(params or {}); params["access_token"] = token
+    url = f"https://graph.facebook.com/v21.0/{path}"
+    data, headers = None, {}
+    if method == "GET":
+        url += "?" + urlencode(params)
+    elif body is not None:
+        url += "?" + urlencode(params); data = json.dumps(body).encode(); headers["Content-Type"] = "application/json"
+    else:
+        data = urlencode(params).encode()
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url, data=data, headers=headers, method=method),
+                                    timeout=timeout) as r:
+            return json.loads(r.read().decode() or "{}"), None
+    except urllib.error.HTTPError as e:
+        txt = e.read().decode()[:600]
+        try: j = json.loads(txt)
+        except Exception: j = {}
+        err = (j.get("error") or {})
+        return j, err.get("error_user_msg") or err.get("message") or f"HTTP {e.code}"
+    except Exception as e:
+        return {}, f"{type(e).__name__}: {e}"
+
+
+PHONE_FIELDS = "id,display_phone_number,verified_name,platform_type,status,is_on_biz_app,code_verification_status"
+
+
+def _digits(s):
+    return "".join(ch for ch in str(s or "") if ch.isdigit())
+
+
+def _find_number(waba_id="", phone_number_id="", phone=""):
+    """Locate the client's number among the WABAs shared with Lumen. Accepts any of:
+    the WABA ID, the phone number ID, or just the WhatsApp number the customer types
+    (people paste the number into the ID box; that is fine here)."""
+    tok = _business_token(); waba_id, phone_number_id, phone = _digits(waba_id), _digits(phone_number_id), _digits(phone)
+    # An "ID" of 8 to 13 digits is a phone number typed into the wrong box.
+    if phone_number_id and len(phone_number_id) < 14 and not phone:
+        phone, phone_number_id = phone_number_id, ""
+    wabas = [waba_id] if waba_id else []
+    if not wabas:
+        for edge in ("client_whatsapp_business_accounts", "owned_whatsapp_business_accounts"):
+            j, _ = _graph("GET", f"{LUMEN_BUSINESS_ID}/{edge}", tok, {"fields": "id,name", "limit": 200})
+            wabas += [w["id"] for w in j.get("data", [])]
+    for w in wabas:
+        j, _ = _graph("GET", f"{w}/phone_numbers", tok, {"fields": PHONE_FIELDS})
+        for p in j.get("data", []):
+            disp = _digits(p.get("display_phone_number"))
+            if (phone_number_id and p["id"] == phone_number_id) or \
+               (phone and len(phone) >= 7 and (disp.endswith(phone[-8:]) or phone.endswith(disp[-8:]))) or \
+               (waba_id and not phone_number_id and not phone):
+                return w, p
+    return (waba_id or None), None
+
+
+def _dataset_probe(c):
+    """Prove the token can write to the dataset without inventing a conversion: an event
+    with no event_name is rejected for exactly that reason when access is fine. Any other
+    error (missing object, missing permission) means events would not land."""
+    body = {"data": [{"event_time": int(time.time()), "action_source": "business_messaging",
+                      "messaging_channel": "whatsapp",
+                      "user_data": {"ctwa_clid": "probe", **({"whatsapp_business_account_id": c.waba_id} if c.waba_id else {})}}]}
+    j, err = _graph("POST", f"{c.dataset_id}/events", c.capi_token, body=body, timeout=15)
+    if err and "event_name" in err:
+        return True, "Dataset found and the token can send events to it."
+    if not err:
+        return True, "Accepted."
+    return False, err[:220]
+
+
+def _diagnose(c):
+    checks = []
+
+    def add(key, ok, detail, fix=""):
+        checks.append({"key": key, "ok": ok, "detail": detail, "fix": fix})
+
+    num = None
+    if c.waba_id or c.phone_number_id:
+        _, num = _find_number(c.waba_id, c.phone_number_id)
+    if not num:
+        add("number", False, "We can't see their WhatsApp number yet.",
+            "Send them the connect link. When they finish, press Connect and pick up their number.")
+    else:
+        live = num.get("status") == "CONNECTED"
+        add("number", live, f"{num.get('display_phone_number')} ({num.get('verified_name') or 'no name'}): "
+            f"{num.get('status')}, {'WhatsApp Business app linked' if num.get('is_on_biz_app') else 'not linked to the Business app'}",
+            "" if live else "Meta's connection was not finished. They open the connect link again and scan the QR "
+                            "code with the WhatsApp Business app on the phone that has this number.")
+    if c.waba_id:
+        j, err = _graph("GET", f"{c.waba_id}/subscribed_apps", _webhook_token())
+        subbed = any((a.get("whatsapp_business_api_data") or {}).get("id") == WEBHOOK_APP_ID for a in j.get("data", []))
+        add("webhook", subbed, "Their messages are sent to us." if subbed else f"Messages are not being sent to us. {err or ''}".strip(),
+            "" if subbed else "Press Connect to subscribe the number.")
+    else:
+        add("webhook", False, "No WhatsApp Business account ID yet.", "Press Connect.")
+    if not c.dataset_id:
+        add("dataset", False, "No dataset ID.", "Paste their dataset ID, or press Connect to create one on their WhatsApp account.")
+    elif not c.capi_token:
+        add("dataset", False, "No Meta token.", "Paste a token with access to this dataset.")
+    else:
+        ok, detail = _dataset_probe(c)
+        add("dataset", ok, detail, "" if ok else "Check the dataset ID, and that the token's system user is assigned to the dataset in Business Settings.")
+        if c.waba_id:
+            j, _ = _graph("GET", f"{c.waba_id}/dataset", _business_token())
+            linked = [d.get("id") for d in j.get("data", [])]
+            if linked and c.dataset_id not in linked:
+                add("dataset_link", False, f"This dataset is not the one linked to their WhatsApp account ({', '.join(linked)}).",
+                    "Either use the linked one, or connect their WhatsApp account to this dataset in Events Manager.")
+    store.init(c); db = store.conn(c)
+    msgs = db.execute("SELECT COUNT(*) FROM messages").fetchone()[0]
+    last = db.execute("SELECT MAX(created_at) FROM messages").fetchone()[0]
+    clicks = db.execute("SELECT COUNT(*) FROM contacts WHERE ctwa_clid IS NOT NULL").fetchone()[0]
+    db.close()
+    add("traffic", msgs > 0, f"{msgs} messages seen, last at {last} UTC; {clicks} chats came from an ad click." if msgs
+        else "No messages have reached us yet.",
+        "" if msgs else "Ask them to send one WhatsApp message to the number from another phone.")
+    add("sending", not c.dry_run, "Live: events go to Meta." if not c.dry_run else "Dry run: decisions are logged, nothing is sent to Meta.",
+        "" if not c.dry_run else "Untick dry run once the first decisions look right.")
+    return checks
+
+
 @bp.post("/clients/<slug>/check")
 def client_check(slug):
-    """Prove the dataset accepts events from our token, without inventing a conversion:
-    a deliberately invalid event returns a validation error when access is fine, and a
-    permission error when it is not."""
     c = config.client_by_slug(slug)
     if not c:
         return jsonify({"error": "unknown"}), 404
-    if not c.dataset_id:
-        return jsonify({"ok": False, "detail": "No pixel / dataset ID set."})
-    if not c.capi_token:
-        return jsonify({"ok": False, "detail": "Meta token env var not set on this service."})
-    url = f"https://graph.facebook.com/v21.0/{c.dataset_id}/events?access_token={c.capi_token}"
-    body = {"data": [{"event_time": int(time.time()), "action_source": "business_messaging", "messaging_channel": "whatsapp",
-                      "user_data": {"ctwa_clid": "probe"}}]}
-    req = urllib.request.Request(url, data=json.dumps(body).encode(), headers={"Content-Type": "application/json"}, method="POST")
-    try:
-        with urllib.request.urlopen(req, timeout=12) as r:
-            return jsonify({"ok": True, "detail": "Accepted (unexpected): " + r.read().decode()[:200]})
-    except urllib.error.HTTPError as e:
-        txt = e.read().decode()[:400]
-        ok = "event_name" in txt or "Invalid parameter" in txt or e.code == 400
-        return jsonify({"ok": ok, "detail": ("Dataset reachable, token has write access. " if ok else "") + f"HTTP {e.code}: {txt}"})
-    except Exception as e:
-        return jsonify({"ok": False, "detail": repr(e)[:200]})
+    checks = _diagnose(c)
+    core = [x for x in checks if x["key"] in ("number", "webhook", "dataset", "dataset_link")]
+    ok = all(x["ok"] for x in core)
+    detail = " · ".join(("OK " if x["ok"] else "FIX ") + x["key"] + ": " + x["detail"] for x in checks)
+    return jsonify({"ok": ok, "checks": checks, "detail": detail})
+
+
+@bp.post("/clients/<slug>/provision")
+def client_provision(slug):
+    """Find the client's number, subscribe our webhook app to it, and give it a dataset.
+    Every step is idempotent, so this is the button to press whenever anything looks off."""
+    cfg = config.get_config(slug)
+    if not cfg:
+        return jsonify({"error": "unknown"}), 404
+    d = request.json or {}
+    waba, num = _find_number(d.get("waba_id") or cfg.get("waba_id"), d.get("phone_number_id") or cfg.get("phone_number_id"),
+                             d.get("phone") or cfg.get("phone"))
+    steps = []
+    if not num:
+        return jsonify({"ok": False, "steps": [{"key": "number", "ok": False,
+                        "detail": "No number matching that is shared with Lumen yet. They need to finish the connect link."}]})
+    if d.get("phone"):
+        cfg["phone"] = _digits(d["phone"])
+    owner = config.by_phone_id(num["id"])
+    if owner and owner.slug != slug:
+        return jsonify({"ok": False, "steps": [{"key": "number", "ok": False,
+                        "detail": f"That number already belongs to client {owner.slug}."}]})
+    cfg["waba_id"], cfg["phone_number_id"] = waba, num["id"]
+    steps.append({"key": "number", "ok": True, "detail": f"Found {num.get('display_phone_number')} ({num.get('status')})."})
+    j, err = _graph("POST", f"{waba}/subscribed_apps", _webhook_token())
+    steps.append({"key": "webhook", "ok": bool(j.get("success")), "detail": "Subscribed." if j.get("success") else (err or str(j))[:200]})
+    if not cfg.get("dataset_id"):
+        j, err = _graph("POST", f"{waba}/dataset", _business_token())
+        if j.get("id"):
+            cfg["dataset_id"] = j["id"]
+        steps.append({"key": "dataset", "ok": bool(j.get("id")),
+                      "detail": f"Dataset {j['id']} created on their WhatsApp account." if j.get("id") else (err or str(j))[:200]})
+    config.save_config(cfg)
+    return jsonify({"ok": all(s["ok"] for s in steps), "steps": steps, "config": _public(cfg)})
 
 
 @bp.post("/clients/<slug>/chat")

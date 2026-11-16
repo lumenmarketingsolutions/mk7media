@@ -1554,7 +1554,9 @@ def api_provision_number():
     waba = str(d.get("waba_id") or "").strip()
     if not waba:
         return jsonify({"ok": False, "error": "waba_id required"}), 400
-    token = os.environ.get("FGC_CAPI_TOKEN") or os.environ.get("WHATSAPP_ACCESS_TOKEN", "")
+    # Subscribe with the WEBHOOK app's token: subscribed_apps subscribes whichever app owns
+    # the token, and only app 2107067100091646 delivers to this service.
+    token = os.environ.get("WHATSAPP_ACCESS_TOKEN") or os.environ.get("FGC_CAPI_TOKEN", "")
     if not token:
         return jsonify({"ok": False, "error": "no token configured"}), 500
 
