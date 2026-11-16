@@ -11,7 +11,8 @@ EDITABLE = ("business_name", "phone_number_id", "waba_id", "dataset_id", "curren
             "product_values", "settle_minutes", "dry_run", "business_description", "what_is_sold",
             "how_customers_pay", "how_fulfilment_works", "qualified_lead_definition", "sale_definition",
             "committed_signals", "qualified_signals", "lost_signals", "disqualify_signals",
-            "location_pin_is_commitment", "typical_objections", "languages", "context_notes", "win_type")
+            "location_pin_is_commitment", "typical_objections", "languages", "context_notes", "win_type",
+            "lead_event")
 
 
 def _authed():

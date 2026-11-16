@@ -40,7 +40,7 @@ def _dispatch(client, wa_id):
             store.set_product(client, wa_id, res["product"])
         print(f"[observer:{client.slug}] {wa_id}: {prev or '-'} -> {res['state']} ({res['source']}) {res['evidence'][:60]!r}")
         st = res["state"]
-        if st in ("QUALIFIED", "INTENT", "COMMITTED"):
+        if st in ("QUALIFIED", "INTENT", "COMMITTED") and client.lead_event:   # blank lead_event = sales only
             capi.send(client, wa_id, client.lead_event, state=st, evidence=res["evidence"])
         if st == "COMMITTED":
             value = client.value_for(res.get("product") or store.attribution(client, wa_id).get("product"))
