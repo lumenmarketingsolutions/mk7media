@@ -290,6 +290,11 @@ def saas0801_proposal():
     return render_template("saas0801.html")
 
 
+@app.route("/112026")
+def proposal_112026():
+    return render_template("proposal_112026.html")
+
+
 @app.route("/marlatabet")
 def marlatabet_proposal():
     return render_template("marlatabet.html")

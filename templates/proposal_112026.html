@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MK7 Media · A Proposal</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="A patient growth proposal from MK7 Media.">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>*,*::before,*::after{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap">
+<style>
+/* Layout: one calm column on a dark MK7 ground. On wide screens each section is a label column beside its content. Sized to read from across a room on a TV. */
+:root {
+  --bg: #09090b;
+  --surface: #111114;
+  --line: #222228;
+  --text: #f2f2f3;
+  --muted: #9a9aa3;
+  --faint: #62626c;
+  --brand: #b9a7ff;
+  --font: "Inter Tight", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+html { font-size: 17px; }
+@media (min-width: 1100px) { html { font-size: 20px; } }
+@media (min-width: 1700px) { html { font-size: 23px; } }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap {
+  max-width: 62rem;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 5rem 7rem;
+}
+@media (min-width: 700px) {
+  .wrap { padding-left: max(2.5rem, env(safe-area-inset-left, 0px)); padding-right: max(2.5rem, env(safe-area-inset-right, 0px)); }
+}
+h1, h2, h3 { font-weight: 500; letter-spacing: -0.02em; text-wrap: balance; margin: 0; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+
+/* Opening */
+.brand { font-weight: 600; letter-spacing: -0.01em; font-size: 1rem; }
+.brand span { color: var(--faint); font-weight: 400; margin-left: 0.6rem; }
+.hero { display: grid; gap: 1.75rem; padding-block: 5rem 6rem; }
+.hero h1 { font-size: clamp(2.3rem, 5.5vw, 3.6rem); line-height: 1.08; max-width: 18ch; }
+.hero p { font-size: 1.2rem; color: var(--muted); max-width: 40ch; }
+.meta { color: var(--faint); font-size: 0.9rem; }
+
+/* Sections */
+section { display: grid; gap: 2rem; padding-block: 4.5rem; border-top: 1px solid var(--line); }
+@media (min-width: 900px) {
+  section { grid-template-columns: 16rem 1fr; gap: 3rem; }
+}
+section > h2 { font-size: 1.5rem; line-height: 1.25; }
+.body { display: grid; gap: 2.75rem; min-width: 0; max-width: 40rem; }
+.item { display: grid; gap: 0.5rem; }
+.item h3 { font-size: 1.15rem; }
+.item p { color: var(--muted); }
+.lead { font-size: 1.2rem; line-height: 1.55; }
+
+/* Rollout */
+.steps { display: grid; gap: 2.25rem; }
+.step { display: grid; grid-template-columns: 6.5rem 1fr; gap: 1.25rem; }
+.step .when { color: var(--brand); font-weight: 500; }
+.step p { color: var(--muted); }
+.step h3 { font-size: 1.1rem; margin-bottom: 0.35rem; }
+
+/* Options */
+.options-head { display: grid; gap: 1rem; max-width: 40rem; }
+.options-head h2 { font-size: 1.5rem; }
+.options { display: grid; gap: 1.5rem; margin-top: 3rem; }
+@media (min-width: 900px) { .options { grid-template-columns: 1fr 1fr; } }
+.option {
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 2.5rem 2.25rem;
+  display: grid;
+  gap: 2rem;
+  align-content: start;
+  min-width: 0;
+}
+.option .name { color: var(--muted); font-size: 1rem; }
+.price { font-size: clamp(2.4rem, 5vw, 3.2rem); font-weight: 500; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+.price small { font-size: 1rem; color: var(--muted); font-weight: 400; letter-spacing: 0; margin-left: 0.35rem; }
+.option .desc { color: var(--muted); }
+.schedule { display: grid; gap: 0; border-top: 1px solid var(--line); }
+.row { display: flex; justify-content: space-between; gap: 1.5rem; padding-block: 1rem; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.row span:first-child { color: var(--muted); }
+.row span:last-child { text-align: right; }
+.terms { display: grid; gap: 0.6rem; color: var(--muted); font-size: 0.95rem; }
+
+.share { display: grid; gap: 1.75rem; margin-top: 4rem; max-width: 40rem; }
+.share h3 { font-size: 1.15rem; }
+.share ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 1.1rem; }
+.share li { color: var(--muted); padding-left: 1.4rem; position: relative; }
+.share li::before { content: ""; position: absolute; left: 0; top: 0.75em; width: 0.45rem; height: 1px; background: var(--faint); }
+.share li strong { color: var(--text); font-weight: 500; }
+
+/* Note */
+.note { font-size: 1.35rem; line-height: 1.5; max-width: 34ch; }
+.note + p { color: var(--muted); max-width: 40rem; }
+
+.list { margin: 0; padding: 0; list-style: none; display: grid; gap: 1rem; }
+.list li { color: var(--muted); padding-left: 1.4rem; position: relative; }
+.list li::before { content: ""; position: absolute; left: 0; top: 0.75em; width: 0.45rem; height: 1px; background: var(--faint); }
+.list li strong { color: var(--text); font-weight: 500; }
+
+footer { border-top: 1px solid var(--line); padding-top: 3rem; margin-top: 1rem; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; color: var(--faint); font-size: 0.9rem; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand">MK7 Media <span>Beirut</span></div>
+
+  <header class="hero">
+    <h1>A patient growth system for implants, veneers and clear aligners.</h1>
+    <p>Meta advertising built end to end, tracked to revenue, and run alongside your team every week.</p>
+    <div class="meta">Proposal prepared November 20, 2026</div>
+  </header>
+
+  <section>
+    <h2>What this is</h2>
+    <div class="body">
+      <p class="lead">You are not hiring someone to press buttons in Ads Manager. You are bringing on an integrated marketer who builds the whole path from ad to booked patient, and then keeps improving it with your sales team.</p>
+      <p class="muted">Implants, veneers and aligners are still a young market in Lebanon. That means the work is part advertising and part education. The system below is built for that.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>What's included</h2>
+    <div class="body">
+      <div class="item">
+        <h3>Campaign build</h3>
+        <p>Full Meta campaign structure for each service, with separate funnels for veneers and implants and for aligners. Audiences, offers, testing plan and budget split, all set up from scratch.</p>
+      </div>
+      <div class="item">
+        <h3>Landing pages</h3>
+        <p>A dedicated landing page for each funnel, designed for conversion. I either put them on your site myself or hand finished code files to your developer.</p>
+      </div>
+      <div class="item">
+        <h3>Lead routing and automation</h3>
+        <p>Every lead from every ad lands in your CRM automatically, tagged and sent to the right person. This includes your website chatbot, so a consultation booked through the bot is routed and recorded the same way.</p>
+      </div>
+      <div class="item">
+        <h3>Tracking to revenue</h3>
+        <p>We track each patient from the ad they saw, to the lead, to the consultation, to the treatment and the money it produced. Even when someone clicks an ad, talks to the chatbot, and books later, we still know which ad brought them in.</p>
+        <p>This shows you the real impact of the marketing, and it tells us which ads to scale and which to cut.</p>
+      </div>
+      <div class="item">
+        <h3>Media buying and budget management</h3>
+        <p>Daily management of the campaigns. Moving money toward what brings patients, testing new angles, and keeping cost per consultation under control.</p>
+      </div>
+      <div class="item">
+        <h3>Static creatives</h3>
+        <p>15 to 20 static ad designs per month, split across both services as needed.</p>
+      </div>
+      <div class="item">
+        <h3>Video strategy</h3>
+        <p>We use the videos you already have. For new ones I write the concepts, scripts and shot lists so your team knows exactly what to film. Video production itself is on your side.</p>
+      </div>
+      <div class="item">
+        <h3>Working with your sales team</h3>
+        <p>Regular check ins with the people talking to patients. What questions keep coming up, what objections stop people, what makes them say yes. That feedback goes straight back into the ads and landing pages.</p>
+      </div>
+      <div class="item">
+        <h3>Direct access and a weekly meeting</h3>
+        <p>You can reach me directly at any time. Every week we meet to review what happened, what it produced, and what we do next.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>How the first three months go</h2>
+    <div class="body">
+      <div class="steps">
+        <div class="step">
+          <div class="when">Month 1</div>
+          <div>
+            <h3>Build</h3>
+            <p>Campaigns, landing pages, CRM routing, chatbot routing and tracking all go in. Ads launch and the first data comes back.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="when">Month 2</div>
+          <div>
+            <h3>Learn and tighten</h3>
+            <p>We see which ads and offers bring real consultations, cut what doesn't, and fix whatever the sales team is hearing.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="when">Month 3</div>
+          <div>
+            <h3>Scale what works</h3>
+            <p>Budget moves toward the winners. Results compound from here, because every month adds more data to work with.</p>
+          </div>
+        </div>
+      </div>
+      <p class="muted">Advertising rarely pays off in the first month. The first two months are where the system gets built and proven.</p>
+    </div>
+  </section>
+
+  <section style="display:block">
+    <div class="options-head">
+      <h2>Two ways to work together</h2>
+      <p class="muted">Both options include everything above, with a three month minimum.</p>
+    </div>
+
+    <div class="options">
+      <div class="option">
+        <div class="name">Option A &nbsp;·&nbsp; Retainer</div>
+        <div class="price">$2,000<small>per month</small></div>
+        <p class="desc">One flat monthly fee. Simple and predictable.</p>
+        <div class="schedule">
+          <div class="row"><span>Month 1</span><span>$2,000</span></div>
+          <div class="row"><span>Month 2</span><span>$2,000</span></div>
+          <div class="row"><span>Month 3 onward</span><span>$2,000</span></div>
+        </div>
+        <div class="terms">
+          <p>Three month minimum.</p>
+        </div>
+      </div>
+
+      <div class="option">
+        <div class="name">Option B &nbsp;·&nbsp; Partnership</div>
+        <div class="price">$1,200<small>+ 3 to 5% of profit</small></div>
+        <p class="desc">A lower retainer once the system is running, plus a share of the profit the ads bring in. I win when you win.</p>
+        <div class="schedule">
+          <div class="row"><span>Month 1</span><span>$2,000</span></div>
+          <div class="row"><span>Month 2</span><span>$2,000</span></div>
+          <div class="row"><span>Month 3 onward</span><span>$1,200 + profit share</span></div>
+        </div>
+        <div class="terms">
+          <p>Three month minimum. Terms after month three are reviewed together.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="share">
+      <h3>How the profit share works</h3>
+      <ul>
+        <li><strong>Only patients from the ads count.</strong> The tracking we build shows exactly which patients came from Meta, so there is no guessing.</li>
+        <li><strong>Profit is agreed in writing up front.</strong> Treatment revenue minus the direct costs of each case, such as lab fees and materials.</li>
+        <li><strong>Settled monthly.</strong> We review the numbers together from the CRM at the end of each month.</li>
+        <li><strong>Patients count for 12 months</strong> from when they first came in through an ad, since many treatments are paid over several visits.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Not included</h2>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Ad spend.</strong> Paid by you directly to Meta. We will agree on a starting budget together.</li>
+        <li><strong>Video production.</strong> Filming and editing are on your side. I provide the strategy, scripts and shot lists.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>For context</h2>
+    <div class="body">
+      <p class="lead">Running Meta ads alone, where you supply the creative, I build a lead form and your team handles everything after, is $800 a month.</p>
+      <p class="muted">This proposal is the full system on top of that: the landing pages, the CRM and chatbot automations, the tracking to revenue, the creative, and working inside your team every week.</p>
+      <p class="note">These are my lowest rates. At either option, this would be the lowest paying contract at MK7.</p>
+      <p>I priced it this way because I want to build this with you. It is also the floor. Going lower would mean giving you less attention than this work needs, and that would not get you the results you're after.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Next steps</h2>
+    <div class="body">
+      <div class="steps">
+        <div class="step"><div class="when">Choose</div><div><p>Pick Option A or Option B and agree the profit definition if B.</p></div></div>
+        <div class="step"><div class="when">Access</div><div><p>Share access to Meta Business Manager, the CRM, the website and the chatbot.</p></div></div>
+        <div class="step"><div class="when">Kickoff</div><div><p>A working session with you and the sales team. The build starts the same week.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>MK7 Media</span>
+    <span>mk7media.com</span>
+  </footer>
+
+</div>
+</body>
+</html>
