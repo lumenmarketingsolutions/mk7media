@@ -3,3 +3,4 @@ __pycache__/
 *.db
 .env
 SESSION_HANDOFF.md
+onboarding_data/

@@ -295,6 +295,128 @@ def proposal_112026():
     return render_template("proposal_112026.html")
 
 
+# ---- Client onboarding: /112026/onboarding/<key> (clear aligner clinic, Nov 2026) ----
+# Shared form state lives as JSON on the Railway volume; uploads sit next to it.
+ONBOARD_KEY_112026 = "22f5014f"
+ONBOARD_DIR = os.environ.get("ONBOARD_DIR") or ("/data/onboarding" if os.path.isdir("/data") else "onboarding_data")
+_onboard_lock = threading.Lock()
+
+def _onboard_paths():
+    base = os.path.join(ONBOARD_DIR, "112026")
+    os.makedirs(os.path.join(base, "files"), exist_ok=True)
+    return base, os.path.join(base, "state.json"), os.path.join(base, "files")
+
+def _onboard_load():
+    _, sp, _ = _onboard_paths()
+    try:
+        with open(sp) as fh:
+            return json.load(fh)
+    except Exception:
+        return {"data": {}, "updated": None}
+
+def _onboard_save(st):
+    _, sp, _ = _onboard_paths()
+    tmp = sp + ".tmp"
+    with open(tmp, "w") as fh:
+        json.dump(st, fh, ensure_ascii=False, indent=1)
+    os.replace(tmp, sp)
+
+def _onboard_check(key):
+    if key != ONBOARD_KEY_112026:
+        from flask import abort
+        abort(404)
+
+@app.route("/112026/onboarding/<key>")
+def onboarding_112026(key):
+    _onboard_check(key)
+    return render_template("onboarding_112026.html")
+
+@app.route("/112026/onboarding/<key>/state", methods=["GET", "POST"])
+def onboarding_112026_state(key):
+    _onboard_check(key)
+    with _onboard_lock:
+        st = _onboard_load()
+        if request.method == "POST":
+            body = request.get_json(force=True, silent=True) or {}
+            patch = body.get("patch") or {}
+            if not isinstance(patch, dict):
+                return jsonify({"error": "bad patch"}), 400
+            for k, v in patch.items():
+                if isinstance(k, str) and len(k) < 80 and not (isinstance(v, str) and len(v) > 20000):
+                    st["data"][k] = v
+            st["updated"] = datetime.utcnow().isoformat() + "Z"
+            _onboard_save(st)
+    return jsonify(st)
+
+@app.route("/112026/onboarding/<key>/upload", methods=["POST"])
+def onboarding_112026_upload(key):
+    _onboard_check(key)
+    from werkzeug.utils import secure_filename
+    f = request.files.get("file")
+    field = (request.form.get("field") or "").strip()
+    if not f or not field or len(field) > 40 or not field.replace("_", "").isalnum():
+        return jsonify({"error": "No file received"}), 400
+    _, _, fdir = _onboard_paths()
+    name = secure_filename(f.filename or "file") or "file"
+    stored = f"{uuid.uuid4().hex[:8]}_{name}"
+    path = os.path.join(fdir, stored)
+    f.save(path)
+    if os.path.getsize(path) > 200 * 1024 * 1024:
+        os.remove(path)
+        return jsonify({"error": "File is over 200 MB, use a Drive link"}), 400
+    with _onboard_lock:
+        st = _onboard_load()
+        lst = st["data"].get(field) or []
+        if not isinstance(lst, list):
+            lst = []
+        lst.append({"name": f.filename or name, "url": f"/112026/onboarding/{key}/file/{stored}", "size": os.path.getsize(path)})
+        st["data"][field] = lst
+        st["updated"] = datetime.utcnow().isoformat() + "Z"
+        _onboard_save(st)
+    return jsonify({"ok": True, "files": lst})
+
+@app.route("/112026/onboarding/<key>/file/<path:fname>")
+def onboarding_112026_file(key, fname):
+    _onboard_check(key)
+    from flask import send_from_directory
+    _, _, fdir = _onboard_paths()
+    return send_from_directory(fdir, fname)
+
+@app.route("/112026/onboarding/<key>/submit", methods=["POST"])
+def onboarding_112026_submit(key):
+    _onboard_check(key)
+    import html as _h
+    with _onboard_lock:
+        st = _onboard_load()
+        st["submitted"] = datetime.utcnow().isoformat() + "Z"
+        _onboard_save(st)
+    rows = []
+    for k, v in st["data"].items():
+        if k.startswith("later_"):
+            continue
+        if isinstance(v, list):
+            v = ", ".join(x.get("name", "") if isinstance(x, dict) else str(x) for x in v)
+        if st["data"].get("later_" + k):
+            v = f"{v} (will send later)" if v else "Will send later"
+        rows.append(f"<tr><td style='padding:6px 12px 6px 0;color:#888;vertical-align:top'>{_h.escape(k)}</td><td style='padding:6px 0;white-space:pre-wrap'>{_h.escape(str(v))}</td></tr>")
+    link = f"https://mk7media.com/112026/onboarding/{key}"
+    body = f"<p>The aligner clinic submitted onboarding.</p><p><a href='{link}'>{link}</a></p><table style='font-family:sans-serif;font-size:14px'>{''.join(rows)}</table>"
+    sent = False
+    if RESEND_API_KEY:
+        try:
+            import requests as req
+            r = req.post("https://api.resend.com/emails",
+                headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
+                json={"from": "MK7 Media <notifications@lumenmarketing.co>", "to": ["kendall@lumenmarketing.co"],
+                      "subject": "Onboarding submitted: clear aligner clinic", "html": body}, timeout=10)
+            sent = r.status_code < 300
+            if not sent:
+                print(f"[email] Onboarding email rejected {r.status_code}: {r.text[:200]}")
+        except Exception as e:
+            print(f"[email] Onboarding email failed: {e}")
+    return jsonify({"ok": True, "emailed": sent})
+
+
 @app.route("/marlatabet")
 def marlatabet_proposal():
     return render_template("marlatabet.html")

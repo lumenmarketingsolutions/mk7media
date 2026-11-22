@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MK7 Media · Onboarding</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap">
+<style>
+/* Layout: same dark MK7 ground as the proposal. Wide screens get a quiet section index on the left and one reading column on the right. */
+*,*::before,*::after { box-sizing: border-box; }
+:root {
+  --bg: #09090b;
+  --surface: #111114;
+  --field: #0d0d10;
+  --line: #222228;
+  --line-strong: #33333b;
+  --text: #f2f2f3;
+  --muted: #9a9aa3;
+  --faint: #62626c;
+  --brand: #b9a7ff;
+  --good: #6ee7a8;
+  --font: "Inter Tight", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+html { font-size: 16px; scroll-behavior: smooth; }
+@media (min-width: 1100px) { html { font-size: 18px; } }
+@media (min-width: 1700px) { html { font-size: 21px; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { font-weight: 500; letter-spacing: -0.02em; text-wrap: balance; margin: 0; }
+p { margin: 0; }
+
+.shell {
+  max-width: 74rem; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 3rem 8rem;
+  display: grid; gap: 3rem;
+}
+@media (min-width: 700px) { .shell { padding-left: max(2.5rem, env(safe-area-inset-left, 0px)); padding-right: max(2.5rem, env(safe-area-inset-right, 0px)); } }
+@media (min-width: 1000px) { .shell { grid-template-columns: 14rem minmax(0, 1fr); gap: 5rem; } }
+
+.brand { font-weight: 600; letter-spacing: -0.01em; }
+.brand span { color: var(--faint); font-weight: 400; margin-left: 0.6rem; }
+
+nav.index { display: none; }
+@media (min-width: 1000px) {
+  nav.index { display: grid; gap: 2.5rem; align-content: start; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 2.5rem); height: max-content; }
+}
+nav.index ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.15rem; }
+nav.index a { display: flex; justify-content: space-between; gap: 1rem; padding: 0.45rem 0; color: var(--muted); text-decoration: none; font-size: 0.95rem; }
+nav.index a:hover, nav.index a.on { color: var(--text); }
+nav.index a .n { color: var(--faint); font-variant-numeric: tabular-nums; font-size: 0.85rem; }
+nav.index a .n.done { color: var(--good); }
+.save { color: var(--faint); font-size: 0.85rem; }
+.save.ok { color: var(--muted); }
+.save.err { color: #f0a0a0; }
+
+main { min-width: 0; display: grid; }
+.hero { display: grid; gap: 1.5rem; padding-block: 2rem 5rem; max-width: 44rem; }
+.hero h1 { font-size: clamp(2.1rem, 5vw, 3.2rem); line-height: 1.1; }
+.hero p { color: var(--muted); font-size: 1.15rem; max-width: 42ch; }
+.rules { display: grid; gap: 0.9rem; margin-top: 1rem; color: var(--muted); }
+.rules p { padding-left: 1.4rem; position: relative; }
+.rules p::before { content: ""; position: absolute; left: 0; top: 0.8em; width: 0.45rem; height: 1px; background: var(--faint); }
+.rules strong { color: var(--text); font-weight: 500; }
+.progress-line { color: var(--faint); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+
+section.part { border-top: 1px solid var(--line); padding-block: 4.5rem; display: grid; gap: 3rem; scroll-margin-top: 1rem; }
+.part-head { display: grid; gap: 0.75rem; max-width: 40rem; }
+.part-head .step { color: var(--brand); font-size: 0.95rem; font-variant-numeric: tabular-nums; }
+.part-head h2 { font-size: 1.7rem; line-height: 1.2; }
+.part-head p { color: var(--muted); }
+.fields { display: grid; gap: 2.5rem; max-width: 40rem; }
+.group-title { font-size: 1.05rem; color: var(--muted); font-weight: 500; padding-top: 1rem; }
+
+.field { display: grid; gap: 0.6rem; }
+.field-top { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+.field label.q, .field .q { font-weight: 500; font-size: 1.02rem; }
+.hint { color: var(--faint); font-size: 0.9rem; margin-top: -0.25rem; }
+input[type=text], input[type=number], input[type=email], input[type=date], textarea, select {
+  width: 100%; font: inherit; color: var(--text); background: var(--field);
+  border: 1px solid var(--line); border-radius: 4px; padding: 0.8rem 0.95rem; outline: none;
+  transition: border-color .15s;
+}
+textarea { min-height: 6.5rem; resize: vertical; line-height: 1.55; }
+input:focus, textarea:focus, select:focus { border-color: var(--line-strong); }
+input::placeholder, textarea::placeholder { color: var(--faint); }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+input:focus-visible, textarea:focus-visible, select:focus-visible { outline: none; border-color: var(--brand); }
+
+.later { background: none; border: 0; color: var(--faint); font: inherit; font-size: 0.85rem; cursor: pointer; padding: 0; }
+.later:hover { color: var(--muted); }
+.field.is-later .later { color: var(--brand); }
+.field.is-later input, .field.is-later textarea, .field.is-later .choices { opacity: 0.55; }
+
+.choices { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.choices label { cursor: pointer; }
+.choices input { position: absolute; opacity: 0; pointer-events: none; }
+.choices span { display: inline-block; padding: 0.6rem 1rem; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); background: var(--field); transition: border-color .15s, color .15s; }
+.choices label:hover span { color: var(--text); }
+.choices input:checked + span { border-color: var(--brand); color: var(--text); }
+.choices input:focus-visible + span { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.task { display: grid; grid-template-columns: 1.5rem 1fr; gap: 0.9rem; align-items: start; cursor: pointer; }
+.task input { width: 1.15rem; height: 1.15rem; margin: 0.25rem 0 0; accent-color: var(--good); }
+.task .t { font-weight: 500; }
+.task .d { color: var(--faint); font-size: 0.9rem; display: block; }
+.task input:checked ~ div .t { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--faint); }
+
+.files { display: grid; gap: 0.6rem; }
+.drop { border: 1px dashed var(--line-strong); border-radius: 4px; padding: 1.4rem; color: var(--muted); text-align: center; cursor: pointer; background: var(--field); }
+.drop:hover, .drop.over { border-color: var(--brand); color: var(--text); }
+.file-row { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.92rem; color: var(--muted); padding-block: 0.4rem; border-bottom: 1px solid var(--line); min-width: 0; }
+.file-row a { color: var(--text); text-decoration: none; overflow-wrap: anywhere; }
+.file-row button { background: none; border: 0; color: var(--faint); cursor: pointer; font: inherit; }
+.file-row button:hover { color: var(--text); }
+
+.terms { background: var(--surface); border-radius: 6px; padding: 2rem; display: grid; gap: 0; max-width: 40rem; }
+.terms .row { display: flex; justify-content: space-between; gap: 1.5rem; padding-block: 0.95rem; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.terms .row:last-child { border-bottom: 0; }
+.terms .row span:first-child { color: var(--muted); }
+.terms .row span:last-child { text-align: right; }
+
+.plan { display: grid; gap: 2rem; max-width: 40rem; }
+.plan .wk { display: grid; grid-template-columns: 6rem 1fr; gap: 1.25rem; }
+.plan .when { color: var(--brand); font-weight: 500; }
+.plan h3 { font-size: 1.05rem; margin-bottom: 0.3rem; }
+.plan p { color: var(--muted); }
+.two { display: grid; gap: 2.5rem; max-width: 40rem; }
+@media (min-width: 760px) { .two { grid-template-columns: 1fr 1fr; } }
+.two h3 { font-size: 1.05rem; margin-bottom: 1rem; }
+.two ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.8rem; color: var(--muted); }
+.two li { padding-left: 1.3rem; position: relative; }
+.two li::before { content: ""; position: absolute; left: 0; top: 0.8em; width: 0.45rem; height: 1px; background: var(--faint); }
+
+.submit-row { display: flex; flex-wrap: wrap; gap: 1.25rem; align-items: center; }
+.btn { font: inherit; font-weight: 500; background: var(--text); color: var(--bg); border: 0; border-radius: 4px; padding: 0.9rem 1.6rem; cursor: pointer; }
+.btn:hover { background: #ffffff; }
+.btn:disabled { opacity: .5; cursor: default; }
+.submit-msg { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <nav class="index" aria-label="Sections">
+    <div class="brand">MK7 Media</div>
+    <ol id="index"></ol>
+    <div class="save" id="save">Saved</div>
+  </nav>
+
+  <main>
+    <div class="brand" style="margin-bottom:0.5rem" id="mobile-brand">MK7 Media <span>Onboarding</span></div>
+    <header class="hero">
+      <h1>Let's get your clear aligner growth system set up.</h1>
+      <p>Everything we need to build the campaigns, the landing page, the tracking and the automations, in one place.</p>
+      <div class="rules">
+        <p><strong>We fill this in together.</strong> Everything saves as you type, so it is fine to stop and come back.</p>
+        <p><strong>Missing something?</strong> Tap "Send later" on that question and we will follow up.</p>
+        <p><strong>Never type passwords here.</strong> We get access through invites and Meta partner access only.</p>
+      </div>
+      <div class="progress-line" id="progress"></div>
+    </header>
+    <div id="form"></div>
+
+    <section class="part" id="s-submit">
+      <div class="part-head">
+        <h2>All done</h2>
+        <p>When you submit, we get a copy of everything and start the build. You can still edit this page afterwards.</p>
+      </div>
+      <div class="submit-row">
+        <button class="btn" id="submit" type="button">Submit onboarding</button>
+        <span class="submit-msg" id="submit-msg" aria-live="polite"></span>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const BASE = location.pathname.replace(/\/$/, "");
+
+// Field types: text, area, num, email, date, choice (one), multi (several), file, task (checklist item)
+const S = [
+  { id: "clinic", title: "Clinic and team", intro: "Who you are, where you are, and who we work with day to day.", f: [
+    ["clinic_name", "Clinic name as patients know it", "text"],
+    ["legal_name", "Legal or company name for invoices", "text"],
+    ["website", "Website", "text", { ph: "https://" }],
+    ["locations", "Clinic address and any branches", "area", { hint: "Include the Google Maps link if you have it." }],
+    ["hours", "Opening hours", "text", { ph: "Mon to Sat, 9am to 7pm" }],
+    ["doctor", "The doctor: name, qualifications, years of experience", "area"],
+    ["cases", "How many aligner cases have you treated so far?", "num"],
+    { g: "Your team" },
+    ["main_contact", "Main contact for us: name, role, WhatsApp, email", "area"],
+    ["team", "Everyone who handles patients or leads", "area", { hint: "Name, role and WhatsApp for each. Front desk, sales, anyone who replies to messages." }],
+    ["developer", "Website developer: name, WhatsApp, email", "text"],
+    ["approver", "Who approves ads and landing pages?", "text"],
+  ]},
+  { id: "offer", title: "The aligner offer", intro: "Exactly what a patient gets, what it costs, and why they should pick you.", f: [
+    ["aligner_system", "Which aligner system do you use?", "text", { hint: "Your own lab, or a named brand." }],
+    ["ad_name", "What should we call it in ads?", "text", { ph: "Clear aligners, invisible braces, ..." }],
+    ["price", "Price range for a full treatment (USD)", "text", { ph: "From $... to $..." }],
+    ["payment", "Payment options", "multi", { o: ["Full upfront", "Deposit then monthly", "Installments with no interest", "Bank financing", "Other"] }],
+    ["payment_detail", "Payment plan details", "area", { hint: "Deposit amount, monthly amount, number of months." }],
+    ["consult", "The first consultation is", "choice", { o: ["Free", "Paid", "Paid, deducted from treatment"] }],
+    ["consult_detail", "What happens at the consultation and what it costs", "area", { hint: "Scan, X ray, smile preview, treatment plan, how long it takes." }],
+    ["duration", "Typical treatment length and number of visits", "text"],
+    ["included", "What is included in the price", "area", { hint: "Retainers, refinements, whitening, checkups." }],
+    ["guarantee", "Any guarantee or promise", "area"],
+    ["launch_offer", "Offer we can run in the ads", "area", { hint: "Free scan, limited discount, free whitening, a payment plan. What are you comfortable offering?" }],
+    ["different", "Why choose you over braces, and over other clinics?", "area"],
+    ["competitors", "Who else offers aligners near you?", "area"],
+    ["not_fit", "Who is not a good fit for aligners?", "area", { hint: "So the ads do not attract cases you cannot treat." }],
+  ]},
+  { id: "patients", title: "Patients and sales", intro: "Who buys, what stops them, and what happens after someone reaches out.", f: [
+    ["ideal", "Your ideal aligner patient", "area", { hint: "Age, gender, job, what bothers them about their smile." }],
+    ["areas", "Areas to target", "text", { ph: "Beirut, Metn, Jounieh, ..." }],
+    ["languages", "Ad languages", "multi", { o: ["Lebanese Arabic", "English", "French", "Mixed"] }],
+    ["questions", "Top questions patients ask", "area"],
+    ["objections", "Top reasons people do not go ahead", "area"],
+    ["yes_reasons", "Why people say yes", "area"],
+    { g: "Your numbers today" },
+    ["leads_now", "Aligner inquiries per month right now", "num"],
+    ["consults_now", "Aligner consultations per month", "num"],
+    ["starts_now", "Aligner treatments started per month", "num"],
+    ["avg_value", "Average aligner treatment value (USD)", "num"],
+    { g: "Your sales process" },
+    ["process", "What happens from first message to treatment start?", "area", { hint: "Who replies, how fast, how the consult gets booked, what happens after." }],
+    ["response_time", "How fast does someone reply to a new lead?", "choice", { o: ["Under 5 minutes", "Within the hour", "Same day", "Next day or later"] }],
+    ["booking", "How are consultations booked today?", "text", { ph: "WhatsApp, phone, calendar link, ..." }],
+  ]},
+  { id: "brand", title: "Brand kit", intro: "So every ad and page looks like you.", f: [
+    ["logo", "Logo files", "file", { hint: "PNG or SVG, light and dark versions if you have them." }],
+    ["fonts", "Brand fonts", "file", { hint: "Upload the font files, or write the font names below." }],
+    ["font_names", "Font names", "text"],
+    ["colors", "Brand colors", "text", { ph: "#000000, #ffffff, ..." }],
+    ["guidelines", "Brand guidelines, if you have them", "file"],
+    ["tone", "How should the brand sound?", "area", { hint: "Warm, premium, medical, friendly, playful..." }],
+    ["avoid", "Words, claims or styles to avoid", "area"],
+    { g: "Existing content" },
+    ["media", "Videos, photos and before and after results", "file", { hint: "Or share a Google Drive link below for large files." }],
+    ["media_link", "Drive or WeTransfer link", "text", { ph: "https://" }],
+    ["consent", "Do you have patient consent to use before and after photos in ads?", "choice", { o: ["Yes, for all", "For some", "No", "Not sure"] }],
+    ["socials", "Instagram, Facebook and TikTok links", "area"],
+  ]},
+  { id: "website", title: "Website and landing page", intro: "Where the aligner landing page will live and who can put it there.", f: [
+    ["platform", "Your website is built on", "choice", { o: ["WordPress", "Shopify", "Wix", "Webflow", "Custom code", "Not sure"] }],
+    ["lp_option", "For the landing page, we prefer that", "choice", { o: ["MK7 installs it directly", "MK7 sends code to our developer"] }],
+    ["domain", "Who controls the domain and DNS?", "text", { hint: "Registrar or Cloudflare account owner." }],
+    ["analytics", "Google Analytics, Tag Manager or other tracking already installed?", "area", { hint: "List the IDs if you know them." }],
+    { g: "Access" },
+    ["t_site", "Website access invite sent to MK7, or developer introduced", "task"],
+  ]},
+  { id: "crm", title: "CRM and chatbot", intro: "Where leads go, how they are followed up, and how we tie revenue back to the ads.", f: [
+    ["crm", "Which CRM do you use?", "text"],
+    ["crm_stages", "Your pipeline stages", "area", { hint: "For example: new lead, contacted, consult booked, consult done, treatment started." }],
+    ["crm_revenue", "Do you record the treatment value and payments in the CRM?", "choice", { o: ["Yes", "Partly", "No"] }],
+    ["crm_who", "Who updates the CRM after a consultation?", "text"],
+    ["chatbot", "Which chatbot is on your website, and what does it do?", "area"],
+    ["chatbot_bookings", "When the chatbot books a consultation, where does it go today?", "area"],
+    ["integrations", "Any tools already connected?", "area", { hint: "Zapier, Make, webhooks, calendar tools, WhatsApp tools." }],
+    { g: "Access" },
+    ["t_crm", "CRM user invite sent to MK7", "task", { d: "Admin access, so we can build the automations." }],
+    ["t_chatbot", "Chatbot platform access shared", "task"],
+  ]},
+  { id: "meta", title: "Meta and WhatsApp", intro: "The ad account, the tracking and the WhatsApp number the ads will send people to.", f: [
+    ["bm_id", "Meta Business Manager ID", "text", { hint: "Business settings, Business info." }],
+    ["ad_account", "Ad account ID", "text", { ph: "act_..." }],
+    ["ad_history", "Has this ad account run ads before?", "choice", { o: ["Yes, recently", "Yes, a while ago", "Never", "It was restricted"] }],
+    ["pixel", "Pixel or dataset ID", "text"],
+    ["payment_method", "Payment method on the ad account", "text", { hint: "Card type and whose name. Do not enter card numbers." }],
+    ["budget", "Monthly ad budget (USD)", "num"],
+    ["budget_start", "Budget for the first month (USD)", "num"],
+    ["wa_number", "WhatsApp number for leads", "text"],
+    ["wa_type", "That number runs on", "choice", { o: ["WhatsApp Business app", "WhatsApp API", "Personal WhatsApp", "Not sure"] }],
+    ["wa_who", "Who has that phone and replies to it?", "text"],
+    { g: "Partner access to MK7" },
+    ["t_partner_ad", "Ad account shared with MK7 as a partner", "task", { d: "Business settings, Partners, add partner, full control of the ad account." }],
+    ["t_partner_page", "Facebook page and Instagram shared", "task"],
+    ["t_partner_pixel", "Pixel or dataset shared", "task"],
+    ["t_wa_linked", "WhatsApp number connected to the Facebook page", "task"],
+  ]},
+  { id: "terms", title: "Our agreement", intro: "What we agreed, written down so nobody has to remember it.", terms: true, f: [
+    ["share_pct", "Profit share percentage", "choice", { o: ["3%", "4%", "5%", "To be confirmed"] }],
+    ["share_start", "Profit share applies from", "choice", { o: ["Month 1", "Month 3"] }],
+    ["costs", "Costs deducted from revenue before the profit share", "multi", { o: ["Aligner lab or manufacturing", "Materials", "Retainers", "Payment fees", "Other"] }],
+    ["costs_detail", "Cost details", "area", { hint: "Average cost per case if known." }],
+    ["window", "A patient counts toward the share for", "choice", { o: ["6 months", "12 months"] }],
+    ["start_date", "Start date", "date"],
+    ["billing", "How you prefer to pay", "choice", { o: ["Bank transfer", "Whish", "OMT", "Cash USD", "Card"] }],
+    ["invoice", "Invoice details", "area", { hint: "Company name, address, tax number if any." }],
+  ]},
+  { id: "expect", title: "How we work together", intro: "What happens next, and what each side does.", expect: true, f: [
+    ["meeting", "Weekly meeting day and time", "text", { ph: "Tuesdays, 4pm" }],
+    ["meeting_who", "Who attends the weekly meeting?", "text"],
+    ["channel", "Day to day communication", "choice", { o: ["WhatsApp group", "WhatsApp direct", "Email"] }],
+    ["signoff_name", "Name of the person confirming", "text"],
+    ["signoff", "", "task", { t: "We reviewed the scope, the agreement and the expectations above." }],
+  ]},
+];
+
+let state = {}, dirty = {}, timer = null, saving = false;
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function termsBlock() {
+  return `<div class="terms">
+    <div class="row"><span>Month 1</span><span>$1,200</span></div>
+    <div class="row"><span>Month 2</span><span>$1,200</span></div>
+    <div class="row"><span>Month 3 onward</span><span>$800 + profit share</span></div>
+    <div class="row"><span>Profit share</span><span>3 to 5%, minimum 3%</span></div>
+    <div class="row"><span>Minimum term</span><span>3 months</span></div>
+    <div class="row"><span>Ad spend</span><span>Paid by you directly to Meta</span></div>
+  </div>`;
+}
+function expectBlock() {
+  return `<div class="plan">
+    <div class="wk"><div class="when">Week 1</div><div><h3>Access and tracking</h3><p>All access in place. Tracking, CRM routing and chatbot routing built and tested.</p></div></div>
+    <div class="wk"><div class="when">Week 2</div><div><h3>Landing page and creative</h3><p>Aligner landing page designed and approved. First statics ready. Video scripts and shot lists sent to you.</p></div></div>
+    <div class="wk"><div class="when">Week 3</div><div><h3>Launch</h3><p>Campaigns go live across all three funnels. Every lead lands in the CRM, tagged by ad.</p></div></div>
+    <div class="wk"><div class="when">Week 4</div><div><h3>First review</h3><p>We look at leads, consultations and cost per consultation, and decide what to change.</p></div></div>
+  </div>
+  <p style="color:var(--muted);max-width:40rem">The first two months are for learning. Expect costs to move around while Meta finds the right people. We judge success on booked consultations and started treatments, not likes or clicks.</p>
+  <div class="two">
+    <div><h3>From MK7</h3><ul>
+      <li>Direct access on WhatsApp</li><li>Replies the same business day</li><li>A weekly meeting with results</li><li>Monthly report tied to revenue</li><li>15 to 20 statics a month</li></ul></div>
+    <div><h3>From your team</h3><ul>
+      <li>Reply to new leads fast, ideally within minutes</li><li>Update the CRM after every consultation</li><li>Approve ads and pages within a day</li><li>Film videos from our shot lists</li><li>Tell us what patients are saying</li></ul></div>
+  </div>`;
+}
+
+function fieldHTML(f) {
+  if (!Array.isArray(f)) return `<div class="group-title">${esc(f.g)}</div>`;
+  const [id, label, type, o = {}] = f;
+  const later = `<button type="button" class="later" data-later="${id}">Send later</button>`;
+  const hint = o.hint ? `<p class="hint">${esc(o.hint)}</p>` : "";
+  if (type === "task") {
+    return `<div class="field" data-id="${id}"><label class="task"><input type="checkbox" id="f_${id}" data-f="${id}"><div><span class="t">${esc(o.t || label)}</span>${o.d ? `<span class="d">${esc(o.d)}</span>` : ""}</div></label></div>`;
+  }
+  let input = "";
+  if (type === "area") input = `<textarea id="f_${id}" data-f="${id}" placeholder="${esc(o.ph || "")}"></textarea>`;
+  else if (type === "choice" || type === "multi") {
+    const t = type === "choice" ? "radio" : "checkbox";
+    input = `<div class="choices" role="group" aria-label="${esc(label)}">${o.o.map((v, i) => `<label><input type="${t}" name="f_${id}" id="f_${id}_${i}" value="${esc(v)}" data-f="${id}" data-kind="${type}"><span>${esc(v)}</span></label>`).join("")}</div>`;
+  } else if (type === "file") {
+    input = `<div class="files"><div class="drop" tabindex="0" data-drop="${id}">Drop files here or click to upload</div><input type="file" multiple hidden id="f_${id}" data-file="${id}"><div data-list="${id}"></div></div>`;
+  } else {
+    const it = type === "num" ? "number" : type === "date" ? "date" : "text";
+    input = `<input type="${it}" id="f_${id}" data-f="${id}" placeholder="${esc(o.ph || "")}">`;
+  }
+  return `<div class="field" data-id="${id}"><div class="field-top"><label class="q" for="f_${id}">${esc(label)}</label>${later}</div>${hint}${input}</div>`;
+}
+
+function render() {
+  $("#form").innerHTML = S.map((s, i) => `
+    <section class="part" id="s-${s.id}">
+      <div class="part-head"><div class="step">${i + 1} of ${S.length}</div><h2>${esc(s.title)}</h2><p>${esc(s.intro)}</p></div>
+      ${s.terms ? termsBlock() : ""}${s.expect ? expectBlock() : ""}
+      <div class="fields">${s.f.map(fieldHTML).join("")}</div>
+    </section>`).join("");
+  $("#index").innerHTML = S.map(s => `<li><a href="#s-${s.id}" data-nav="${s.id}"><span>${esc(s.title)}</span><span class="n" data-count="${s.id}"></span></a></li>`).join("");
+}
+
+function fill(skipFocused) {
+  const active = document.activeElement;
+  document.querySelectorAll("[data-f]").forEach(el => {
+    const id = el.dataset.f, v = state[id];
+    if (skipFocused && (el === active || dirty[id] !== undefined)) return;
+    if (el.type === "radio") el.checked = v === el.value;
+    else if (el.type === "checkbox" && el.dataset.kind === "multi") el.checked = Array.isArray(v) && v.includes(el.value);
+    else if (el.type === "checkbox") el.checked = !!v;
+    else if (el.value !== (v ?? "")) el.value = v ?? "";
+  });
+  document.querySelectorAll("[data-list]").forEach(el => {
+    const files = state[el.dataset.list] || [];
+    el.innerHTML = files.map((f, i) => `<div class="file-row"><a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.name)}</a><button type="button" data-rm="${el.dataset.list}" data-i="${i}">Remove</button></div>`).join("");
+  });
+  document.querySelectorAll(".field[data-id]").forEach(el => el.classList.toggle("is-later", !!state["later_" + el.dataset.id]));
+  document.querySelectorAll("[data-later]").forEach(b => b.textContent = state["later_" + b.dataset.later] ? "Will send later" : "Send later");
+  counts();
+}
+
+function answered(id) {
+  const v = state[id];
+  if (state["later_" + id]) return true;
+  if (Array.isArray(v)) return v.length > 0;
+  return v !== undefined && v !== null && v !== "" && v !== false;
+}
+function counts() {
+  let tot = 0, done = 0;
+  S.forEach(s => {
+    const ids = s.f.filter(Array.isArray).map(f => f[0]);
+    const d = ids.filter(answered).length;
+    tot += ids.length; done += d;
+    const el = document.querySelector(`[data-count="${s.id}"]`);
+    if (el) { el.textContent = `${d}/${ids.length}`; el.classList.toggle("done", d === ids.length); }
+  });
+  $("#progress").textContent = `${done} of ${tot} answered`;
+}
+
+function set(id, v) { state[id] = v; dirty[id] = v; counts(); queue(); }
+function queue() { clearTimeout(timer); $("#save").textContent = "Saving"; $("#save").className = "save"; timer = setTimeout(flush, 600); }
+async function flush() {
+  if (saving) { queue(); return; }
+  const patch = dirty; dirty = {};
+  if (!Object.keys(patch).length) return;
+  saving = true;
+  try {
+    const r = await fetch(BASE + "/state", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ patch }) });
+    if (!r.ok) throw 0;
+    $("#save").textContent = "Saved"; $("#save").className = "save ok";
+  } catch (e) {
+    dirty = Object.assign(patch, dirty);
+    $("#save").textContent = "Not saved. Check the connection, retrying."; $("#save").className = "save err";
+    setTimeout(queue, 3000);
+  } finally { saving = false; }
+}
+async function pull() {
+  try {
+    const r = await fetch(BASE + "/state", { cache: "no-store" });
+    if (!r.ok) return;
+    const j = await r.json();
+    state = Object.assign(j.data || {}, dirty);
+    fill(true);
+  } catch (e) {}
+}
+
+document.addEventListener("input", e => {
+  const el = e.target; if (!el.dataset || !el.dataset.f) return;
+  const id = el.dataset.f;
+  if (el.type === "radio") set(id, el.value);
+  else if (el.type === "checkbox" && el.dataset.kind === "multi") set(id, [...document.querySelectorAll(`[data-f="${id}"]:checked`)].map(x => x.value));
+  else if (el.type === "checkbox") set(id, el.checked);
+  else set(id, el.value);
+});
+document.addEventListener("change", e => { if (e.target.type === "radio" || e.target.type === "checkbox") e.target.dispatchEvent(new Event("input", { bubbles: true })); });
+
+document.addEventListener("click", e => {
+  const l = e.target.closest("[data-later]");
+  if (l) { const k = "later_" + l.dataset.later; set(k, !state[k]); fill(false); return; }
+  const d = e.target.closest("[data-drop]");
+  if (d) { document.getElementById("f_" + d.dataset.drop).click(); return; }
+  const rm = e.target.closest("[data-rm]");
+  if (rm) { const id = rm.dataset.rm; const arr = (state[id] || []).slice(); arr.splice(+rm.dataset.i, 1); set(id, arr); fill(false); }
+});
+document.addEventListener("keydown", e => { const d = e.target.closest && e.target.closest("[data-drop]"); if (d && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); d.click(); } });
+
+async function upload(id, files) {
+  const drop = document.querySelector(`[data-drop="${id}"]`);
+  for (const file of files) {
+    drop.textContent = `Uploading ${file.name}`;
+    const fd = new FormData(); fd.append("file", file); fd.append("field", id);
+    try {
+      const r = await fetch(BASE + "/upload", { method: "POST", body: fd });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || "Upload failed");
+      state[id] = j.files; fill(false);
+    } catch (err) { drop.textContent = `${file.name} did not upload: ${err.message}. Try again or use a Drive link.`; return; }
+  }
+  drop.textContent = "Drop files here or click to upload";
+}
+document.addEventListener("change", e => { if (e.target.dataset && e.target.dataset.file) { upload(e.target.dataset.file, [...e.target.files]); e.target.value = ""; } });
+["dragover", "dragleave", "drop"].forEach(t => document.addEventListener(t, e => {
+  const d = e.target.closest && e.target.closest("[data-drop]"); if (!d) return;
+  e.preventDefault();
+  d.classList.toggle("over", t === "dragover");
+  if (t === "drop") upload(d.dataset.drop, [...e.dataTransfer.files]);
+}));
+
+$("#submit").addEventListener("click", async () => {
+  const b = $("#submit"); b.disabled = true; $("#submit-msg").textContent = "Sending";
+  await flush();
+  try {
+    const r = await fetch(BASE + "/submit", { method: "POST" });
+    if (!r.ok) throw 0;
+    $("#submit-msg").textContent = "Submitted. MK7 has a copy and the build starts now.";
+  } catch (e) { $("#submit-msg").textContent = "That did not go through. Check the connection and try again."; }
+  b.disabled = false;
+});
+
+// Highlight the section in view
+const obs = new IntersectionObserver(es => es.forEach(en => {
+  if (en.isIntersecting) document.querySelectorAll("[data-nav]").forEach(a => a.classList.toggle("on", "s-" + a.dataset.nav === en.target.id));
+}), { rootMargin: "-40% 0px -55% 0px" });
+
+render();
+document.querySelectorAll("section.part").forEach(s => obs.observe(s));
+if (matchMedia("(min-width: 1000px)").matches) $("#mobile-brand").hidden = true;
+pull().then(() => fill(false));
+setInterval(() => { if (!Object.keys(dirty).length && !saving) pull(); }, 8000);
+window.addEventListener("beforeunload", () => { if (Object.keys(dirty).length) navigator.sendBeacon(BASE + "/state", new Blob([JSON.stringify({ patch: dirty })], { type: "application/json" })); });
+</script>
+</body>
+</html>
