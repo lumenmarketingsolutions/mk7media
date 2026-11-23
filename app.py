@@ -382,25 +382,81 @@ def onboarding_112026_file(key, fname):
     _, _, fdir = _onboard_paths()
     return send_from_directory(fdir, fname)
 
+def _onboard_fmt(v):
+    if isinstance(v, list):
+        return ", ".join(x.get("name", "") if isinstance(x, dict) else str(x) for x in v)
+    if v is True:
+        return "Done"
+    if v in (False, None):
+        return ""
+    return str(v)
+
+def _onboard_answers(data):
+    """Flatten form data into {field: display text}, folding in 'send later' flags."""
+    out = {}
+    for k, v in data.items():
+        if k.startswith("later_") or k.startswith("zz_"):
+            continue
+        t = _onboard_fmt(v)
+        if data.get("later_" + k):
+            t = f"{t} (will send later)" if t else "Will send later"
+        if t:
+            out[k] = t
+    for k, v in data.items():
+        if k.startswith("later_") and v and k[6:] not in out:
+            out[k[6:]] = "Will send later"
+    return out
+
 @app.route("/112026/onboarding/<key>/submit", methods=["POST"])
 def onboarding_112026_submit(key):
     _onboard_check(key)
     import html as _h
+    body = request.get_json(force=True, silent=True) or {}
+    by = str(body.get("by") or "").strip()[:80] or "Not given"
+    labels = body.get("labels") if isinstance(body.get("labels"), dict) else {}
+    base, _, _ = _onboard_paths()
+    sdir = os.path.join(base, "submissions")
+    os.makedirs(sdir, exist_ok=True)
+    now = datetime.utcnow().isoformat() + "Z"
     with _onboard_lock:
         st = _onboard_load()
-        st["submitted"] = datetime.utcnow().isoformat() + "Z"
+        subs = st.get("submissions") or []
+        answers = _onboard_answers(st["data"])
+        prev = {}
+        if subs:
+            try:
+                with open(os.path.join(sdir, f"{subs[-1]['n']}.json")) as fh:
+                    prev = json.load(fh).get("answers", {})
+            except Exception:
+                prev = {}
+        n = (subs[-1]["n"] + 1) if subs else 1
+        changes = []
+        for k in list(answers.keys()) + [k for k in prev if k not in answers]:
+            a, b = prev.get(k, ""), answers.get(k, "")
+            if a != b:
+                changes.append({"field": k, "before": a, "after": b})
+        with open(os.path.join(sdir, f"{n}.json"), "w") as fh:
+            json.dump({"n": n, "at": now, "by": by, "answers": answers, "changes": changes}, fh, ensure_ascii=False, indent=1)
+        subs.append({"n": n, "at": now, "by": by, "changes": len(changes)})
+        st["submissions"] = subs
+        st["submitted"] = now
         _onboard_save(st)
-    rows = []
-    for k, v in st["data"].items():
-        if k.startswith("later_"):
-            continue
-        if isinstance(v, list):
-            v = ", ".join(x.get("name", "") if isinstance(x, dict) else str(x) for x in v)
-        if st["data"].get("later_" + k):
-            v = f"{v} (will send later)" if v else "Will send later"
-        rows.append(f"<tr><td style='padding:6px 12px 6px 0;color:#888;vertical-align:top'>{_h.escape(k)}</td><td style='padding:6px 0;white-space:pre-wrap'>{_h.escape(str(v))}</td></tr>")
+
+    lab = lambda k: _h.escape(str(labels.get(k) or k))
+    td = "padding:8px 14px 8px 0;vertical-align:top;border-bottom:1px solid #eee"
+    if n == 1:
+        change_html = ""
+    elif changes:
+        rows = "".join(f"<tr><td style='{td};color:#666'>{lab(c['field'])}</td><td style='{td};color:#999;white-space:pre-wrap'>{_h.escape(c['before']) or '(empty)'}</td><td style='{td};white-space:pre-wrap'>{_h.escape(c['after']) or '(removed)'}</td></tr>" for c in changes)
+        change_html = f"<h3>What changed since submission #{n-1}</h3><table style='font-family:sans-serif;font-size:14px;border-collapse:collapse'><tr><th align='left'>Question</th><th align='left'>Before</th><th align='left'>Now</th></tr>{rows}</table>"
+    else:
+        change_html = f"<h3>No changes since submission #{n-1}</h3>"
+    full = "".join(f"<tr><td style='{td};color:#666'>{lab(k)}</td><td style='{td};white-space:pre-wrap'>{_h.escape(v)}</td></tr>" for k, v in answers.items())
     link = f"https://mk7media.com/112026/onboarding/{key}"
-    body = f"<p>The aligner clinic submitted onboarding.</p><p><a href='{link}'>{link}</a></p><table style='font-family:sans-serif;font-size:14px'>{''.join(rows)}</table>"
+    html_body = (f"<p>Submission #{n} from <strong>{_h.escape(by)}</strong>.</p><p><a href='{link}'>{link}</a></p>"
+                 f"{change_html}<h3>All answers</h3><table style='font-family:sans-serif;font-size:14px;border-collapse:collapse'>{full}</table>")
+    subject = (f"Onboarding submitted: clear aligner clinic" if n == 1
+               else f"Onboarding resubmitted #{n}: {len(changes)} change{'s' if len(changes) != 1 else ''} ({by})")
     sent = False
     if RESEND_API_KEY:
         try:
@@ -408,13 +464,27 @@ def onboarding_112026_submit(key):
             r = req.post("https://api.resend.com/emails",
                 headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
                 json={"from": "MK7 Media <notifications@lumenmarketing.co>", "to": ["kendall@lumenmarketing.co"],
-                      "subject": "Onboarding submitted: clear aligner clinic", "html": body}, timeout=10)
+                      "subject": subject, "html": html_body}, timeout=10)
             sent = r.status_code < 300
             if not sent:
                 print(f"[email] Onboarding email rejected {r.status_code}: {r.text[:200]}")
         except Exception as e:
             print(f"[email] Onboarding email failed: {e}")
-    return jsonify({"ok": True, "emailed": sent})
+    return jsonify({"ok": True, "n": n, "changes": len(changes), "emailed": sent})
+
+@app.route("/112026/onboarding/<key>/submissions")
+def onboarding_112026_submissions(key):
+    _onboard_check(key)
+    base, _, _ = _onboard_paths()
+    sdir = os.path.join(base, "submissions")
+    out = []
+    for s in (_onboard_load().get("submissions") or []):
+        try:
+            with open(os.path.join(sdir, f"{s['n']}.json")) as fh:
+                out.append(json.load(fh))
+        except Exception:
+            out.append(s)
+    return jsonify(out)
 
 
 @app.route("/marlatabet")

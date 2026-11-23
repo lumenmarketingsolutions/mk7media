@@ -173,12 +173,17 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: non
     <section class="part" id="s-submit">
       <div class="part-head">
         <h2>All done</h2>
-        <p>When you submit, we get a copy of everything and start the build. You can still edit this page afterwards.</p>
+        <p>Submitting sends MK7 a copy. Your answers stay on this page, so you can keep editing and submit again at any time. We see exactly what changed each time.</p>
+      </div>
+      <div class="field" style="max-width:24rem">
+        <label class="q" for="submit_by">Your name</label>
+        <input type="text" id="submit_by" placeholder="Who is submitting">
       </div>
       <div class="submit-row">
         <button class="btn" id="submit" type="button">Submit onboarding</button>
         <span class="submit-msg" id="submit-msg" aria-live="polite"></span>
       </div>
+      <p class="hint" id="sub-history"></p>
     </section>
   </main>
 </div>
@@ -430,6 +435,7 @@ async function pull() {
     if (!r.ok) return;
     const j = await r.json();
     state = Object.assign(j.data || {}, dirty);
+    subs = j.submissions || []; showSubs();
     fill(true);
   } catch (e) {}
 }
@@ -437,6 +443,7 @@ async function pull() {
 document.addEventListener("input", e => {
   const el = e.target; if (!el.dataset || !el.dataset.f) return;
   const id = el.dataset.f;
+  if (state["later_" + id]) { set("later_" + id, false); fill(false); }
   if (el.type === "radio") set(id, el.value);
   else if (el.type === "checkbox" && el.dataset.kind === "multi") set(id, [...document.querySelectorAll(`[data-f="${id}"]:checked`)].map(x => x.value));
   else if (el.type === "checkbox") set(id, el.checked);
@@ -476,13 +483,25 @@ document.addEventListener("change", e => { if (e.target.dataset && e.target.data
   if (t === "drop") upload(d.dataset.drop, [...e.dataTransfer.files]);
 }));
 
+let subs = [];
+function showSubs() {
+  const last = subs[subs.length - 1];
+  $("#submit").textContent = last ? "Submit changes" : "Submit onboarding";
+  $("#sub-history").textContent = last
+    ? `Submitted ${subs.length} time${subs.length > 1 ? "s" : ""}. Last on ${new Date(last.at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })} by ${last.by}.`
+    : "";
+}
 $("#submit").addEventListener("click", async () => {
   const b = $("#submit"); b.disabled = true; $("#submit-msg").textContent = "Sending";
   await flush();
+  const labels = {};
+  S.forEach(s => s.f.forEach(f => { if (Array.isArray(f)) labels[f[0]] = f[1] || (f[3] && f[3].t) || f[0]; }));
   try {
-    const r = await fetch(BASE + "/submit", { method: "POST" });
+    const r = await fetch(BASE + "/submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ by: $("#submit_by").value, labels }) });
+    const j = await r.json();
     if (!r.ok) throw 0;
-    $("#submit-msg").textContent = "Submitted. MK7 has a copy and the build starts now.";
+    $("#submit-msg").textContent = j.n === 1 ? "Submitted. Your answers stay here, so you can keep editing." : `Submitted again. ${j.changes} change${j.changes === 1 ? "" : "s"} sent to MK7.`;
+    pull();
   } catch (e) { $("#submit-msg").textContent = "That did not go through. Check the connection and try again."; }
   b.disabled = false;
 });
