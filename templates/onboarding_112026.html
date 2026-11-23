@@ -303,6 +303,9 @@ const S = [
     ["signoff_name", "Name of the person confirming", "text"],
     ["signoff", "", "task", { t: "We reviewed the scope, the agreement and the expectations above." }],
   ]},
+  { id: "notes", title: "Additional notes", intro: "Anything else that came up today.", f: [
+    ["notes", "Notes", "area", { big: true }],
+  ]},
 ];
 
 let state = {}, dirty = {}, timer = null, saving = false;
@@ -344,7 +347,7 @@ function fieldHTML(f) {
     return `<div class="field" data-id="${id}"><label class="task"><input type="checkbox" id="f_${id}" data-f="${id}"><div><span class="t">${esc(o.t || label)}</span>${o.d ? `<span class="d">${esc(o.d)}</span>` : ""}</div></label></div>`;
   }
   let input = "";
-  if (type === "area") input = `<textarea id="f_${id}" data-f="${id}" placeholder="${esc(o.ph || "")}"></textarea>`;
+  if (type === "area") input = `<textarea id="f_${id}" data-f="${id}" placeholder="${esc(o.ph || "")}"${o.big ? ' style="min-height:16rem"' : ""}></textarea>`;
   else if (type === "choice" || type === "multi") {
     const t = type === "choice" ? "radio" : "checkbox";
     input = `<div class="choices" role="group" aria-label="${esc(label)}">${o.o.map((v, i) => `<label><input type="${t}" name="f_${id}" id="f_${id}_${i}" value="${esc(v)}" data-f="${id}" data-kind="${type}"><span>${esc(v)}</span></label>`).join("")}</div>`;
