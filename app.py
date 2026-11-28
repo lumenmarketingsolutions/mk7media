@@ -295,6 +295,23 @@ def proposal_112026():
     return render_template("proposal_112026.html")
 
 
+# ---- Fixaligner landing page mockup + website review: /112026/landing/ (Nov 2026) ----
+# Static files live in static/112026-landing/ (index.html, styles.css, app.js, images/, downloads/).
+LANDING_112026_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "112026-landing")
+
+@app.route("/112026/landing")
+def landing_112026_slash():
+    return redirect("/112026/landing/", code=301)
+
+@app.route("/112026/landing/")
+@app.route("/112026/landing/<path:fname>")
+def landing_112026(fname="index.html"):
+    from flask import send_from_directory
+    resp = send_from_directory(LANDING_112026_DIR, fname)
+    resp.headers["X-Robots-Tag"] = "noindex, nofollow"
+    return resp
+
+
 # ---- Client onboarding: /112026/onboarding/<key> (clear aligner clinic, Nov 2026) ----
 # Shared form state lives as JSON on the Railway volume; uploads sit next to it.
 ONBOARD_KEY_112026 = "22f5014f"
